@@ -34,7 +34,7 @@ INSERT INTO products (site_id, category_id, brand_id, name, slug, model, capacit
   ('externalssds', 2, 2, 'Crucial X10 Pro', 'crucial-x10-pro', 'CT2000X10PRO9', 2048, 'External', 'USB 3.2 Gen 2x2', 2100, 2000, 1200, 5, 'Professional-grade portable SSD with speeds up to 2100MB/s. Mac and PC compatible.', 9.0, 0),
   ('externalssds', 1, 3, 'WD My Passport SSD', 'wd-my-passport-ssd', 'WDBAGF0010BGY', 1024, 'External', 'USB 3.2 Gen 2', 1050, 1000, 500, 3, 'Sleek, stylish external SSD with hardware encryption and drop resistance up to 6.5 feet.', 8.5, 0),
   ('externalssds', 3, 9, 'Corsair EX100U', 'corsair-ex100u', 'CSSD-EX100U-2000', 2048, 'External', 'USB 3.2 Gen 2x2', 1600, 1500, 900, 3, 'High-performance external SSD with USB-C connectivity, ideal for gaming and content creation.', 8.2, 0),
-  ('externalssds', 2, 5, 'Seagate FireCuda External USB-C', 'seagate-firecuda-external', 'STJP2000400', 2048, 'External', 'USB 3.2 Gen 2', 1030, 1030, 700, 3, 'Purpose-built for gamers with RGB lighting and fast load times for console and PC.', 8.8, 0);
+  ('externalssds', 2, 5, 'Seagate FireCuda External USB-C', 'seagate-firecuda-external', 'STJP2000400', 2048, 'External', 'USB 3.2 Gen 2', 1030, 1030, 700, 3, 'Purpose-built for gamers with RGB lighting and fast load times for console and PC.', 8.8, 1);
 
 -- Products for portablessds.com
 INSERT INTO products (site_id, category_id, brand_id, name, slug, model, capacity_gb, form_factor, interface, read_speed_mbps, write_speed_mbps, tbw, warranty_years, description, overall_score, is_featured) VALUES

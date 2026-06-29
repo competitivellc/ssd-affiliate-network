@@ -42,9 +42,10 @@ for (const p of products) {
             href={`/compare?category=${cat.slug}`}
             class={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
               categorySlug === cat.slug
-                ? "bg-blue-50 border-blue-200 text-blue-700"
+                ? "border text-white"
                 : "border-surface-200 text-surface-600 hover:bg-surface-50"
             }`}
+            style={categorySlug === cat.slug ? `background-color: ${tenant.primaryColor}; border-color: ${tenant.primaryColor}` : ""}
           >
             {cat.name}
           </a>
