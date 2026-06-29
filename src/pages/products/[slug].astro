@@ -1,0 +1,206 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
+import PriceHistory from "@components/PriceHistory.astro";
+import { getProductBySlug, getProductPrices } from "@lib/db";
+import { formatPrice, getLowestPrice } from "@lib/pricing";
+
+export async function getStaticPaths() {
+  return [];
+}
+
+const { DB, tenant } = Astro.locals;
+const { slug } = Astro.params;
+const db = DB!;
+
+const product = await getProductBySlug(db, tenant.id, slug!);
+if (!product) {
+  return Astro.redirect("/404");
+}
+
+const prices = await getProductPrices(db, product.id);
+const lowestPrice = getLowestPrice(prices as any);
+const sortedPrices = [...prices].sort((a, b) => a.price_cents - b.price_cents);
+
+const scoreColor =
+  product.overall_score >= 9
+    ? "text-emerald-600"
+    : product.overall_score >= 8
+    ? "text-blue-600"
+    : "text-amber-600";
+
+const scoreBgColor =
+  product.overall_score >= 9
+    ? "bg-emerald-50"
+    : product.overall_score >= 8
+    ? "bg-blue-50"
+    : "bg-amber-50";
+---
+
+<BaseLayout title={product.name} description={product.description}>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid lg:grid-cols-3 gap-8">
+      <div class="lg:col-span-2">
+        <nav class="flex items-center gap-2 text-sm text-surface-500 mb-6">
+          <a href="/" class="hover:text-surface-700">Home</a>
+          <span>/</span>
+          {product.category_slug && (
+            <>
+              <a href={`/compare?category=${product.category_slug}`} class="hover:text-surface-700">{product.category_name}</a>
+              <span>/</span>
+            </>
+          )}
+          <span class="text-surface-900">{product.name}</span>
+        </nav>
+
+        <div class="flex items-start justify-between mb-6">
+          <div>
+            <p class="text-sm font-medium text-surface-500 uppercase tracking-wider">{product.brand_name}</p>
+            <h1 class="text-2xl sm:text-3xl font-bold text-surface-900 mt-0.5">{product.name}</h1>
+            {product.model && (
+              <p class="text-sm text-surface-400 mt-1">Model: {product.model}</p>
+            )}
+          </div>
+          <div class={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold ${scoreBgColor} ${scoreColor}`}>
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+            </svg>
+            {product.overall_score.toFixed(1)}
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-surface-200 overflow-hidden mb-8">
+          <table class="compare-grid">
+            <tbody>
+              <tr>
+                <td class="font-medium text-surface-600 bg-surface-50/50 w-40">Capacity</td>
+                <td class="text-surface-900 font-medium">{product.capacity_gb >= 1000 ? `${(product.capacity_gb / 1000).toFixed(0)}TB` : `${product.capacity_gb}GB`}</td>
+              </tr>
+              <tr>
+                <td class="font-medium text-surface-600 bg-surface-50/50">Interface</td>
+                <td class="text-surface-900">{product.interface}</td>
+              </tr>
+              <tr>
+                <td class="font-medium text-surface-600 bg-surface-50/50">Form Factor</td>
+                <td class="text-surface-900">{product.form_factor}</td>
+              </tr>
+              <tr>
+                <td class="font-medium text-surface-600 bg-surface-50/50">Read Speed</td>
+                <td class="text-surface-900 font-mono font-medium">{product.read_speed_mbps.toLocaleString()} MB/s</td>
+              </tr>
+              <tr>
+                <td class="font-medium text-surface-600 bg-surface-50/50">Write Speed</td>
+                <td class="text-surface-900 font-mono font-medium">{product.write_speed_mbps.toLocaleString()} MB/s</td>
+              </tr>
+              <tr>
+                <td class="font-medium text-surface-600 bg-surface-50/50">Endurance (TBW)</td>
+                <td class="text-surface-900">{product.tbw.toLocaleString()} TB</td>
+              </tr>
+              <tr>
+                <td class="font-medium text-surface-600 bg-surface-50/50">Warranty</td>
+                <td class="text-surface-900">{product.warranty_years} Years</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {product.description && (
+          <section class="mb-8">
+            <h2 class="text-xl font-semibold text-surface-900 mb-3">Overview</h2>
+            <p class="text-surface-600 leading-relaxed">{product.description}</p>
+          </section>
+        )}
+
+        <div class="grid sm:grid-cols-2 gap-6 mb-8">
+          {product.pros && (
+            <div class="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+              <h3 class="text-sm font-semibold text-emerald-800 mb-2">Pros</h3>
+              <ul class="space-y-1">
+                {JSON.parse(product.pros).map((pro: string) => (
+                  <li class="flex items-start gap-2 text-sm text-emerald-700">
+                    <svg class="w-4 h-4 mt-0.5 shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    {pro}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {product.cons && (
+            <div class="rounded-xl border border-red-200 bg-red-50/50 p-4">
+              <h3 class="text-sm font-semibold text-red-800 mb-2">Cons</h3>
+              <ul class="space-y-1">
+                {JSON.parse(product.cons).map((con: string) => (
+                  <li class="flex items-start gap-2 text-sm text-red-700">
+                    <svg class="w-4 h-4 mt-0.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    {con}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold text-surface-900 mb-4">Price History (30 days)</h2>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {["Amazon", "B&H Photo", "Newegg"].map((retailer) => (
+              <PriceHistory productId={product.id} retailer={retailer} />
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div class="lg:col-span-1">
+        <div class="sticky top-8 space-y-4">
+          <div class="rounded-xl border border-surface-200 p-5">
+            <h3 class="text-sm font-semibold text-surface-700 mb-4">Buy Now</h3>
+            <div class="space-y-2">
+              {sortedPrices.map((price) => (
+                <GeoAffiliateLink
+                  url={price.affiliate_url || "#"}
+                  retailer={price.retailer}
+                  label={`${price.retailer} - ${formatPrice(price.price_cents, price.currency)}`}
+                  className="w-full justify-between border-surface-200 text-surface-700 hover:bg-surface-50"
+                />
+              ))}
+            </div>
+            {lowestPrice && (
+              <p class="mt-3 text-xs text-surface-400 text-center">
+                Lowest price: {formatPrice(lowestPrice.price_cents, lowestPrice.currency)}
+              </p>
+            )}
+          </div>
+
+          <div class="rounded-xl border border-surface-200 p-5">
+            <h3 class="text-sm font-semibold text-surface-700 mb-3">Quick Specs</h3>
+            <div class="space-y-3">
+              <div>
+                <div class="flex justify-between text-xs text-surface-500 mb-1">
+                  <span>Read Speed</span>
+                  <span class="font-mono font-medium text-surface-700">{product.read_speed_mbps} MB/s</span>
+                </div>
+                <div class="spec-bar">
+                  <div class="spec-bar-fill bg-blue-500" style={`width: ${Math.min(100, (product.read_speed_mbps / 3000) * 100)}%`}></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs text-surface-500 mb-1">
+                  <span>Write Speed</span>
+                  <span class="font-mono font-medium text-surface-700">{product.write_speed_mbps} MB/s</span>
+                </div>
+                <div class="spec-bar">
+                  <div class="spec-bar-fill bg-emerald-500" style={`width: ${Math.min(100, (product.write_speed_mbps / 3000) * 100)}%`}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+---

@@ -1,0 +1,25 @@
+---
+import type { TenantConfig } from "@config/tenants";
+
+export interface Props {
+  tenant: TenantConfig;
+}
+
+const { tenant } = Astro.props;
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-surface-200 bg-surface-50 mt-16">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-sm text-surface-500">
+        &copy; {year} {tenant.name}. All rights reserved.
+      </p>
+      <div class="flex items-center gap-4 text-sm text-surface-500">
+        <span>As an Amazon Associate we earn from qualifying purchases.</span>
+        <span class="hidden sm:inline">&middot;</span>
+        <span>Prices subject to change.</span>
+      </div>
+    </div>
+  </div>
+</footer>

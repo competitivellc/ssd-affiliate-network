@@ -1,0 +1,16 @@
+name = "ssd-affiliate-network"
+pages_build_output_dir = "dist"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "ssd-affiliate-db"
+database_id = "c3915552-b3e5-4f59-a9f2-736070adba03"
+
+# KV Cache
+[[kv_namespaces]]
+binding = "PRICE_CACHE"
+id = "68b4b1e79ec8441f86764b16f5b5957a"
+preview_id = "68b4b1e79ec8441f86764b16f5b5957a"

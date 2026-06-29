@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.local
+.wrangler/
+.turbo/
+*.log
+.DS_Store
+Thumbs.db
+database_uuid.txt
+kv_id.txt

@@ -1,0 +1,100 @@
+---
+import type { Product, Price } from "@lib/db";
+import { formatPrice, getLowestPrice } from "@lib/pricing";
+import GeoAffiliateLink from "./GeoAffiliateLink.astro";
+
+export interface Props {
+  products: Product[];
+  pricesByProduct: Record<number, Price[]>;
+}
+
+const { products, pricesByProduct } = Astro.props;
+const specs = [
+  { key: "capacity", label: "Capacity", render: (p: Product) => p.capacity_gb >= 1000 ? `${(p.capacity_gb / 1000).toFixed(0)}TB` : `${p.capacity_gb}GB` },
+  { key: "interface", label: "Interface", render: (p: Product) => p.interface },
+  { key: "read", label: "Read Speed", render: (p: Product) => `${p.read_speed_mbps} MB/s` },
+  { key: "write", label: "Write Speed", render: (p: Product) => `${p.write_speed_mbps} MB/s` },
+  { key: "tbw", label: "Endurance (TBW)", render: (p: Product) => `${p.tbw} TB` },
+  { key: "warranty", label: "Warranty", render: (p: Product) => `${p.warranty_years} years` },
+  { key: "form", label: "Form Factor", render: (p: Product) => p.form_factor },
+];
+---
+
+<div class="overflow-x-auto rounded-xl border border-surface-200">
+  <table class="compare-grid">
+    <thead>
+      <tr>
+        <th class="w-40">Specification</th>
+        {products.map((p) => (
+          <th class="min-w-[180px]">
+            <span class="text-xs text-surface-400">{p.brand_name}</span>
+            <a href={`/products/${p.slug}`} class="block text-sm font-semibold text-surface-900 hover:text-blue-600 mt-0.5">{p.name}</a>
+          </th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {specs.map((spec) => (
+        <tr>
+          <td class="font-medium text-surface-600 bg-surface-50/50">{spec.label}</td>
+          {products.map((p) => (
+            <td class="text-surface-900">{spec.render(p)}</td>
+          ))}
+        </tr>
+      ))}
+      <tr>
+        <td class="font-medium text-surface-600 bg-surface-50/50">Rating</td>
+        {products.map((p) => (
+          <td>
+            <span class={`inline-flex items-center gap-1 text-sm font-bold ${
+              p.overall_score >= 9 ? "text-emerald-600" : p.overall_score >= 8 ? "text-blue-600" : "text-amber-600"
+            }`}>
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+              </svg>
+              {p.overall_score.toFixed(1)}
+            </span>
+          </td>
+        ))}
+      </tr>
+      <tr class="bg-surface-50">
+        <td class="font-semibold text-surface-900">Best Price</td>
+        {products.map((p) => {
+          const prices = pricesByProduct[p.id] || [];
+          const best = getLowestPrice(prices as any);
+          return (
+            <td>
+              {best ? (
+                <div class="flex flex-col gap-1">
+                  <span class="text-lg font-bold text-surface-900">{formatPrice(best.price_cents, best.currency)}</span>
+                  <span class="text-xs text-surface-500">via {best.retailer}</span>
+                </div>
+              ) : (
+                <span class="text-sm text-surface-400">--</span>
+              )}
+            </td>
+          );
+        })}
+      </tr>
+      <tr>
+        <td class="font-medium text-surface-600 bg-surface-50/50">Buy</td>
+        {products.map((p) => {
+          const prices = pricesByProduct[p.id] || [];
+          return (
+            <td>
+              <div class="flex flex-col gap-1.5">
+                {prices.slice(0, 3).map((price) => (
+                  <GeoAffiliateLink
+                    url={price.affiliate_url || "#"}
+                    retailer={price.retailer}
+                    label={`${price.retailer} - ${formatPrice(price.price_cents, price.currency)}`}
+                  />
+                ))}
+              </div>
+            </td>
+          );
+        })}
+      </tr>
+    </tbody>
+  </table>
+</div>

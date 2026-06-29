@@ -1,0 +1,26 @@
+{
+  "name": "ssd-affiliate-network",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "cf:publish": "wrangler pages deploy dist",
+    "db:init": "wrangler d1 execute ssd-affiliate-db --file=./db/schema.sql",
+    "db:seed": "wrangler d1 execute ssd-affiliate-db --file=./db/seed.sql",
+    "worker:deploy": "wrangler deploy worker/price-sync.ts --name ssd-price-sync"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^12.0.0",
+    "astro": "^5.0.0"
+  },
+  "devDependencies": {
+    "@astrojs/tailwind": "^6.0.0",
+    "@cloudflare/workers-types": "^4.20241201.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.0",
+    "wrangler": "^4.0.0"
+  }
+}

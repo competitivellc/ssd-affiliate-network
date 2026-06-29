@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-white text-surface-900 antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+@layer components {
+  .compare-grid {
+    @apply w-full border-collapse;
+  }
+  .compare-grid th {
+    @apply px-4 py-3 text-left text-sm font-semibold text-surface-600 bg-surface-50 border-b border-surface-200;
+  }
+  .compare-grid td {
+    @apply px-4 py-3 text-sm border-b border-surface-100;
+  }
+  .price-badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  .price-badge-lowest {
+    @apply bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200;
+  }
+  .price-badge-current {
+    @apply bg-blue-50 text-blue-700 ring-1 ring-blue-200;
+  }
+  .spec-bar {
+    @apply h-2 rounded-full bg-surface-100 overflow-hidden;
+  }
+  .spec-bar-fill {
+    @apply h-full rounded-full transition-all duration-500;
+  }
+  .product-card {
+    @apply relative rounded-xl border border-surface-200 bg-white p-5 transition-all hover:shadow-lg hover:-translate-y-0.5;
+  }
+  .product-card.featured {
+    @apply ring-2 ring-amber-400 border-amber-300;
+  }
+}

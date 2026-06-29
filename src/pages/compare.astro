@@ -1,0 +1,90 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import ComparisonTable from "@components/ComparisonTable.astro";
+import { getAllProducts, getProductsByCategory, getProductPrices, getCategoriesBySite } from "@lib/db";
+import type { Product, Price } from "@lib/db";
+import { getPriceSavings } from "@lib/pricing";
+
+const { DB, tenant } = Astro.locals;
+const db = DB!;
+const url = new URL(Astro.request.url);
+const categorySlug = url.searchParams.get("category");
+const selectedIds = url.searchParams.getAll("ids").map(Number).filter(Boolean);
+
+const categories = await getCategoriesBySite(db, tenant.id);
+let products: Product[];
+
+if (categorySlug) {
+  products = await getProductsByCategory(db, tenant.id, categorySlug);
+} else if (selectedIds.length > 0) {
+  const all = await getAllProducts(db, tenant.id);
+  products = all.filter((p) => selectedIds.includes(p.id));
+} else {
+  products = await getAllProducts(db, tenant.id);
+}
+
+const pricesByProduct: Record<number, Price[]> = {};
+for (const p of products) {
+  pricesByProduct[p.id] = await getProductPrices(db, p.id);
+}
+---
+
+<BaseLayout title="Compare SSDs Side by Side">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-surface-900">Compare SSDs</h1>
+        <p class="mt-1 text-surface-500">Side-by-side specification comparison</p>
+      </div>
+      <div class="flex items-center gap-2">
+        {categories.map((cat) => (
+          <a
+            href={`/compare?category=${cat.slug}`}
+            class={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+              categorySlug === cat.slug
+                ? "bg-blue-50 border-blue-200 text-blue-700"
+                : "border-surface-200 text-surface-600 hover:bg-surface-50"
+            }`}
+          >
+            {cat.name}
+          </a>
+        ))}
+        {categorySlug && (
+          <a
+            href="/compare"
+            class="px-3 py-1.5 text-xs font-medium rounded-lg border border-surface-200 text-surface-500 hover:bg-surface-50"
+          >
+            All
+          </a>
+        )}
+      </div>
+    </div>
+
+    {products.length === 0 ? (
+      <div class="text-center py-16">
+        <p class="text-surface-500">No products found in this category.</p>
+      </div>
+    ) : (
+      <>
+        <div class="mb-6 flex items-center gap-4 text-sm text-surface-500">
+          <span>Comparing {products.length} products</span>
+          {products.slice(0, 1).map((p) => {
+            const savings = getPriceSavings(
+              (pricesByProduct[p.id] || []).map((pr) => ({
+                retailer: pr.retailer,
+                price_cents: pr.price_cents,
+              }))
+            );
+            return savings.maxSavings > 0 ? (
+              <span class="text-emerald-600 font-medium">
+                Save up to {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(savings.maxSavings / 100)}
+              </span>
+            ) : null;
+          })}
+        </div>
+        <ComparisonTable products={products} pricesByProduct={pricesByProduct} />
+      </>
+    )}
+  </div>
+</BaseLayout>
+---
