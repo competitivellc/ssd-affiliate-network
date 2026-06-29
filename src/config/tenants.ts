@@ -30,6 +30,16 @@ export const tenants: Record<string, TenantConfig> = {
     defaultCurrency: "USD",
     defaultLocale: "en-US",
   },
+  "ssd-affiliate-network.pages.dev": {
+    id: "externalssds",
+    domain: "ssd-affiliate-network.pages.dev",
+    name: "External SSDs",
+    tagline: "Find the Best External Solid State Drives – Expert Reviews & Price Comparisons",
+    primaryColor: "#0c8ee7",
+    accentColor: "#f59e0b",
+    defaultCurrency: "USD",
+    defaultLocale: "en-US",
+  },
 };
 
 export function getTenant(hostname: string): TenantConfig | null {
