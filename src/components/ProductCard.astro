@@ -1,16 +1,11 @@
 ---
-import type { Product, Price } from "@lib/db";
-import { formatPrice, getLowestPrice } from "@lib/pricing";
-import { getProductPrices } from "@lib/db";
+import type { Product } from "@lib/db";
 
 export interface Props {
   product: Product;
 }
 
 const { product } = Astro.props;
-const { DB } = Astro.locals;
-const prices: Price[] = await getProductPrices(DB as any, product.id);
-const lowestPrice = getLowestPrice(prices as any);
 const scoreColor =
   product.overall_score >= 9
     ? "text-emerald-600 bg-emerald-50"
@@ -55,14 +50,7 @@ const scoreColor =
     </div>
   </div>
 
-  <div class="flex items-center justify-between pt-3 border-t border-surface-100">
-    <div>
-      {lowestPrice ? (
-        <span class="text-lg font-bold text-surface-900">{formatPrice(lowestPrice.price_cents, lowestPrice.currency)}</span>
-      ) : (
-        <span class="text-sm text-surface-400">No prices</span>
-      )}
-    </div>
+  <div class="flex items-center justify-end pt-3 border-t border-surface-100">
     <span class="text-sm font-medium text-blue-600 group-hover:text-blue-700">
       View Details &rarr;
     </span>
