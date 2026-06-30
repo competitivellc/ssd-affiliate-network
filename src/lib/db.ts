@@ -220,6 +220,48 @@ export async function getLastUpdatedDate(db: D1Database, siteId: string): Promis
   return results[0]?.last_updated || null;
 }
 
+export async function getProductsByBrand(
+  db: D1Database,
+  siteId: string,
+  brandId: number,
+  excludeProductId: number
+): Promise<Product[]> {
+  const { results } = await db
+    .prepare(
+      `SELECT p.*, b.name as brand_name, b.slug as brand_slug, c.name as category_name, c.slug as category_slug
+       FROM products p
+       LEFT JOIN brands b ON p.brand_id = b.id
+       LEFT JOIN categories c ON p.category_id = c.id
+       WHERE p.site_id = ? AND p.brand_id = ? AND p.id != ? AND p.is_active = 1
+       ORDER BY p.overall_score DESC
+       LIMIT 4`
+    )
+    .bind(siteId, brandId, excludeProductId)
+    .all<Product>();
+  return results;
+}
+
+export async function getRelatedProducts(
+  db: D1Database,
+  siteId: string,
+  categoryId: number,
+  excludeProductId: number
+): Promise<Product[]> {
+  const { results } = await db
+    .prepare(
+      `SELECT p.*, b.name as brand_name, b.slug as brand_slug, c.name as category_name, c.slug as category_slug
+       FROM products p
+       LEFT JOIN brands b ON p.brand_id = b.id
+       LEFT JOIN categories c ON p.category_id = c.id
+       WHERE p.site_id = ? AND p.category_id = ? AND p.id != ? AND p.is_active = 1
+       ORDER BY p.overall_score DESC
+       LIMIT 4`
+    )
+    .bind(siteId, categoryId, excludeProductId)
+    .all<Product>();
+  return results;
+}
+
 export async function getPriceHistory(
   db: D1Database,
   productId: number,

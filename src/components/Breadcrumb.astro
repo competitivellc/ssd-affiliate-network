@@ -1,0 +1,39 @@
+---
+export interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+export interface Props {
+  items: BreadcrumbItem[];
+}
+
+const { items } = Astro.props;
+const { hostname } = Astro.locals;
+
+const breadcrumbJson = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: items.map((item, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    name: item.label,
+    ...(item.href ? { item: `https://${hostname}${item.href}` } : {}),
+  })),
+};
+---
+
+<nav aria-label="Breadcrumb" class="flex items-center gap-2 text-sm text-surface-500 mb-6">
+  {items.map((item, i) => (
+    <>
+      {i > 0 && <span class="text-surface-300">/</span>}
+      {item.href ? (
+        <a href={item.href} class="hover:text-surface-700 transition-colors">{item.label}</a>
+      ) : (
+        <span class="text-surface-900 font-medium" aria-current="page">{item.label}</span>
+      )}
+    </>
+  ))}
+</nav>
+
+<script type="application/ld+json" set:html={JSON.stringify(breadcrumbJson)} />
