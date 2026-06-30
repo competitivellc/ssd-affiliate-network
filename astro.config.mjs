@@ -9,11 +9,6 @@ export default defineConfig({
       enabled: true,
     },
     imageService: "compile",
-    routes: {
-      strategy: "include",
-      include: ["/*"],
-      exclude: ["/_astro/*", "/favicon-external.svg", "/favicon-portable.svg"],
-    },
   }),
   integrations: [tailwind()],
 });
