@@ -16,10 +16,7 @@ const homeUrl = hosts[tenant.domain] || "/";
 <header class="border-b border-surface-200 bg-white">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="flex h-16 items-center justify-between">
-      <a href={homeUrl} class="flex items-center gap-2 no-underline">
-        <svg class="h-8 w-8" style={{ color: tenant.primaryColor }} viewBox="0 0 32 32" fill="currentColor">
-          <path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2zm-2 20l-5-5 1.41-1.41L14 19.17l7.59-7.59L23 13l-9 9z"/>
-        </svg>
+      <a href={homeUrl} class="no-underline">
         <span class="text-xl font-bold text-surface-900">{tenant.name}</span>
       </a>
       <nav class="flex items-center gap-6">
