@@ -14,9 +14,10 @@ const [featured, allProducts, categories, lastUpdated] = await Promise.all([
   getLastUpdatedDate(db, tenant.id),
 ]);
 const accentStyle = { backgroundColor: tenant.primaryColor };
+const year = new Date().getFullYear();
 ---
 
-<BaseLayout title={tenant.id === "portablessds" ? "Top Portable SSDs 2024 - Expert Reviews, Prices & Comparisons" : "Best External SSDs 2024 - Expert Reviews, Prices & Comparisons"}>
+<BaseLayout title={tenant.id === "portablessds" ? `Top Portable SSDs ${year} - Expert Reviews, Prices & Comparisons` : `Best External SSDs ${year} - Expert Reviews, Prices & Comparisons`}>
   <HeroSection tenant={tenant} productCount={allProducts.length} lastUpdated={lastUpdated} />
 
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
