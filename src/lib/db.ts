@@ -210,6 +210,16 @@ export async function getAffiliateTag(
   return fallback[0]?.affiliate_tag || null;
 }
 
+export async function getLastUpdatedDate(db: D1Database, siteId: string): Promise<string | null> {
+  const { results } = await db
+    .prepare(
+      `SELECT MAX(updated_at) as last_updated FROM products WHERE site_id = ? AND is_active = 1`
+    )
+    .bind(siteId)
+    .all<{ last_updated: string }>();
+  return results[0]?.last_updated || null;
+}
+
 export async function getPriceHistory(
   db: D1Database,
   productId: number,

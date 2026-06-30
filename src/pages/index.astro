@@ -2,21 +2,22 @@
 import BaseLayout from "@layouts/BaseLayout.astro";
 import HeroSection from "@components/HeroSection.astro";
 import ProductGrid from "@components/ProductGrid.astro";
-import { getFeaturedProducts, getAllProducts, getCategoriesBySite } from "@lib/db";
+import { getFeaturedProducts, getAllProducts, getCategoriesBySite, getLastUpdatedDate } from "@lib/db";
 import type { Product } from "@lib/db";
 
 const { DB, tenant } = Astro.locals;
 const db = DB!;
-const [featured, allProducts, categories] = await Promise.all([
+const [featured, allProducts, categories, lastUpdated] = await Promise.all([
   getFeaturedProducts(db, tenant.id),
   getAllProducts(db, tenant.id),
   getCategoriesBySite(db, tenant.id),
+  getLastUpdatedDate(db, tenant.id),
 ]);
 const accentStyle = { backgroundColor: tenant.primaryColor };
 ---
 
 <BaseLayout title="Compare & Review Top SSDs">
-  <HeroSection tenant={tenant} productCount={allProducts.length} />
+  <HeroSection tenant={tenant} productCount={allProducts.length} lastUpdated={lastUpdated} />
 
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
     {featured.length > 0 && (
