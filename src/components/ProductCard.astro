@@ -21,7 +21,10 @@ const scoreColor =
     : "text-amber-600 bg-amber-50";
 ---
 
-<div class="product-card block no-underline">
+<div
+  class="product-card block no-underline cursor-pointer"
+  onclick={`location.href='/products/${product.slug}'`}
+>
   <div class="flex items-start justify-between mb-3">
     <div class="flex items-center gap-2">
       {rank && (
@@ -63,16 +66,19 @@ const scoreColor =
 
   <div class="pt-3 border-t border-surface-100 space-y-2">
     {lowestPrice && (
-      <GeoAffiliateLink
-        url={lowestPrice.affiliate_url || "#"}
-        retailer={lowestPrice.retailer}
-        label="Click for Best Price"
-        className="w-full justify-center py-2.5 text-sm bg-[#ef3737] text-white border-[#ef3737] hover:bg-[#d62f2f] [&_svg]:text-white"
-      />
+      <div onclick="event.stopPropagation()">
+        <GeoAffiliateLink
+          url={lowestPrice.affiliate_url || "#"}
+          retailer={lowestPrice.retailer}
+          label="Click for Best Price"
+          className="w-full justify-center py-2.5 text-sm bg-[#ef3737] text-white border-[#ef3737] hover:bg-[#d62f2f] [&_svg]:text-white"
+        />
+      </div>
     )}
     <a
       href={`/products/${product.slug}`}
       class="block text-center text-sm font-medium text-blue-600 hover:text-blue-700 no-underline"
+      onclick="event.stopPropagation()"
     >
       View Details &rarr;
     </a>
