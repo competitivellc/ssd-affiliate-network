@@ -2,7 +2,6 @@
 import BaseLayout from "@layouts/BaseLayout.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
 import { getProductBySlug, getProductPrices } from "@lib/db";
-import { formatPrice } from "@lib/pricing";
 
 export async function getStaticPaths() {
   return [];
@@ -153,7 +152,7 @@ const scoreBgColor =
                 <GeoAffiliateLink
                   url={sortedPrices[0].affiliate_url || "#"}
                   retailer={sortedPrices[0].retailer}
-                  label={`${sortedPrices[0].retailer} - ${formatPrice(sortedPrices[0].price_cents, sortedPrices[0].currency)}`}
+                  label="Click for Best Price"
                   className="w-full justify-between border-surface-200 text-surface-700 hover:bg-surface-50"
                 />
               )}
