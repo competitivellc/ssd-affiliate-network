@@ -2,8 +2,8 @@
 
 -- Sites (multi-tenant)
 INSERT INTO sites (id, domain, name, tagline, primary_color) VALUES
-  ('externalssds', 'externalssds.com', 'External SSDs', 'Find the Best External Solid State Drives – Expert Reviews & Price Comparisons', '#0c8ee7'),
-  ('portablessds', 'portablessds.com', 'Portable SSDs', 'Compare the Best Portable Solid State Drives – Speed, Reliability & Value', '#10b981');
+  ('externalssds', 'externalssds.com', 'External SSDs', 'Find the Best External Solid State Drives - Expert Reviews & Price Comparisons', '#0c8ee7'),
+  ('portablessds', 'portablessds.com', 'Portable SSDs', 'Compare the Best Portable Solid State Drives - Speed, Reliability & Value', '#10b981');
 
 -- Categories
 INSERT INTO categories (site_id, slug, name, description, display_order) VALUES
