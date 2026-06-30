@@ -10,7 +10,7 @@ export async function getStaticPaths() {
   return [];
 }
 
-const { DB, tenant } = Astro.locals;
+const { DB, tenant, hostname } = Astro.locals;
 const { slug } = Astro.params;
 const db = DB!;
 
@@ -43,6 +43,40 @@ const scoreBgColor =
     ? "bg-blue-50"
     : "bg-amber-50";
 
+const productUrl = `https://${hostname}/products/${product.slug}`;
+
+const productJsonLd = {
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "@id": productUrl,
+  name: product.name,
+  description: product.description,
+  ...(product.model ? { mpn: product.model } : {}),
+  brand: {
+    "@type": "Brand",
+    name: product.brand_name,
+  },
+  offers: sortedPrices.map((p) => ({
+    "@type": "Offer",
+    priceCurrency: p.currency,
+    price: (p.price_cents / 100).toFixed(2),
+    availability: p.in_stock === 1
+      ? "https://schema.org/InStock"
+      : "https://schema.org/OutOfStock",
+    ...(p.affiliate_url ? { url: p.affiliate_url } : {}),
+    seller: {
+      "@type": "Organization",
+      name: p.retailer,
+    },
+  })),
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: product.overall_score.toFixed(1),
+    bestRating: 10,
+    reviewCount: 1,
+  },
+};
+
 const archetype = classifyDrive(product);
 const calloutBg: Record<string, string> = {
   "elite-pro-creator": "bg-purple-50 border-purple-200",
@@ -60,7 +94,7 @@ const calloutText: Record<string, string> = {
 };
 ---
 
-<BaseLayout title={`${product.name} Review, Specs & Price`} description={product.description}>
+<BaseLayout title={`${product.name} Review, Specs & Price`} description={product.description} jsonLd={productJsonLd}>
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <div class="grid lg:grid-cols-3 gap-8">
       <div class="lg:col-span-2">
