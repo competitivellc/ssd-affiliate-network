@@ -26,9 +26,12 @@ const specs = [
       <tr>
         <th class="w-40">Specification</th>
         {products.map((p) => (
-          <th class="min-w-[180px]">
+          <th class="min-w-[200px]">
             <span class="text-xs text-surface-400">{p.brand_name}</span>
             <a href={`/products/${p.slug}`} class="block text-sm font-semibold text-surface-900 hover:text-blue-600 mt-0.5">{p.name}</a>
+            <a href={`/products/${p.slug}`} class="block text-xs text-blue-600 hover:text-blue-700 mt-1.5 font-medium">
+              Read our full {p.brand_name} {p.name} benchmark review &rarr;
+            </a>
           </th>
         ))}
       </tr>
