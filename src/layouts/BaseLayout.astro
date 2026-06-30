@@ -4,6 +4,8 @@ import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 
 const { tenant, hostname } = Astro.locals;
+const canonicalPath = (Astro.url.pathname.replace(/\/+$/, "") || "/");
+const canonicalUrl = `https://${hostname}${canonicalPath}`;
 const title = Astro.props.title
   ? `${Astro.props.title} | ${tenant.name}`
   : tenant.name;
@@ -18,10 +20,10 @@ const description = Astro.props.description || tenant.tagline;
     <title>{title}</title>
     <link rel="icon" type="image/svg+xml" href={tenant.id === "portablessds" ? "/favicon-portable.svg" : "/favicon-external.svg"} />
     <meta name="description" content={description} />
-    <link rel="canonical" href={`https://${hostname}${Astro.url.pathname}`} />
+    <link rel="canonical" href={canonicalUrl} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={`https://${hostname}${Astro.url.pathname}`} />
+    <meta property="og:url" content={canonicalUrl} />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
