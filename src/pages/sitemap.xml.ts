@@ -22,7 +22,7 @@ export const GET: APIRoute = async ({ locals, request }) => {
 
     for (const p of products) {
       const pUrl = `${baseUrl}/products/${p.slug}`;
-      const lastmod = p.updated_at ? p.updated_at.split("T")[0] : "";
+      const lastmod = p.updated_at ? p.updated_at.replace(" ", "T") + "Z" : "";
       urls.push(`  <url><loc>${encodeURI(pUrl)}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ""}</url>`);
     }
 
