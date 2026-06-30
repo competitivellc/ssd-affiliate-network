@@ -16,7 +16,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   context.locals.tenant = tenant;
   context.locals.countryCode = getCountryCode(context.request);
-  context.locals.hostname = hostname;
+  context.locals.hostname = tenant.canonicalDomain;
 
   const runtime = context.locals.runtime;
   if (runtime?.env) {

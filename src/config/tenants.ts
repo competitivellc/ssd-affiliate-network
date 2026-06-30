@@ -1,6 +1,7 @@
 export interface TenantConfig {
   id: string;
   domain: string;
+  canonicalDomain: string;
   name: string;
   tagline: string;
   primaryColor: string;
@@ -13,6 +14,7 @@ export const tenants: Record<string, TenantConfig> = {
   "externalssds.com": {
     id: "externalssds",
     domain: "externalssds.com",
+    canonicalDomain: "externalssds.com",
     name: "External SSDs",
     tagline: "Find the Best External Solid State Drives - Expert Reviews & Price Comparisons",
     primaryColor: "#0c8ee7",
@@ -23,6 +25,7 @@ export const tenants: Record<string, TenantConfig> = {
   "portablessds.com": {
     id: "portablessds",
     domain: "portablessds.com",
+    canonicalDomain: "portablessds.com",
     name: "Portable SSDs",
     tagline: "Compare the Best Portable Solid State Drives - Speed, Reliability & Value",
     primaryColor: "#10b981",
@@ -33,6 +36,7 @@ export const tenants: Record<string, TenantConfig> = {
   "ssd-affiliate-network.pages.dev": {
     id: "externalssds",
     domain: "ssd-affiliate-network.pages.dev",
+    canonicalDomain: "externalssds.com",
     name: "External SSDs",
     tagline: "Find the Best External Solid State Drives - Expert Reviews & Price Comparisons",
     primaryColor: "#0c8ee7",
