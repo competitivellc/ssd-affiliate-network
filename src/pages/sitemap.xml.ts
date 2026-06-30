@@ -1,24 +1,16 @@
 import type { APIRoute } from "astro";
-import { getAllProducts, getCategoriesBySite } from "@lib/db";
+import { getAllProducts } from "@lib/db";
 
 export const GET: APIRoute = async ({ locals, request }) => {
   const { DB, tenant, hostname } = locals;
   const baseUrl = `https://${hostname}`;
 
   try {
-    const [products, categories] = await Promise.all([
-      getAllProducts(DB, tenant.id),
-      getCategoriesBySite(DB, tenant.id),
-    ]);
+    const products = await getAllProducts(DB, tenant.id);
 
     const urls: string[] = [];
     urls.push(`  <url><loc>${baseUrl}/</loc></url>`);
     urls.push(`  <url><loc>${baseUrl}/compare</loc></url>`);
-
-    for (const cat of categories) {
-      const catUrl = `${baseUrl}/compare?category=${cat.slug}`;
-      urls.push(`  <url><loc>${encodeURI(catUrl)}</loc></url>`);
-    }
 
     for (const p of products) {
       const pUrl = `${baseUrl}/products/${p.slug}`;
