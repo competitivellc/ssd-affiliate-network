@@ -1,7 +1,6 @@
 ---
 import BaseLayout from "@layouts/BaseLayout.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
-import PriceHistory from "@components/PriceHistory.astro";
 import { getProductBySlug, getProductPrices } from "@lib/db";
 import { formatPrice, getLowestPrice } from "@lib/pricing";
 
@@ -144,14 +143,6 @@ const scoreBgColor =
           )}
         </div>
 
-        <section class="mb-8">
-          <h2 class="text-xl font-semibold text-surface-900 mb-4">Price History (30 days)</h2>
-          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {["Amazon", "B&H Photo", "Newegg"].map((retailer) => (
-              <PriceHistory productId={product.id} retailer={retailer} />
-            ))}
-          </div>
-        </section>
       </div>
 
       <div class="lg:col-span-1">
