@@ -3,9 +3,10 @@ import type { Product } from "@lib/db";
 
 export interface Props {
   product: Product;
+  rank?: number;
 }
 
-const { product } = Astro.props;
+const { product, rank } = Astro.props;
 const scoreColor =
   product.overall_score >= 9
     ? "text-emerald-600 bg-emerald-50"
@@ -19,13 +20,20 @@ const scoreColor =
   class="product-card block no-underline group"
 >
   <div class="flex items-start justify-between mb-3">
-    <div>
-      <p class="text-xs font-medium text-surface-500 uppercase tracking-wider">
-        {product.brand_name}
-      </p>
-      <h3 class="text-base font-semibold text-surface-900 group-hover:text-blue-600 transition-colors mt-0.5">
-        {product.name}
-      </h3>
+    <div class="flex items-center gap-2">
+      {rank && (
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-surface-900 text-white text-sm font-bold shrink-0">
+          #{rank}
+        </span>
+      )}
+      <div>
+        <p class="text-xs font-medium text-surface-500 uppercase tracking-wider">
+          {product.brand_name}
+        </p>
+        <h3 class="text-base font-semibold text-surface-900 group-hover:text-blue-600 transition-colors mt-0.5">
+          {product.name}
+        </h3>
+      </div>
     </div>
     <div class={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold ${scoreColor}`}>
       <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">

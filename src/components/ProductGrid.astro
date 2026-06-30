@@ -4,15 +4,16 @@ import ProductCard from "./ProductCard.astro";
 
 export interface Props {
   products: Product[];
+  showRank?: boolean;
 }
 
-const { products } = Astro.props;
+const { products, showRank } = Astro.props;
 ---
 
 <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
   {
-    products.map((product) => (
-      <ProductCard product={product} />
+    products.map((product, i) => (
+      <ProductCard product={product} rank={showRank ? i + 1 : undefined} />
     ))
   }
 </div>
