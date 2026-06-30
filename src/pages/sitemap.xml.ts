@@ -1,26 +1,35 @@
 import type { APIRoute } from "astro";
-import { getAllProducts } from "@lib/db";
+import { getAllProducts, getLastUpdatedDate } from "@lib/db";
+
+function fmtDate(d: string | null | undefined): string {
+  if (!d) return "";
+  return d.split(" ")[0];
+}
 
 export const GET: APIRoute = async ({ locals, request }) => {
   const { DB, tenant, hostname } = locals;
   const baseUrl = `https://${hostname}`;
 
   try {
-    const products = await getAllProducts(DB, tenant.id);
+    const [products, lastUpdated] = await Promise.all([
+      getAllProducts(DB, tenant.id),
+      getLastUpdatedDate(DB, tenant.id),
+    ]);
 
-    const urls: string[] = [];
-    urls.push(`  <url><loc>${baseUrl}/</loc></url>`);
-    urls.push(`  <url><loc>${baseUrl}/compare</loc></url>`);
+    const lastmod = fmtDate(lastUpdated);
+
+    const entries: string[] = [];
+    entries.push(`  <url>\n    <loc>${baseUrl}/</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`);
+    entries.push(`  <url>\n    <loc>${baseUrl}/compare</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`);
 
     for (const p of products) {
-      const pUrl = `${baseUrl}/products/${p.slug}`;
-      const lastmod = p.updated_at ? p.updated_at.replace(" ", "T") + "Z" : "";
-      urls.push(`  <url><loc>${encodeURI(pUrl)}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ""}</url>`);
+      const date = fmtDate(p.updated_at) || lastmod;
+      entries.push(`  <url>\n    <loc>${encodeURI(baseUrl + "/products/" + p.slug)}</loc>\n    <lastmod>${date}</lastmod>\n  </url>`);
     }
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.join("\n")}
+${entries.join("\n")}
 </urlset>`;
 
     return new Response(xml, {
