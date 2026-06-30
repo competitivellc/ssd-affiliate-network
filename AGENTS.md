@@ -1,4 +1,4 @@
-# SSD Affiliate Network — Project Context
+# SSD Affiliate Network - Project Context
 
 ## Overview
 Multi-tenant affiliate comparison site for external SSDs served on `externalssds.com` and `portablessds.com`. Built with Astro 5 SSR, deployed on Cloudflare Pages with D1 (SQLite) and KV.
@@ -9,11 +9,11 @@ Multi-tenant affiliate comparison site for external SSDs served on `externalssds
 ## Architecture
 - **Framework**: Astro 5 (`output: "server"`) with `@astrojs/cloudflare` adapter
 - **Styling**: Tailwind CSS v3 with `@astrojs/tailwind`
-- **Data**: Cloudflare D1 (SQLite) — 7 tables: `sites`, `categories`, `brands`, `products`, `prices`, `price_history`, `affiliate_configs`
+- **Data**: Cloudflare D1 (SQLite) - 7 tables: `sites`, `categories`, `brands`, `products`, `prices`, `price_history`, `affiliate_configs`
 - **Cache**: Cloudflare KV (`PRICE_CACHE`)
 - **Multi-tenancy**: `src/middleware.ts` detects `Host` header, resolves tenant config, populates `Astro.locals`
 - **Geo-targeting**: `src/lib/affiliate.ts` reads `request.cf.country` (Cloudflare edge) → queries `affiliate_configs` for per-country affiliate tag
-- **Price sync**: `worker/price-sync.ts` — standalone cron Worker (daily 06:00 UTC), fetches Amazon PAAPI/B&H/Newegg, writes to D1 + KV
+- **Price sync**: `worker/price-sync.ts` - standalone cron Worker (daily 06:00 UTC), fetches Amazon PAAPI/B&H/Newegg, writes to D1 + KV
 - **Auth**: GitHub fine-grained PAT stored in Windows Credentials (`ssd-affliate-network_GitHub_AI_Token`)
 
 ## Key Files
@@ -52,12 +52,12 @@ Multi-tenant affiliate comparison site for external SSDs served on `externalssds
 - **Dynamic styles**: Use `style={{ property: value }}` (object syntax), NOT `style="prop: {expr}"` (Cloudflare SSR doesn't evaluate the latter)
 - **DB access**: Via `Astro.locals.DB` (set by middleware from `runtime.env.DB`)
 - **Tenant access**: Via `Astro.locals.tenant` (set by middleware)
-- **Brand color usage**: Applied only to SVG icons, accent bars, and small decorative elements — NOT to headings/body text (use `text-surface-900`)
+- **Brand color usage**: Applied only to SVG icons, accent bars, and small decorative elements - NOT to headings/body text (use `text-surface-900`)
 - **Affiliate links**: `GeoAffiliateLink.astro` component handles country-aware URL rewriting
-- **Tailwind classes**: Use the custom `surface-*` palette (50–950)
+- **Tailwind classes**: Use the custom `surface-*` palette (50-950)
 
 ## Critical Policy: Commit & Push
-The AI agent must always commit and push changes directly after making any code modifications. The user will never do this. Stage the file(s), write a concise commit message, and push to trigger Cloudflare auto-deploy. Do not ask for permission — just do it.
+The AI agent must always commit and push changes directly after making any code modifications. The user will never do this. Stage the file(s), write a concise commit message, and push to trigger Cloudflare auto-deploy. Do not ask for permission - just do it.
 
 ## What's Done
 - [x] Full project scaffold, Astro + Cloudflare adapter + Tailwind
@@ -77,12 +77,12 @@ The AI agent must always commit and push changes directly after making any code 
 - [ ] D1 + KV bindings need to be added to the cron worker in dashboard
 - [ ] Real Amazon PAAPI, B&H Photo, Newegg API keys (set via `npx wrangler secret put`)
 - [ ] Real affiliate tags (update `affiliate_configs` table)
-- [ ] GitHub default branch still `master` on remote — should be changed to `main`
+- [ ] GitHub default branch still `master` on remote - should be changed to `main`
 
 ## New Session Boilerplate
 Paste this at the start of a new conversation with any AI coding agent:
 
-> I am building a multi-tenant SSD affiliate comparison network. The repo is at `github.com/competitivellc/ssd-affiliate-network` on branch `main`. It's an Astro 5 SSR site deployed on Cloudflare Pages with D1 (SQLite) and KV cache, serving `externalssds.com` and `portablessds.com`. The codebase is fully functional and deployed. Read `AGENTS.md` in the repo root for full context. I need you to help with [your specific task]. No global installs — use `npx` for all wrangler commands. After making code changes, commit and push — I won't do it.
+> I am building a multi-tenant SSD affiliate comparison network. The repo is at `github.com/competitivellc/ssd-affiliate-network` on branch `main`. It's an Astro 5 SSR site deployed on Cloudflare Pages with D1 (SQLite) and KV cache, serving `externalssds.com` and `portablessds.com`. The codebase is fully functional and deployed. Read `AGENTS.md` in the repo root for full context. I need you to help with [your specific task]. No global installs - use `npx` for all wrangler commands. After making code changes, commit and push - I won't do it.
 
 ## D1 CLI Commands
 ```bash
