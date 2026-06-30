@@ -145,19 +145,14 @@ const scoreBgColor =
 
       <div class="lg:col-span-1">
         <div class="sticky top-8 space-y-4">
-          <div class="rounded-xl border border-surface-200 p-5">
-            <h3 class="text-sm font-semibold text-surface-700 mb-4">Buy Now</h3>
-            <div class="space-y-2">
-              {sortedPrices[0] && (
-                <GeoAffiliateLink
-                  url={sortedPrices[0].affiliate_url || "#"}
-                  retailer={sortedPrices[0].retailer}
-                  label="Click for Best Price"
-                  className="w-full justify-center bg-[#ef3737] text-white border-[#ef3737] hover:bg-[#d62f2f] [&_svg]:text-white"
-                />
-              )}
-            </div>
-          </div>
+          {sortedPrices[0] && (
+            <GeoAffiliateLink
+              url={sortedPrices[0].affiliate_url || "#"}
+              retailer={sortedPrices[0].retailer}
+              label="Click for Best Price"
+              className="w-full justify-center bg-[#ef3737] text-white border-[#ef3737] hover:bg-[#d62f2f] [&_svg]:text-white"
+            />
+          )}
 
           <div class="rounded-xl border border-surface-200 p-5">
             <h3 class="text-sm font-semibold text-surface-700 mb-3">Quick Specs</h3>
