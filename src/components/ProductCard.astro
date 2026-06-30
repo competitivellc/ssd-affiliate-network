@@ -1,5 +1,8 @@
 ---
-import type { Product } from "@lib/db";
+import type { Product, Price } from "@lib/db";
+import { formatPrice, getLowestPrice } from "@lib/pricing";
+import { getProductPrices } from "@lib/db";
+import GeoAffiliateLink from "./GeoAffiliateLink.astro";
 
 export interface Props {
   product: Product;
@@ -7,6 +10,9 @@ export interface Props {
 }
 
 const { product, rank } = Astro.props;
+const { DB } = Astro.locals;
+const prices: Price[] = await getProductPrices(DB as any, product.id);
+const lowestPrice = getLowestPrice(prices as any);
 const scoreColor =
   product.overall_score >= 9
     ? "text-emerald-600 bg-emerald-50"
@@ -15,10 +21,7 @@ const scoreColor =
     : "text-amber-600 bg-amber-50";
 ---
 
-<a
-  href={`/products/${product.slug}`}
-  class="product-card block no-underline group"
->
+<div class="product-card block no-underline">
   <div class="flex items-start justify-between mb-3">
     <div class="flex items-center gap-2">
       {rank && (
@@ -30,7 +33,7 @@ const scoreColor =
         <p class="text-xs font-medium text-surface-500 uppercase tracking-wider">
           {product.brand_name}
         </p>
-        <h3 class="text-base font-semibold text-surface-900 group-hover:text-blue-600 transition-colors mt-0.5">
+        <h3 class="text-base font-semibold text-surface-900 transition-colors mt-0.5">
           {product.name}
         </h3>
       </div>
@@ -58,9 +61,20 @@ const scoreColor =
     </div>
   </div>
 
-  <div class="flex items-center justify-end pt-3 border-t border-surface-100">
-    <span class="text-sm font-medium text-blue-600 group-hover:text-blue-700">
+  <div class="pt-3 border-t border-surface-100 space-y-2">
+    {lowestPrice && (
+      <GeoAffiliateLink
+        url={lowestPrice.affiliate_url || "#"}
+        retailer={lowestPrice.retailer}
+        label="Click for Best Price"
+        className="w-full justify-center py-2.5 text-sm bg-[#ef3737] text-white border-[#ef3737] hover:bg-[#d62f2f] [&_svg]:text-white"
+      />
+    )}
+    <a
+      href={`/products/${product.slug}`}
+      class="block text-center text-sm font-medium text-blue-600 hover:text-blue-700 no-underline"
+    >
       View Details &rarr;
-    </span>
+    </a>
   </div>
-</a>
+</div>
