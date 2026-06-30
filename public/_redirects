@@ -1,4 +1,7 @@
 # Multi-tenant redirects handled by middleware
 
-# Ensure sitemap.xml resolves cleanly without trailing slash
-/sitemap.xml/ /sitemap.xml 301
+# Rewrite /sitemap.xml to the Worker endpoint (avoids .xml static-asset exclusion)
+/sitemap.xml /sitemap 200
+
+# Kill trailing slash on sitemap
+/sitemap.xml/ /sitemap 301
