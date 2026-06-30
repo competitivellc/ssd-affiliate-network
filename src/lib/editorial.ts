@@ -59,7 +59,7 @@ function eliteProCreator(p: Product): DriveArchetype {
   return {
     id: "elite-pro-creator",
     label: "Professional Creator",
-    tagline: `The ${p.brand_name} ${p.name} delivers ${read} reads and ${write} writes — a top-tier ${p.interface} drive for demanding professional workflows.`,
+    tagline: `The ${p.brand_name} ${p.name} delivers ${read} reads and ${write} writes - a top-tier ${p.interface} drive for demanding professional workflows.`,
     blocks: [
       {
         type: "prose",
@@ -83,7 +83,7 @@ function eliteProCreator(p: Product): DriveArchetype {
       },
       {
         type: "callout",
-        content: `${p.interface} delivers the bandwidth needed for seamless playback and editing of high-bitrate media directly from the drive — no file transfer required.`,
+        content: `${p.interface} delivers the bandwidth needed for seamless playback and editing of high-bitrate media directly from the drive - no file transfer required.`,
       },
     ],
   };
@@ -98,17 +98,17 @@ function consoleGaming(p: Product): DriveArchetype {
   return {
     id: "console-gaming",
     label: "Console Expansion",
-    tagline: `Expand your game library with the ${p.name} — ${cap} of ${read} storage purpose-built for consoles and gaming PCs.`,
+    tagline: `Expand your game library with the ${p.name} - ${cap} of ${read} storage purpose-built for consoles and gaming PCs.`,
     blocks: [
       {
         type: "prose",
         title: "Game-Ready Performance",
-        content: `With ${read} reads and ${write} writes, the ${p.name} delivers load times that rival internal SSDs. Level transitions, fast travel, and open-world asset streaming all benefit from the jump over traditional HDD external storage — expect 3–5× faster load times in most titles.`,
+        content: `With ${read} reads and ${write} writes, the ${p.name} delivers load times that rival internal SSDs. Level transitions, fast travel, and open-world asset streaming all benefit from the jump over traditional HDD external storage - expect 3-5× faster load times in most titles.`,
       },
       {
         type: "prose",
         title: "Capacity for the Modern Library",
-        content: `${cap} of storage holds an estimated ${gamesLow}–${gamesHigh} AAA titles, depending on install size. That is enough space for an active rotation of multiplayer titles alongside a deep single-player backlog, without juggling uninstalls.`,
+        content: `${cap} of storage holds an estimated ${gamesLow}-${gamesHigh} AAA titles, depending on install size. That is enough space for an active rotation of multiplayer titles alongside a deep single-player backlog, without juggling uninstalls.`,
       },
       {
         type: "bullets",
@@ -135,7 +135,7 @@ function ruggedPortable(p: Product): DriveArchetype {
   return {
     id: "rugged-portable",
     label: "Rugged & Portable",
-    tagline: `The ${p.name} brings ${cap} of ${read} storage that is built to survive drops, dust, and water — your data follows you anywhere.`,
+    tagline: `The ${p.name} brings ${cap} of ${read} storage that is built to survive drops, dust, and water - your data follows you anywhere.`,
     blocks: [
       {
         type: "prose",
@@ -145,7 +145,7 @@ function ruggedPortable(p: Product): DriveArchetype {
       {
         type: "prose",
         title: "No Speed Sacrifice",
-        content: `Despite its tough exterior, the ${p.name} delivers ${read} reads and ${write} writes — fast enough for 4K video playback, large file transfers, and daily backups. With ${p.tbw.toLocaleString()} TBW endurance and a ${p.warranty_years}-year warranty, it is built to last through years of active use.`,
+        content: `Despite its tough exterior, the ${p.name} delivers ${read} reads and ${write} writes - fast enough for 4K video playback, large file transfers, and daily backups. With ${p.tbw.toLocaleString()} TBW endurance and a ${p.warranty_years}-year warranty, it is built to last through years of active use.`,
       },
       {
         type: "bullets",
@@ -174,17 +174,17 @@ function highspeedUsbPro(p: Product): DriveArchetype {
   return {
     id: "highspeed-usb-pro",
     label: "High-Speed USB Pro",
-    tagline: `The ${p.brand_name} ${p.name} delivers ${write} writes and ${cap} capacity — pro-grade speed without the Thunderbolt price premium.`,
+    tagline: `The ${p.brand_name} ${p.name} delivers ${write} writes and ${cap} capacity - pro-grade speed without the Thunderbolt price premium.`,
     blocks: [
       {
         type: "prose",
         title: "Pro-Grade USB Performance",
-        content: `USB 3.2 Gen 2×2 unlocks a 20 Gbps pipeline, and the ${p.name} uses every bit of it. With ${read} reads and ${write} writes, this drive handles 4K and 6K video editing directly from the drive — a 50GB file transfers in ${t50}, making it a strong alternative to Thunderbolt solutions for professionals on a budget.`,
+        content: `USB 3.2 Gen 2×2 unlocks a 20 Gbps pipeline, and the ${p.name} uses every bit of it. With ${read} reads and ${write} writes, this drive handles 4K and 6K video editing directly from the drive - a 50GB file transfers in ${t50}, making it a strong alternative to Thunderbolt solutions for professionals on a budget.`,
       },
       {
         type: "prose",
         title: "Universal Compatibility",
-        content: `Unlike Thunderbolt drives, the ${p.name} works with any USB-C or USB-A port, though Gen 2×2 speeds require a compatible port. Connected to a standard USB 3.2 Gen 2 port, it still delivers up to 10 Gbps — enough for fast backups and everyday transfers. This makes it a versatile companion across different machines.`,
+        content: `Unlike Thunderbolt drives, the ${p.name} works with any USB-C or USB-A port, though Gen 2×2 speeds require a compatible port. Connected to a standard USB 3.2 Gen 2 port, it still delivers up to 10 Gbps - enough for fast backups and everyday transfers. This makes it a versatile companion across different machines.`,
       },
       {
         type: "bullets",
@@ -211,12 +211,12 @@ function budgetEveryday(p: Product): DriveArchetype {
   return {
     id: "budget-everyday",
     label: "Everyday Storage",
-    tagline: `Reliable ${cap} storage with ${read} reads — the ${p.name} is a practical, affordable choice for daily backups and file transport.`,
+    tagline: `Reliable ${cap} storage with ${read} reads - the ${p.name} is a practical, affordable choice for daily backups and file transport.`,
     blocks: [
       {
         type: "prose",
         title: "Solid Everyday Performance",
-        content: `With ${read} reads and ${write} writes over a USB-C connection, the ${p.name} delivers reliable performance for daily computing needs. Backing up documents, transferring photos from a laptop to a desktop, or storing a media library — this drive handles routine tasks with consistent speed and zero fuss.`,
+        content: `With ${read} reads and ${write} writes over a USB-C connection, the ${p.name} delivers reliable performance for daily computing needs. Backing up documents, transferring photos from a laptop to a desktop, or storing a media library - this drive handles routine tasks with consistent speed and zero fuss.`,
       },
       {
         type: "prose",
@@ -235,7 +235,7 @@ function budgetEveryday(p: Product): DriveArchetype {
       },
       {
         type: "callout",
-        content: `${read} reads are typical of a SATA SSD in an external enclosure — noticeably faster than any external HDD, yet well below the speed of Gen 2×2 or Thunderbolt drives. For most daily tasks, this is more than enough.`,
+        content: `${read} reads are typical of a SATA SSD in an external enclosure - noticeably faster than any external HDD, yet well below the speed of Gen 2×2 or Thunderbolt drives. For most daily tasks, this is more than enough.`,
       },
     ],
   };
