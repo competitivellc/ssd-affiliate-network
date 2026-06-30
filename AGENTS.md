@@ -56,6 +56,9 @@ Multi-tenant affiliate comparison site for external SSDs served on `externalssds
 - **Affiliate links**: `GeoAffiliateLink.astro` component handles country-aware URL rewriting
 - **Tailwind classes**: Use the custom `surface-*` palette (50–950)
 
+## Critical Policy: Commit & Push
+The AI agent must always commit and push changes directly after making any code modifications. The user will never do this. Stage the file(s), write a concise commit message, and push to trigger Cloudflare auto-deploy. Do not ask for permission — just do it.
+
 ## What's Done
 - [x] Full project scaffold, Astro + Cloudflare adapter + Tailwind
 - [x] D1 schema + seed data deployed to remote
@@ -79,7 +82,7 @@ Multi-tenant affiliate comparison site for external SSDs served on `externalssds
 ## New Session Boilerplate
 Paste this at the start of a new conversation with any AI coding agent:
 
-> I am building a multi-tenant SSD affiliate comparison network. The repo is at `github.com/competitivellc/ssd-affiliate-network` on branch `main`. It's an Astro 5 SSR site deployed on Cloudflare Pages with D1 (SQLite) and KV cache, serving `externalssds.com` and `portablessds.com`. The codebase is fully functional and deployed. Read `AGENTS.md` in the repo root for full context. I need you to help with [your specific task]. No global installs — use `npx` for all wrangler commands.
+> I am building a multi-tenant SSD affiliate comparison network. The repo is at `github.com/competitivellc/ssd-affiliate-network` on branch `main`. It's an Astro 5 SSR site deployed on Cloudflare Pages with D1 (SQLite) and KV cache, serving `externalssds.com` and `portablessds.com`. The codebase is fully functional and deployed. Read `AGENTS.md` in the repo root for full context. I need you to help with [your specific task]. No global installs — use `npx` for all wrangler commands. After making code changes, commit and push — I won't do it.
 
 ## D1 CLI Commands
 ```bash
