@@ -1,1 +1,4 @@
 # Multi-tenant redirects handled by middleware
+
+# Ensure sitemap.xml resolves cleanly without trailing slash
+/sitemap.xml/ /sitemap.xml 301
