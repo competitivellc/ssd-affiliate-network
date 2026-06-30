@@ -26,6 +26,7 @@ export interface Product {
   brand_slug?: string;
   category_name?: string;
   category_slug?: string;
+  updated_at?: string;
 }
 
 export interface Price {
