@@ -16,7 +16,7 @@ const [featured, allProducts, categories, lastUpdated] = await Promise.all([
 const accentStyle = { backgroundColor: tenant.primaryColor };
 ---
 
-<BaseLayout title="Compare & Review Top SSDs">
+<BaseLayout title={tenant.id === "portablessds" ? "Top Portable SSDs 2024 - Expert Reviews, Prices & Comparisons" : "Best External SSDs 2024 - Expert Reviews, Prices & Comparisons"}>
   <HeroSection tenant={tenant} productCount={allProducts.length} lastUpdated={lastUpdated} />
 
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">

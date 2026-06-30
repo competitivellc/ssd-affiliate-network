@@ -27,9 +27,16 @@ const pricesByProduct: Record<number, Price[]> = {};
 for (const p of products) {
   pricesByProduct[p.id] = await getProductPrices(db, p.id);
 }
+
+const categoryName = categorySlug
+  ? categories.find((c) => c.slug === categorySlug)?.name || categorySlug
+  : null;
+const compareTitle = categoryName
+  ? `${categoryName} Compared - Side-by-Side Specs & Prices`
+  : "All SSDs Compared - Side-by-Side Specs & Prices";
 ---
 
-<BaseLayout title="Compare SSDs Side by Side">
+<BaseLayout title={compareTitle}>
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex items-center justify-between mb-8">
       <div>
