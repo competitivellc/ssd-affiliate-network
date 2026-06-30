@@ -4,7 +4,6 @@ import ComparisonTable from "@components/ComparisonTable.astro";
 import ProductGrid from "@components/ProductGrid.astro";
 import { getAllProducts, getProductsByCategory, getProductPrices, getCategoriesBySite } from "@lib/db";
 import type { Product, Price } from "@lib/db";
-import { getPriceSavings } from "@lib/pricing";
 
 const { DB, tenant } = Astro.locals;
 const db = DB!;
@@ -75,21 +74,8 @@ const compareTitle = categoryName
       </div>
     ) : (
       <>
-        <div class="mb-6 flex items-center gap-4 text-sm text-surface-500">
+        <div class="mb-6 text-sm text-surface-500">
           <span>Comparing {products.length} products</span>
-          {products.slice(0, 1).map((p) => {
-            const savings = getPriceSavings(
-              (pricesByProduct[p.id] || []).map((pr) => ({
-                retailer: pr.retailer,
-                price_cents: pr.price_cents,
-              }))
-            );
-            return savings.maxSavings > 0 ? (
-              <span class="text-emerald-600 font-medium">
-                Save up to {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(savings.maxSavings / 100)}
-              </span>
-            ) : null;
-          })}
         </div>
         <ComparisonTable products={products} pricesByProduct={pricesByProduct} />
 
