@@ -12,18 +12,18 @@ export const GET: APIRoute = async ({ locals, request }) => {
     ]);
 
     const urls: string[] = [];
-    urls.push(`  <url><loc>${baseUrl}/</loc><priority>1.0</priority><changefreq>daily</changefreq></url>`);
-    urls.push(`  <url><loc>${baseUrl}/compare</loc><priority>0.8</priority><changefreq>daily</changefreq></url>`);
+    urls.push(`  <url><loc>${baseUrl}/</loc></url>`);
+    urls.push(`  <url><loc>${baseUrl}/compare</loc></url>`);
 
     for (const cat of categories) {
       const catUrl = `${baseUrl}/compare?category=${cat.slug}`;
-      urls.push(`  <url><loc>${encodeURI(catUrl)}</loc><priority>0.7</priority><changefreq>weekly</changefreq></url>`);
+      urls.push(`  <url><loc>${encodeURI(catUrl)}</loc></url>`);
     }
 
     for (const p of products) {
       const pUrl = `${baseUrl}/products/${p.slug}`;
       const lastmod = p.updated_at ? p.updated_at.split("T")[0] : "";
-      urls.push(`  <url><loc>${encodeURI(pUrl)}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ""}<priority>0.6</priority><changefreq>weekly</changefreq></url>`);
+      urls.push(`  <url><loc>${encodeURI(pUrl)}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ""}</url>`);
     }
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
