@@ -47,27 +47,27 @@ INSERT INTO products (site_id, category_id, brand_id, name, slug, model, capacit
 
 -- Prices
 INSERT INTO prices (product_id, retailer, price_cents, currency, affiliate_url, in_stock) VALUES
-  (1, 'Amazon', 10999, 'USD', 'https://www.amazon.com/dp/B0873X1X1S?tag=ssdaffiliates-20', 1),
+   (1, 'Amazon', 10999, 'USD', 'https://www.amazon.com/dp/B09VLK9W3S?tag=ssdaffiliates-20', 1),
   (1, 'B&H Photo', 11299, 'USD', 'https://www.bhphotovideo.com/c/product/1582280-REG', 1),
   (1, 'Newegg', 10899, 'USD', 'https://www.newegg.com/p/1ZK-003F-00018', 1),
-  (2, 'Amazon', 17999, 'USD', 'https://www.amazon.com/dp/B0CN8G8W9W?tag=ssdaffiliates-20', 1),
+   (2, 'Amazon', 17999, 'USD', 'https://www.amazon.com/dp/B0CHFSWM2P?tag=ssdaffiliates-20', 1),
   (2, 'B&H Photo', 18499, 'USD', 'https://www.bhphotovideo.com/c/product/1768393-REG', 1),
-  (3, 'Amazon', 14999, 'USD', 'https://www.amazon.com/dp/B0CHX7Y6Z8?tag=ssdaffiliates-20', 1),
+   (3, 'Amazon', 14999, 'USD', 'https://www.amazon.com/dp/B0C9WGS6MC?tag=ssdaffiliates-20', 1),
   (3, 'Newegg', 14699, 'USD', 'https://www.newegg.com/p/1ZK-003F-00028', 1),
-  (4, 'Amazon', 9499, 'USD', 'https://www.amazon.com/dp/B08VL8T2S4?tag=ssdaffiliates-20', 1),
+   (4, 'Amazon', 9499, 'USD', 'https://www.amazon.com/dp/B08F27QGHX?tag=ssdaffiliates-20', 1),
   (4, 'B&H Photo', 9699, 'USD', 'https://www.bhphotovideo.com/c/product/1582280-REG', 1),
-  (5, 'Amazon', 15999, 'USD', 'https://www.amazon.com/dp/B0C1Y1Y2Y3?tag=ssdaffiliates-20', 1),
-  (6, 'Amazon', 17999, 'USD', 'https://www.amazon.com/dp/B0897Z1Q2R?tag=ssdaffiliates-20', 1),
-  (7, 'Amazon', 9999, 'USD', 'https://www.amazon.com/dp/B0873X1X1S?tag=ssdaffiliates-20', 1),
+   (5, 'Amazon', 15999, 'USD', 'https://www.amazon.com/dp/B0BGJ1JF8L?tag=ssdaffiliates-20', 1),
+   (6, 'Amazon', 17999, 'USD', 'https://www.amazon.com/dp/B0C3FCHLSL?tag=ssdaffiliates-20', 1),
+   (7, 'Amazon', 9999, 'USD', 'https://www.amazon.com/dp/B0874XN4D8?tag=ssdaffiliates-20', 1),
   (7, 'B&H Photo', 10299, 'USD', 'https://www.bhphotovideo.com/c/product/1582280-REG', 1),
-  (8, 'Amazon', 17999, 'USD', 'https://www.amazon.com/dp/B0CN8G8W9W?tag=ssdaffiliates-20', 1),
+   (8, 'Amazon', 17999, 'USD', 'https://www.amazon.com/dp/B0CHFSWM2P?tag=ssdaffiliates-20', 1),
   (8, 'Newegg', 17699, 'USD', 'https://www.newegg.com/p/1ZK-003F-00018', 1),
-  (9, 'Amazon', 10999, 'USD', 'https://www.amazon.com/dp/B0873X1X1S?tag=ssdaffiliates-20', 1),
-  (10, 'Amazon', 16999, 'USD', 'https://www.amazon.com/dp/B08VL8T2S4?tag=ssdaffiliates-20', 1),
+   (9, 'Amazon', 10999, 'USD', 'https://www.amazon.com/dp/B09VLK9W3S?tag=ssdaffiliates-20', 1),
+   (10, 'Amazon', 16999, 'USD', 'https://www.amazon.com/dp/B08GV9M64L?tag=ssdaffiliates-20', 1),
   (10, 'B&H Photo', 17499, 'USD', 'https://www.bhphotovideo.com/c/product/1582280-REG', 1),
   (10, 'Newegg', 16699, 'USD', 'https://www.newegg.com/p/1ZK-003F-00028', 1),
-  (11, 'Amazon', 9999, 'USD', 'https://www.amazon.com/dp/B0873X1X1S?tag=ssdaffiliates-20', 1),
-  (12, 'Amazon', 8999, 'USD', 'https://www.amazon.com/dp/B0CHX7Y6Z8?tag=ssdaffiliates-20', 1);
+   (11, 'Amazon', 9999, 'USD', 'https://www.amazon.com/dp/B08GTYFC37?tag=ssdaffiliates-20', 1),
+   (12, 'Amazon', 8999, 'USD', 'https://www.amazon.com/dp/B0C9WKGXHD?tag=ssdaffiliates-20', 1);
 
 -- Affiliate configs (geo-targeted)
 INSERT INTO affiliate_configs (site_id, retailer, country_code, affiliate_tag) VALUES
