@@ -24,6 +24,10 @@ declare namespace App {
         AMAZON_ASSOCIATE_TAG_CA: string;
         AMAZON_ASSOCIATE_TAG_DEFAULT: string;
       };
+      caches: import("@cloudflare/workers-types").CacheStorage;
+      ctx: {
+        waitUntil: (promise: Promise<unknown>) => void;
+      };
     };
   }
 }
