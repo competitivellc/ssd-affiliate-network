@@ -58,6 +58,7 @@ Multi-tenant affiliate comparison site for external SSDs served on `externalssds
 - **Brand color usage**: Applied only to SVG icons, accent bars, and small decorative elements - NOT to headings/body text (use `text-surface-900`)
 - **Affiliate links**: `GeoAffiliateLink.astro` component handles country-aware URL rewriting
 - **Tailwind classes**: Use the custom `surface-*` palette (50-950)
+- **"Best of" sections**: Always use `getTopRatedProducts(db, siteId, limit)` which sorts by `overall_score DESC`. Never rely on the `is_featured` flag for homepage/landing page ranking — that flag is for manual editorial promotions, not algorithmic ranking. New high-scoring products will appear in "Best" sections automatically.
 
 ## Critical Policy: Commit & Push
 The AI agent must always commit and push changes directly after making any code modifications. The user will never do this. Stage the file(s), write a concise commit message, and push to trigger Cloudflare auto-deploy. Do not ask for permission - just do it.

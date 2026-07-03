@@ -211,6 +211,26 @@ export async function getAffiliateTag(
   return fallback[0]?.affiliate_tag || null;
 }
 
+export async function getTopRatedProducts(
+  db: D1Database,
+  siteId: string,
+  limit: number = 6
+): Promise<Product[]> {
+  const { results } = await db
+    .prepare(
+      `SELECT p.*, b.name as brand_name, b.slug as brand_slug, c.name as category_name, c.slug as category_slug
+       FROM products p
+       LEFT JOIN brands b ON p.brand_id = b.id
+       LEFT JOIN categories c ON p.category_id = c.id
+       WHERE p.site_id = ? AND p.is_active = 1
+       ORDER BY p.overall_score DESC
+       LIMIT ?`
+    )
+    .bind(siteId, limit)
+    .all<Product>();
+  return results;
+}
+
 export async function getLastUpdatedDate(db: D1Database, siteId: string): Promise<string | null> {
   const { results } = await db
     .prepare(

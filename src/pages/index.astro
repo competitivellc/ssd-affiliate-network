@@ -2,13 +2,13 @@
 import BaseLayout from "@layouts/BaseLayout.astro";
 import HeroSection from "@components/HeroSection.astro";
 import ProductGrid from "@components/ProductGrid.astro";
-import { getFeaturedProducts, getAllProducts, getCategoriesBySite, getLastUpdatedDate, getHubsBySite } from "@lib/db";
+import { getTopRatedProducts, getAllProducts, getCategoriesBySite, getLastUpdatedDate, getHubsBySite } from "@lib/db";
 import type { Product, Hub } from "@lib/db";
 
 const { DB, tenant } = Astro.locals;
 const db = DB!;
-const [featured, allProducts, categories, lastUpdated, hubs] = await Promise.all([
-  getFeaturedProducts(db, tenant.id),
+const [topRated, allProducts, categories, lastUpdated, hubs] = await Promise.all([
+  getTopRatedProducts(db, tenant.id, 6),
   getAllProducts(db, tenant.id),
   getCategoriesBySite(db, tenant.id),
   getLastUpdatedDate(db, tenant.id),
@@ -24,13 +24,13 @@ const year = new Date().getFullYear();
   <HeroSection tenant={tenant} productCount={allProducts.length} lastUpdated={lastUpdated} />
 
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-    {featured.length > 0 && (
+    {topRated.length > 0 && (
       <section class="mb-16">
         <div class="flex items-center gap-3 mb-6">
           <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
           <h2 class="text-2xl font-bold text-surface-900">Best {tenant.name}</h2>
         </div>
-        <ProductGrid products={featured} showRank />
+        <ProductGrid products={topRated} showRank />
       </section>
     )}
 
