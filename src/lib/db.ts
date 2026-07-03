@@ -471,6 +471,82 @@ export async function getHubProducts(
   return results;
 }
 
+export async function getRelatedHubs(
+  db: D1Database,
+  siteId: string,
+  currentSlug: string,
+  maxResults: number = 4
+): Promise<Hub[]> {
+  const { results } = await db
+    .prepare(
+      `SELECT * FROM hubs
+       WHERE site_id = ? AND slug != ? AND is_active = 1
+       ORDER BY display_order ASC
+       LIMIT ?`
+    )
+    .bind(siteId, currentSlug, maxResults)
+    .all<Hub>();
+  return results;
+}
+
+function productMatchesFilter(product: Product, criteria: FilterCriteria): boolean {
+  const { category_slug, interface: iface, min_read_speed, max_read_speed,
+          min_write_speed, max_write_speed, capacity_gb, min_capacity, max_capacity,
+          form_factor, brand_slug, keywords, min_score, _sort, _limit } = criteria;
+  if (category_slug) {
+    const slugs = Array.isArray(category_slug) ? category_slug : [category_slug];
+    if (!product.category_slug || !slugs.includes(product.category_slug)) return false;
+  }
+  if (iface) {
+    const ifaces = Array.isArray(iface) ? iface : [iface];
+    if (!ifaces.includes(product.interface)) return false;
+  }
+  if (min_read_speed !== undefined && (product.read_speed_mbps < min_read_speed)) return false;
+  if (max_read_speed !== undefined && (product.read_speed_mbps > max_read_speed)) return false;
+  if (min_write_speed !== undefined && (product.write_speed_mbps < min_write_speed)) return false;
+  if (max_write_speed !== undefined && (product.write_speed_mbps > max_write_speed)) return false;
+  if (capacity_gb !== undefined && product.capacity_gb !== capacity_gb) return false;
+  if (min_capacity !== undefined && product.capacity_gb < min_capacity) return false;
+  if (max_capacity !== undefined && product.capacity_gb > max_capacity) return false;
+  if (form_factor) {
+    const factors = Array.isArray(form_factor) ? form_factor : [form_factor];
+    if (!factors.includes(product.form_factor)) return false;
+  }
+  if (brand_slug) {
+    const slugs = Array.isArray(brand_slug) ? brand_slug : [brand_slug];
+    if (!product.brand_slug || !slugs.includes(product.brand_slug)) return false;
+  }
+  if (min_score !== undefined && product.overall_score < min_score) return false;
+  if (keywords && keywords.length > 0) {
+    const haystack = `${product.name} ${product.description || ""}`.toLowerCase();
+    const matches = keywords.some((kw) => haystack.includes(kw.toLowerCase()));
+    if (!matches) return false;
+  }
+  return true;
+}
+
+export async function getHubsForProduct(
+  db: D1Database,
+  siteId: string,
+  product: Product,
+  maxResults: number = 4
+): Promise<Hub[]> {
+  const hubs = await getHubsBySite(db, siteId);
+  const matching: Hub[] = [];
+  for (const hub of hubs) {
+    if (matching.length >= maxResults) break;
+    try {
+      const criteria: FilterCriteria = JSON.parse(hub.filter_criteria || "{}");
+      if (productMatchesFilter(product, criteria)) {
+        matching.push(hub);
+      }
+    } catch {
+      // skip malformed filter_criteria
+    }
+  }
+  return matching;
+}
+
 export async function getPriceHistory(
   db: D1Database,
   productId: number,
