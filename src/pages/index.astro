@@ -8,7 +8,7 @@ import type { Product, Hub } from "@lib/db";
 const { DB, tenant } = Astro.locals;
 const db = DB!;
 const [topRated, allProducts, categories, lastUpdated, hubs] = await Promise.all([
-  getTopRatedProducts(db, tenant.id, 6),
+  getTopRatedProducts(db, tenant.id, 3),
   getAllProducts(db, tenant.id),
   getCategoriesBySite(db, tenant.id),
   getLastUpdatedDate(db, tenant.id),
