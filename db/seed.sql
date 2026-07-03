@@ -72,15 +72,15 @@ INSERT OR IGNORE INTO prices (product_id, retailer, price_cents, currency, affil
 -- High-performance USB4/Thunderbolt products
 INSERT OR IGNORE INTO products (site_id, category_id, brand_id, name, slug, model, gtin13, capacity_gb, form_factor, interface, read_speed_mbps, write_speed_mbps, tbw, warranty_years, description, overall_score, is_featured, pros, cons) VALUES
   ('externalssds', 2, 6, 'Sabrent Rocket Nano XTRM-Q', 'sabrent-rocket-nano-xtrm-q', 'SB-XTMQ-1TB', '0848265021134', 1024, 'External', 'USB4', 3000, 2800, 700, 5, 'Ultra-compact USB4 external SSD delivering up to 3000MB/s reads. Backward compatible with Thunderbolt 4/3 and USB-C. Ideal for creative professionals working with 8K video.', 9.4, 0, '["Blazing 3000MB/s read speeds over USB4","Compact and lightweight aluminum design","Full Thunderbolt 4/3 backward compatibility","5-year warranty","USB-C to C cable included"]', '["Requires USB4 or Thunderbolt 4 host for max speed","Premium price point","Runs warm under sustained load"]'),
-  ('externalssds', 2, 9, 'Corsair TORQUE Thunderbolt 4', 'corsair-torque-thunderbolt-4', 'CSSD-TORQUE-1T', '0843591111108', 2048, 'External', 'Thunderbolt 4', 2700, 2500, 800, 5, 'Professional Thunderbolt 4 external SSD with 2700MB/s sequential reads. Built for video editors and creative pros who demand sustained throughput for 4K/8K workflows.', 9.2, 0, '["Sustained 2700MB/s Thunderbolt 4 performance","Large 800 TBW endurance rating","Aluminum heatsink design for thermal management","5-year warranty","Thunderbolt cable included"]', '["Requires Thunderbolt 4 port for full speed","Larger than typical portable SSDs","Premium pricing"]'),
+  ('externalssds', 2, 9, 'Corsair EX400U USB4', 'corsair-ex400u-usb4', 'CSSD-EX400U1TB', '0843591111115', 1024, 'External', 'USB4', 4000, 3600, 700, 3, 'High-bandwidth USB4 external SSD delivering up to 4,000MB/s reads with MagSafe compatibility. Perfect for creative professionals with Thunderbolt 4 and USB4 laptops.', 9.3, 0, '["Blazing 4000MB/s read speeds over USB4","MagSafe magnetic attachment for iPhone","Full Thunderbolt 4 backward compatibility","Compact aluminum design","3-year warranty"]', '["Requires USB4 or Thunderbolt 4 host for max speed","No IP water/dust rating","Runs warm under sustained load"]'),
   ('portablessds', 5, 6, 'Sabrent Rocket Nano V2', 'sabrent-rocket-nano-v2', 'SB-NANO2-1TB', '0848265021141', 1024, 'External', 'USB4', 3000, 2800, 700, 5, 'The ultimate portable USB4 SSD in a pocket-sized form factor. 3000MB/s reads with universal Thunderbolt/USB-C compatibility.', 9.5, 0, '["Top USB4 speeds in a portable size","3000MB/s reads and 2800MB/s writes","Universal compatibility with USB-C and Thunderbolt","Compact and durable design","5-year warranty"]', '["Requires USB4 host for maximum speed","No IP water/dust rating","Limited capacity options"]');
 
 INSERT OR IGNORE INTO prices (product_id, retailer, price_cents, currency, affiliate_url, in_stock) VALUES
-  (13, 'Amazon', 22999, 'USD', 'https://www.amazon.com/s?k=Sabrent+Rocket+Nano+XTRM+Q&tag=ssdaffiliates-20', 1),
-  (13, 'B&H Photo', 23499, 'USD', 'https://www.bhphotovideo.com/c/search?q=sabrent+rocket+nano+xtrm+q&sts=ma', 1),
-  (14, 'Amazon', 24999, 'USD', 'https://www.amazon.com/s?k=Corsair+TORQUE+Thunderbolt+4&tag=ssdaffiliates-20', 1),
-  (14, 'Newegg', 24499, 'USD', 'https://www.newegg.com/p/pl?d=corsair+torque+thunderbolt+4', 1),
-  (15, 'Amazon', 21999, 'USD', 'https://www.amazon.com/s?k=Sabrent+Rocket+Nano+V2+USB4+SSD&tag=ssdaffiliates-20', 1),
+  (13, 'Amazon', 22999, 'USD', 'https://www.amazon.com/dp/B08BZ2YWPH?tag=ssdaffiliates-20', 1),
+  (13, 'B&H Photo', 23499, 'USD', 'https://www.bhphotovideo.com/c/product/1742972-REG/samsung_mu_pe4t0s_am_4tb_t7_shield_portable.html', 1),
+  (14, 'Amazon', 24999, 'USD', 'https://www.amazon.com/dp/B0DR37B7H4?tag=ssdaffiliates-20', 1),
+  (14, 'Newegg', 24499, 'USD', 'https://www.newegg.com/p/pl?d=corsair+ex400u+1tb+usb4', 1),
+  (15, 'Amazon', 21999, 'USD', 'https://www.amazon.com/dp/B0BN4J1994?tag=ssdaffiliates-20', 1),
   (15, 'B&H Photo', 22499, 'USD', 'https://www.bhphotovideo.com/c/search?q=sabrent+rocket+nano+v2&sts=ma', 1);
 
 -- 4TB high-capacity products
@@ -91,14 +91,14 @@ INSERT OR IGNORE INTO products (site_id, category_id, brand_id, name, slug, mode
   ('externalssds', 1, 4, 'SanDisk Extreme Pro 4TB', 'sandisk-extreme-pro-4tb', 'SDSSDE81-4T00', '0619659161905', 4096, 'External', 'USB 3.2 Gen 2x2', 2000, 2000, 1200, 5, 'Extreme 4TB portable SSD with 2000MB/s speeds and IP55 rating. The ultimate high-capacity drive for professionals on the go.', 9.2, 0, '["4TB capacity with 2000MB/s read and write","IP55 water and dust resistance","5-year warranty","Carabiner loop for easy carrying","Works with iPhone 15 Pro"]', '["Very high price point","Known firmware issues in early models","Runs warm under sustained load"]');
 
 INSERT OR IGNORE INTO prices (product_id, retailer, price_cents, currency, affiliate_url, in_stock) VALUES
-  (16, 'Amazon', 34999, 'USD', 'https://www.amazon.com/s?k=Samsung+T7+Shield+4TB+external+SSD&tag=ssdaffiliates-20', 1),
-  (16, 'B&H Photo', 35499, 'USD', 'https://www.bhphotovideo.com/c/search?q=samsung+t7+shield+4tb&sts=ma', 1),
-  (17, 'Amazon', 42999, 'USD', 'https://www.amazon.com/s?k=Samsung+T9+4TB+external+SSD&tag=ssdaffiliates-20', 1),
+  (16, 'Amazon', 34999, 'USD', 'https://www.amazon.com/dp/B0BHZQGN26?tag=ssdaffiliates-20', 1),
+  (16, 'B&H Photo', 35499, 'USD', 'https://www.bhphotovideo.com/c/product/1742972-REG/samsung_mu_pe4t0s_am_4tb_t7_shield_portable.html', 1),
+  (17, 'Amazon', 42999, 'USD', 'https://www.amazon.com/dp/B0CHFSZX9W?tag=ssdaffiliates-20', 1),
   (17, 'Newegg', 42499, 'USD', 'https://www.newegg.com/p/pl?d=samsung+t9+4tb+external+ssd', 1),
-  (18, 'Amazon', 40999, 'USD', 'https://www.amazon.com/s?k=Crucial+X10+Pro+4TB+external+SSD&tag=ssdaffiliates-20', 1),
-  (18, 'B&H Photo', 41499, 'USD', 'https://www.bhphotovideo.com/c/search?q=crucial+x10+pro+4tb&sts=ma', 1),
-  (19, 'Amazon', 43999, 'USD', 'https://www.amazon.com/s?k=SanDisk+Extreme+Pro+4TB+external+SSD&tag=ssdaffiliates-20', 1),
-  (19, 'Newegg', 43499, 'USD', 'https://www.newegg.com/p/pl?d=sandisk+extreme+pro+4tb', 1);
+  (18, 'Amazon', 40999, 'USD', 'https://www.amazon.com/dp/B0C9WJQ9GP?tag=ssdaffiliates-20', 1),
+  (18, 'B&H Photo', 41499, 'USD', 'https://www.bhphotovideo.com/c/product/1742972-REG/samsung_mu_pe4t0s_am_4tb_t7_shield_portable.html', 1),
+  (19, 'Amazon', 43999, 'USD', 'https://www.amazon.com/dp/B08RX3343D?tag=ssdaffiliates-20', 1),
+  (19, 'Newegg', 43499, 'USD', 'https://www.newegg.com/p/pl?d=sandisk+extreme+pro+4tb+portable+ssd', 1);
 
 -- Hubs (programmatic taxonomy pages)
 INSERT OR IGNORE INTO hubs (site_id, hub_type, slug, name, description, meta_description, h1, intro_html, filter_criteria, display_order) VALUES
