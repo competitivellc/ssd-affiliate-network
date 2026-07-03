@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS products (
   name TEXT NOT NULL,
   slug TEXT NOT NULL,
   model TEXT,
+  gtin13 TEXT,
   capacity_gb INTEGER,
   form_factor TEXT CHECK(form_factor IN ('M.2 2280','M.2 2230','2.5" SATA','mSATA','U.2','External')),
   interface TEXT CHECK(interface IN ('NVMe PCIe 5.0','NVMe PCIe 4.0','NVMe PCIe 3.0','SATA III','USB 3.2 Gen 2','USB 3.2 Gen 2x2','Thunderbolt 3','Thunderbolt 4','USB4')),

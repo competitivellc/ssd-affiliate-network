@@ -54,7 +54,8 @@ const productJsonLd: Record<string, unknown> = {
   "@id": productUrl,
   name: product.name,
   description: product.description,
-  ...(product.model ? { mpn: product.model } : {}),
+  mpn: product.model || product.slug,
+  ...(product.gtin13 ? { gtin13: product.gtin13 } : {}),
   brand: {
     "@type": "Brand",
     name: product.brand_name,

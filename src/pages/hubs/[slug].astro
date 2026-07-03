@@ -82,6 +82,8 @@ const hubJsonLd = {
         "@type": "Product",
         name: p.name,
         url: `https://${hostname}/products/${p.slug}`,
+        mpn: p.model || p.slug,
+        ...(p.gtin13 ? { gtin13: p.gtin13 } : {}),
       },
     })),
   },
