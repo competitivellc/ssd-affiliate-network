@@ -37,6 +37,12 @@ UPDATE products SET
   cons = '["Requires USB4 or Thunderbolt 4 host for max speed","No IP water/dust rating","Runs warm under sustained load"]'
 WHERE id = 26;
 
--- Fix Newegg URLs for all products to use real product search/N82E168 numbers
-UPDATE prices SET affiliate_url = 'https://www.newegg.com/p/pl?d=samsung+t9+4tb+external+ssd' WHERE product_id = 29 AND retailer = 'Newegg';
-UPDATE prices SET affiliate_url = 'https://www.newegg.com/p/pl?d=sandisk+extreme+pro+4tb+portable+ssd' WHERE product_id = 31 AND retailer = 'Newegg';
+-- Fix Newegg URLs for all products to use real product pages instead of search URLs
+UPDATE prices SET affiliate_url = 'https://www.newegg.com/samsung-t9-4tb-usb-3-2-gen-2x2/p/N82E16820147882' WHERE product_id = 29 AND retailer = 'Newegg';
+UPDATE prices SET affiliate_url = 'https://www.newegg.com/sandisk-extreme-pro-v2-4tb-usb-3-2-gen-2x2-usb-c/p/N82E16820173501' WHERE product_id = 31 AND retailer = 'Newegg';
+
+-- Mark OOS products where Amazon listings are unavailable or wrong
+-- Corsair EX100U 2TB: Currently Unavailable on Amazon
+UPDATE prices SET in_stock = 0 WHERE product_id = 5 AND retailer = 'Amazon';
+-- Seagate FireCuda 2TB: Refurbished listing, currently unavailable
+UPDATE prices SET in_stock = 0 WHERE product_id = 6 AND retailer = 'Amazon';
