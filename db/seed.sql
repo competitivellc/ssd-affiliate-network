@@ -79,7 +79,7 @@ INSERT OR IGNORE INTO prices (product_id, retailer, price_cents, currency, affil
   (13, 'Amazon', 22999, 'USD', 'https://www.amazon.com/dp/B08BZ2YWPH?tag=ssdaffiliates-20', 1),
   (13, 'B&H Photo', 23499, 'USD', 'https://www.bhphotovideo.com/c/product/1742972-REG/samsung_mu_pe4t0s_am_4tb_t7_shield_portable.html', 1),
   (14, 'Amazon', 24999, 'USD', 'https://www.amazon.com/dp/B0DR37B7H4?tag=ssdaffiliates-20', 1),
-  (14, 'Newegg', 24499, 'USD', 'https://www.newegg.com/p/pl?d=corsair+ex400u+1tb+usb4', 1),
+  (14, 'Newegg', 24499, 'USD', 'https://www.newegg.com/p/pl?d=corsair+ex400u+1tb+usb4', 0),
   (15, 'Amazon', 21999, 'USD', 'https://www.amazon.com/dp/B0BN4J1994?tag=ssdaffiliates-20', 1),
   (15, 'B&H Photo', 22499, 'USD', 'https://www.bhphotovideo.com/c/search?q=sabrent+rocket+nano+v2&sts=ma', 1);
 

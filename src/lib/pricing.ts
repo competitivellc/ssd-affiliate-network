@@ -13,10 +13,11 @@ export function formatPrice(cents: number, currency: string = "USD"): string {
 }
 
 export function getLowestPrice(
-  prices: { retailer: string; price_cents: number; currency: string }[]
-): { retailer: string; price_cents: number; currency: string } | null {
-  if (prices.length === 0) return null;
-  return prices.reduce((min, p) => (p.price_cents < min.price_cents ? p : min));
+  prices: { retailer: string; price_cents: number; currency: string; in_stock?: number }[]
+): { retailer: string; price_cents: number; currency: string; in_stock?: number } | null {
+  const inStock = prices.filter((p) => p.in_stock);
+  if (inStock.length === 0) return prices.length > 0 ? prices.reduce((min, p) => (p.price_cents < min.price_cents ? p : min)) : null;
+  return inStock.reduce((min, p) => (p.price_cents < min.price_cents ? p : min));
 }
 
 export function getPriceSavings(

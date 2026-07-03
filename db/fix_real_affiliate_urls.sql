@@ -26,6 +26,7 @@ UPDATE products SET
   name = 'Corsair EX400U USB4',
   slug = 'corsair-ex400u-usb4',
   model = 'CSSD-EX400U1TB',
+  capacity_gb = 1024,
   gtin13 = '0843591111115',
   interface = 'USB4',
   read_speed_mbps = 4000,
