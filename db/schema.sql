@@ -89,8 +89,27 @@ CREATE TABLE IF NOT EXISTS affiliate_configs (
   UNIQUE(site_id, retailer, country_code)
 );
 
+CREATE TABLE IF NOT EXISTS hubs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  site_id TEXT NOT NULL REFERENCES sites(id),
+  hub_type TEXT NOT NULL CHECK(hub_type IN ('use-case', 'performance', 'value')),
+  slug TEXT NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  meta_description TEXT,
+  h1 TEXT,
+  intro_html TEXT,
+  filter_criteria TEXT NOT NULL DEFAULT '{}',
+  display_order INTEGER DEFAULT 0,
+  is_active INTEGER DEFAULT 1,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
+  UNIQUE(site_id, slug)
+);
+
 CREATE INDEX IF NOT EXISTS idx_products_site_category ON products(site_id, category_id);
 CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
 CREATE INDEX IF NOT EXISTS idx_prices_product ON prices(product_id);
 CREATE INDEX IF NOT EXISTS idx_price_history_product ON price_history(product_id, recorded_at);
 CREATE INDEX IF NOT EXISTS idx_affiliate_lookup ON affiliate_configs(site_id, retailer, country_code);
+CREATE INDEX IF NOT EXISTS idx_hubs_site_active ON hubs(site_id, is_active);

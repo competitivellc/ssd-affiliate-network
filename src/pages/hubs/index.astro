@@ -1,0 +1,85 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import { getHubsBySite } from "@lib/db";
+import type { Hub } from "@lib/db";
+
+const { DB, tenant } = Astro.locals;
+const db = DB!;
+const hubs: Hub[] = await getHubsBySite(db, tenant.id);
+
+const byType: Record<string, Hub[]> = {
+  "use-case": [],
+  performance: [],
+  value: [],
+};
+for (const h of hubs) {
+  byType[h.hub_type]?.push(h);
+}
+
+const typeMeta: Record<string, { label: string; description: string }> = {
+  "use-case": {
+    label: "Use-Case Hubs",
+    description: "Find the best external SSD for your specific needs - gaming, creative work, travel, and more.",
+  },
+  performance: {
+    label: "Performance Hubs",
+    description: "Compare the fastest external SSDs ranked by read/write speed and interface bandwidth.",
+  },
+  value: {
+    label: "Value Hubs",
+    description: "Discover the cheapest and best-value external SSDs ranked by price and cost-per-gigabyte.",
+  },
+};
+
+const typeIcons: Record<string, string> = {
+  "use-case": '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>',
+  "performance": '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>',
+  "value": '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+};
+
+const accentStyle = { backgroundColor: tenant.primaryColor };
+---
+
+<BaseLayout title={`SSD Hub Pages - ${tenant.name}`}>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex items-center gap-3 mb-2">
+      <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
+      <h1 class="text-2xl sm:text-3xl font-bold text-surface-900">SSD Buying Guides & Rankings</h1>
+    </div>
+    <p class="text-surface-600 mt-2 mb-8 max-w-3xl">
+      Browse our curated hub pages to find the perfect external SSD for your needs. Whether you are looking for the best drive for a specific use case, the fastest performance, or the best value, we have you covered.
+    </p>
+
+    {(["use-case", "performance", "value"] as const).map((type) => {
+      const typeHubs = byType[type];
+      const meta = typeMeta[type];
+      if (!typeHubs || typeHubs.length === 0) return null;
+      return (
+        <section class="mb-10">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
+            <h2 class="text-xl font-bold text-surface-900">{meta.label}</h2>
+          </div>
+          <p class="text-surface-500 text-sm mb-4">{meta.description}</p>
+          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {typeHubs.map((hub) => (
+              <a
+                href={`/hubs/${hub.slug}`}
+                class="rounded-xl border border-surface-200 p-5 hover:shadow-md hover:-translate-y-0.5 transition-all no-underline group"
+              >
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-surface-400 group-hover:text-surface-500 transition-colors" set:html={typeIcons[type]}></span>
+                  <span class="text-xs font-medium text-surface-400 uppercase tracking-wider">{typeMeta[type]?.label.slice(0, -1) || type}</span>
+                </div>
+                <h3 class="text-base font-semibold text-surface-900">{hub.name}</h3>
+                {hub.description && (
+                  <p class="mt-1 text-sm text-surface-500 line-clamp-2">{hub.description}</p>
+                )}
+              </a>
+            ))}
+          </div>
+        </section>
+      );
+    })}
+  </div>
+</BaseLayout>

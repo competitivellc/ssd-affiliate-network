@@ -2,17 +2,20 @@
 import BaseLayout from "@layouts/BaseLayout.astro";
 import HeroSection from "@components/HeroSection.astro";
 import ProductGrid from "@components/ProductGrid.astro";
-import { getFeaturedProducts, getAllProducts, getCategoriesBySite, getLastUpdatedDate } from "@lib/db";
-import type { Product } from "@lib/db";
+import { getFeaturedProducts, getAllProducts, getCategoriesBySite, getLastUpdatedDate, getHubsBySite } from "@lib/db";
+import type { Product, Hub } from "@lib/db";
 
 const { DB, tenant } = Astro.locals;
 const db = DB!;
-const [featured, allProducts, categories, lastUpdated] = await Promise.all([
+const [featured, allProducts, categories, lastUpdated, hubs] = await Promise.all([
   getFeaturedProducts(db, tenant.id),
   getAllProducts(db, tenant.id),
   getCategoriesBySite(db, tenant.id),
   getLastUpdatedDate(db, tenant.id),
+  getHubsBySite(db, tenant.id),
 ]);
+const byHubType: Record<string, Hub[]> = { "use-case": [], performance: [], value: [] };
+for (const h of hubs) { byHubType[h.hub_type]?.push(h); }
 const accentStyle = { backgroundColor: tenant.primaryColor };
 const year = new Date().getFullYear();
 ---
@@ -50,6 +53,52 @@ const year = new Date().getFullYear();
         ))}
       </div>
     </section>
+
+    {byHubType["use-case"]?.length > 0 && (
+      <section class="mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
+          <h2 class="text-2xl font-bold text-surface-900">Buying Guides</h2>
+        </div>
+        <p class="text-surface-500 text-sm mb-4">Find the best external SSD for your specific needs.</p>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {byHubType["use-case"].map((hub) => (
+            <a
+              href={`/hubs/${hub.slug}`}
+              class="rounded-xl border border-surface-200 p-5 hover:shadow-md hover:-translate-y-0.5 transition-all no-underline group"
+            >
+              <h3 class="text-base font-semibold text-surface-900 group-hover:text-blue-600 transition-colors">{hub.name}</h3>
+              {hub.description && (
+                <p class="mt-1 text-sm text-surface-500 line-clamp-2">{hub.description}</p>
+              )}
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {(byHubType["performance"]?.length > 0 || byHubType["value"]?.length > 0) && (
+      <section class="mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
+          <h2 class="text-2xl font-bold text-surface-900">Rankings & Comparisons</h2>
+        </div>
+        <p class="text-surface-500 text-sm mb-4">Performance rankings and value comparisons to help you decide.</p>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[...(byHubType["performance"] || []), ...(byHubType["value"] || [])].map((hub) => (
+            <a
+              href={`/hubs/${hub.slug}`}
+              class="rounded-xl border border-surface-200 p-5 hover:shadow-md hover:-translate-y-0.5 transition-all no-underline group"
+            >
+              <h3 class="text-base font-semibold text-surface-900 group-hover:text-blue-600 transition-colors">{hub.name}</h3>
+              {hub.description && (
+                <p class="mt-1 text-sm text-surface-500 line-clamp-2">{hub.description}</p>
+              )}
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
 
   </div>
 </BaseLayout>

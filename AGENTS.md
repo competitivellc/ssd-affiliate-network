@@ -9,7 +9,7 @@ Multi-tenant affiliate comparison site for external SSDs served on `externalssds
 ## Architecture
 - **Framework**: Astro 5 (`output: "server"`) with `@astrojs/cloudflare` adapter
 - **Styling**: Tailwind CSS v3 with `@astrojs/tailwind`
-- **Data**: Cloudflare D1 (SQLite) - 7 tables: `sites`, `categories`, `brands`, `products`, `prices`, `price_history`, `affiliate_configs`
+- **Data**: Cloudflare D1 (SQLite) - 8 tables: `sites`, `categories`, `brands`, `products`, `prices`, `price_history`, `affiliate_configs`, `hubs`
 - **Cache**: Cloudflare KV (`PRICE_CACHE`)
 - **Multi-tenancy**: `src/middleware.ts` detects `Host` header, resolves tenant config, populates `Astro.locals`
 - **Geo-targeting**: `src/lib/affiliate.ts` reads `request.cf.country` (Cloudflare edge) → queries `affiliate_configs` for per-country affiliate tag
@@ -26,13 +26,16 @@ Multi-tenant affiliate comparison site for external SSDs served on `externalssds
 | `src/lib/affiliate.ts` | Country detection, affiliate URL rewriting |
 | `src/lib/pricing.ts` | Price formatting, lowest price, savings calculation |
 | `src/lib/kv.ts` | KV cache read/write helpers |
-| `src/pages/index.astro` | Home: hero, featured picks, categories, all products |
+| `src/lib/hubs.ts` | Hub editorial content generation (use-case, performance, value) |
+| `src/pages/index.astro` | Home: hero, featured picks, categories, all products, hub navigation |
 | `src/pages/compare.astro` | Spec comparison table with category filtering |
 | `src/pages/products/[slug].astro` | Product detail: specs, pros/cons, price history, buy buttons |
+| `src/pages/hubs/[slug].astro` | Programmatic hub page: use-case/performance/value drives with editorial |
+| `src/pages/hubs/index.astro` | Hub directory listing all hub pages grouped by type |
 | `src/pages/api/prices.ts` | JSON endpoint: `/api/prices?slug=X&retailer=Y` |
 | `worker/price-sync.ts` | Cron trigger for daily price sync |
-| `db/schema.sql` | D1 table definitions (7 tables) |
-| `db/seed.sql` | Sample data: 2 sites, 6 categories, 10 brands, 12 products, 21 prices, 10 affiliate configs |
+| `db/schema.sql` | D1 table definitions (8 tables: +hubs) |
+| `db/seed.sql` | Sample data: 2 sites, 6 categories, 10 brands, 12 products, 21 prices, 10 affiliate configs, 15 hubs |
 | `wrangler.toml` | Cloudflare config with D1/KV bindings |
 
 ## Cloudflare Resources
@@ -71,6 +74,9 @@ The AI agent must always commit and push changes directly after making any code 
 - [x] Per-domain favicons (blue/green SSD chip)
 - [x] Custom domains (all 4) with SSL
 - [x] Git repo connected to Cloudflare Pages (auto-deploy on push)
+- [x] Taxonomy hub pages: use-case, performance, value with editorial content
+- [x] Hub directory listing all programmatic hub pages
+- [x] Hub navigation on homepage (buying guides + rankings)
 
 ## What's Pending
 - [ ] Cron price-sync worker not deployed (needs API keys → `npx wrangler deploy worker/price-sync.ts --name ssd-price-sync`)
