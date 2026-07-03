@@ -96,7 +96,7 @@ INSERT OR IGNORE INTO prices (product_id, retailer, price_cents, currency, affil
   (17, 'Amazon', 42999, 'USD', 'https://www.amazon.com/dp/B0CHFSZX9W?tag=ssdaffiliates-20', 1),
   (17, 'Newegg', 42499, 'USD', 'https://www.newegg.com/p/pl?d=samsung+t9+4tb+external+ssd', 1),
   (18, 'Amazon', 40999, 'USD', 'https://www.amazon.com/dp/B0C9WJQ9GP?tag=ssdaffiliates-20', 1),
-  (18, 'B&H Photo', 41499, 'USD', 'https://www.bhphotovideo.com/c/product/1742972-REG/samsung_mu_pe4t0s_am_4tb_t7_shield_portable.html', 1),
+  (18, 'B&H Photo', 41499, 'USD', 'https://www.bhphotovideo.com/c/product/1776927-REG/crucial_ct4000x10prossd9_4tb_x10_pro_usb.html', 1),
   (19, 'Amazon', 43999, 'USD', 'https://www.amazon.com/dp/B08RX3343D?tag=ssdaffiliates-20', 1),
   (19, 'Newegg', 43499, 'USD', 'https://www.newegg.com/p/pl?d=sandisk+extreme+pro+4tb+portable+ssd', 1);
 
