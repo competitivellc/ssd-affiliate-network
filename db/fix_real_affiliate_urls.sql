@@ -5,8 +5,8 @@ UPDATE prices SET affiliate_url = 'https://www.amazon.com/dp/B0CHFSZX9W?tag=ssde
 UPDATE prices SET affiliate_url = 'https://www.amazon.com/dp/B0C9WJQ9GP?tag=ssdext-20' WHERE product_id = 30 AND retailer = 'Amazon';
 UPDATE prices SET affiliate_url = 'https://www.amazon.com/dp/B08RX3343D?tag=ssdext-20' WHERE product_id = 31 AND retailer = 'Amazon';
 
--- Sabrent Rocket XTRM-Q 1TB (SB-XTMQ-1TB) - real ASIN
-UPDATE prices SET affiliate_url = 'https://www.amazon.com/dp/B08BZ2YWPH?tag=ssdext-20' WHERE product_id = 25 AND retailer = 'Amazon';
+-- Sabrent Rocket nano XTRM 1TB (SB-XTMN-1TB) - real ASIN
+UPDATE prices SET affiliate_url = 'https://www.amazon.com/dp/B0CD2TVQ98?tag=ssdext-20' WHERE product_id = 25 AND retailer = 'Amazon';
 
 -- Corsair EX400U 1TB USB4 (replaces fake TORQUE Thunderbolt 4) - real ASIN
 UPDATE prices SET affiliate_url = 'https://www.amazon.com/dp/B0DR37B7H4?tag=ssdext-20' WHERE product_id = 26 AND retailer = 'Amazon';

@@ -76,8 +76,8 @@ INSERT OR IGNORE INTO products (site_id, category_id, brand_id, name, slug, mode
   ('portablessds', 5, 6, 'Sabrent Rocket Nano V2', 'sabrent-rocket-nano-v2', 'SB-NANO2-1TB', '0848265021141', 1024, 'External', 'USB4', 3000, 2800, 700, 5, 'The ultimate portable USB4 SSD in a pocket-sized form factor. 3000MB/s reads with universal Thunderbolt/USB-C compatibility.', 9.5, 0, '["Top USB4 speeds in a portable size","3000MB/s reads and 2800MB/s writes","Universal compatibility with USB-C and Thunderbolt","Compact and durable design","5-year warranty"]', '["Requires USB4 host for maximum speed","No IP water/dust rating","Limited capacity options"]');
 
 INSERT OR IGNORE INTO prices (product_id, retailer, price_cents, currency, affiliate_url, in_stock) VALUES
-  (13, 'Amazon', 22999, 'USD', 'https://www.amazon.com/dp/B08BZ2YWPH?tag=ssdaffiliates-20', 1),
-  (13, 'B&H Photo', 23499, 'USD', 'https://www.bhphotovideo.com/c/product/1742972-REG/samsung_mu_pe4t0s_am_4tb_t7_shield_portable.html', 1),
+  (13, 'Amazon', 29999, 'USD', 'https://www.amazon.com/dp/B0CD2TVQ98?tag=ssdaffiliates-20', 1),
+  (13, 'B&H Photo', 26999, 'USD', 'https://www.bhphotovideo.com/c/search?q=sabrent+rocket+xtrm+q+sb-xtmq-1tb&sts=ma', 1),
   (14, 'Amazon', 24999, 'USD', 'https://www.amazon.com/dp/B0DR37B7H4?tag=ssdaffiliates-20', 1),
   (14, 'Newegg', 24499, 'USD', 'https://www.newegg.com/p/pl?d=corsair+ex400u+1tb+usb4', 0),
   (15, 'Amazon', 21999, 'USD', 'https://www.amazon.com/dp/B0BN4J1994?tag=ssdaffiliates-20', 1),
