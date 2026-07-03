@@ -77,11 +77,11 @@ INSERT OR IGNORE INTO products (site_id, category_id, brand_id, name, slug, mode
 
 INSERT OR IGNORE INTO prices (product_id, retailer, price_cents, currency, affiliate_url, in_stock) VALUES
   (13, 'Amazon', 29999, 'USD', 'https://www.amazon.com/dp/B0CD2TVQ98?tag=ssdaffiliates-20', 1),
-  (13, 'B&H Photo', 26999, 'USD', 'https://www.bhphotovideo.com/c/search?q=sabrent+rocket+xtrm+q+sb-xtmq-1tb&sts=ma', 1),
+  (13, 'B&H Photo', 26999, 'USD', 'https://www.bhphotovideo.com/c/search?q=sabrent+rocket+xtrm+q+sb-xtmq-1tb&sts=ma', 0),
   (14, 'Amazon', 24999, 'USD', 'https://www.amazon.com/dp/B0DR37B7H4?tag=ssdaffiliates-20', 1),
   (14, 'Newegg', 24499, 'USD', 'https://www.newegg.com/p/pl?d=corsair+ex400u+1tb+usb4', 0),
   (15, 'Amazon', 21999, 'USD', 'https://www.amazon.com/dp/B0BN4J1994?tag=ssdaffiliates-20', 1),
-  (15, 'B&H Photo', 22499, 'USD', 'https://www.bhphotovideo.com/c/search?q=sabrent+rocket+nano+v2&sts=ma', 1);
+  (15, 'B&H Photo', 22499, 'USD', 'https://www.bhphotovideo.com/c/search?q=sabrent+rocket+nano+v2&sts=ma', 0);
 
 -- 4TB high-capacity products
 INSERT OR IGNORE INTO products (site_id, category_id, brand_id, name, slug, model, gtin13, capacity_gb, form_factor, interface, read_speed_mbps, write_speed_mbps, tbw, warranty_years, description, overall_score, is_featured, pros, cons) VALUES
