@@ -25,10 +25,10 @@ async function buildSitemapXml(
   const entries: string[] = [];
 
   entries.push(`  <url>\n    <loc>${baseUrl}/</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`);
-  entries.push(`  <url>\n    <loc>${baseUrl}/compare</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`);
+    entries.push(`  <url>\n    <loc>${baseUrl}/compare</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`);
 
   if (hubs.length > 0) {
-    entries.push(`  <url>\n    <loc>${baseUrl}/hubs/</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`);
+    entries.push(`  <url>\n    <loc>${baseUrl}/hubs</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`);
   }
 
   for (const p of products) {
