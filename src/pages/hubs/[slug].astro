@@ -147,7 +147,7 @@ const hubJsonLd = {
               <div class="w-1 h-6 rounded-full mt-1" style={accentStyle}></div>
               <div>
                 <h2 class="text-lg font-semibold text-surface-900">Our Take</h2>
-                <p class="text-surface-600 mt-2 leading-relaxed">{editorial.summary}</p>
+                <p class="text-surface-600 mt-2 leading-relaxed" set:html={editorial.summary} />
               </div>
             </div>
           </section>
@@ -158,9 +158,9 @@ const hubJsonLd = {
             {block.type === "prose" && (
               <section class="mb-6">
                 {block.title && (
-                  <h3 class="text-base font-semibold text-surface-800 mb-2">{block.title}</h3>
+                  <h3 class="text-base font-semibold text-surface-800 mb-2" set:html={block.title} />
                 )}
-                <p class="text-surface-600 leading-relaxed">{block.content}</p>
+                <p class="text-surface-600 leading-relaxed" set:html={block.content} />
               </section>
             )}
             {block.type === "bullets" && block.items && (
@@ -182,7 +182,7 @@ const hubJsonLd = {
             )}
             {block.type === "callout" && block.content && (
               <div class="rounded-lg border border-surface-200 bg-surface-50 px-4 py-3 mb-6">
-                <p class="text-sm text-surface-700 leading-relaxed">{block.content}</p>
+                <p class="text-sm text-surface-700 leading-relaxed" set:html={block.content} />
               </div>
             )}
             {block.type === "comparison" && block.rows && (

@@ -27,6 +27,15 @@ function fmtCap(gb: number): string {
     : `${gb}GB`;
 }
 
+function linkProduct(p: Product | undefined | null): string {
+  if (!p?.slug) return "the top pick";
+  return `<a href="/products/${p.slug}" class="text-blue-600 hover:text-blue-700 no-underline font-medium">${p.name}</a>`;
+}
+
+function linkProductName(name: string, slug: string): string {
+  return `<a href="/products/${slug}" class="text-blue-600 hover:text-blue-700 no-underline font-medium">${name}</a>`;
+}
+
 function hostPortWarning(iface: string): string {
   if (iface === "USB4" || iface === "Thunderbolt 4" || iface === "Thunderbolt 3") {
     return pick([
@@ -130,7 +139,9 @@ export function generateUseCaseEditorial(
     conditionalBlocks.push({
       type: "callout",
       content: pick([
-        `One or more drives use ${tbDrive?.interface || "Thunderbolt/USB4"}. These require a host port that supports 40 Gbps — verify your laptop or motherboard specifications before purchase.`,
+        tbDrive
+          ? `The ${linkProduct(tbDrive)} uses ${tbDrive.interface}, which requires a host port that supports 40 Gbps — verify your laptop or motherboard specifications before purchase.`
+          : `One or more drives use ${tbDrive?.interface || "Thunderbolt/USB4"}. These require a host port that supports 40 Gbps — verify your laptop or motherboard specifications before purchase.`,
         `${tbDrive?.interface || "Thunderbolt/USB4"} drives demand a 40 Gbps host port. Without one, the drive negotiates down to your port's maximum speed, leaving most of its performance untapped.`,
         `Before buying a ${tbDrive?.interface || "Thunderbolt/USB4"} drive, confirm your computer's port supports 40 Gbps. Many USB-C ports on older hardware top out at 10 Gbps, which defeats the purpose of a high-speed external SSD.`,
       ]),
@@ -182,19 +193,19 @@ export function generateUseCaseEditorial(
     type: "prose",
     title: pick(["What to Look For", "Key Considerations", "Shopping Guide", "What Matters Most"]),
     content: pick([
-      `When choosing an external SSD for ${hubName.toLowerCase()}, pay close attention to the interface. Drives here range from ${speedRange}. USB 3.2 Gen 2 is sufficient for most users, but Thunderbolt and USB4 models unlock higher throughput for demanding workflows.`,
-      `Capacity is the primary consideration for ${hubName.toLowerCase()}. These drives span from ${speedRange} in read performance. Match the capacity to your workload — larger drives often achieve better cost-per-GB but may sacrifice portability.`,
-      `Form factor matters for ${hubName.toLowerCase()}. The drives in this category offer ${speedRange} read speeds. Pocket-sized NVMe enclosures suit on-the-go professionals, while larger desktop-class drives often include additional散热or sustained performance features.`,
-      `A balance of speed, capacity, and price defines the best ${hubName.toLowerCase()} options. With read speeds spanning ${speedRange}, the right choice depends on whether your priority is raw throughput, storage volume, or portability.`,
+      `When choosing an external SSD for ${hubName.toLowerCase()}, pay close attention to the interface. Drives here range from ${speedRange}. ${top ? `Our top pick, the ${linkProduct(top)}, exemplifies what to look for in this category.` : ""} USB 3.2 Gen 2 is sufficient for most users, but Thunderbolt and USB4 models unlock higher throughput for demanding workflows.`,
+      `Capacity is the primary consideration for ${hubName.toLowerCase()}. These drives span from ${speedRange} in read performance. ${top ? `The ${linkProduct(top)} shows how the right capacity balances cost and usability.` : ""} Match the capacity to your workload — larger drives often achieve better cost-per-GB but may sacrifice portability.`,
+      `Form factor matters for ${hubName.toLowerCase()}. The drives in this category offer ${speedRange} read speeds. ${top ? `A drive like the ${linkProduct(top)} demonstrates the form factor trade-offs.` : ""} Pocket-sized NVMe enclosures suit on-the-go professionals, while larger desktop-class drives often include additional散热or sustained performance features.`,
+      `A balance of speed, capacity, and price defines the best ${hubName.toLowerCase()} options. With read speeds spanning ${speedRange}, ${top ? `the ${linkProduct(top)} is a strong contender,` : "the right choice"} depending on whether your priority is raw throughput, storage volume, or portability.`,
     ]),
   };
 
   const bulletsBlock: EditorialBlock = {
     type: "bullets",
     title: pick([
-      `Why ${top?.name || "our top pick"} Stands Out`,
-      `${top?.name || "The top pick"} at a Glance`,
-      `What Sets ${top?.name || "This Drive"} Apart`,
+      top?.name ? `Why ${linkProduct(top!)} Stands Out` : "Why Our Top Pick Stands Out",
+      top?.name ? `${linkProduct(top!)} at a Glance` : "The Top Pick at a Glance",
+      top?.name ? `What Sets ${linkProduct(top!)} Apart` : "What Sets This Drive Apart",
       `Key Highlights`,
     ]),
     items: selectedBullets,
@@ -210,9 +221,9 @@ export function generateUseCaseEditorial(
   };
 
   const summary = pick([
-    `We have evaluated ${count} drives to find the best ${hubName.toLowerCase()}. The ${top?.name || "top pick"} leads our ranking with ${top?.overall_score?.toFixed(1) || "0"}/10 and ${fmtSpeed(top?.read_speed_mbps ?? 0)} sequential reads.`,
-    `${hubName} — after testing ${count} models side by side, the ${top?.name || "top pick"} earned our recommendation with a ${top?.overall_score?.toFixed(1) || "0"}/10 rating.`,
-    `Our lab tested ${count} drives for ${hubName.toLowerCase()}. The ${top?.name || "top pick"} scored ${top?.overall_score?.toFixed(1) || "0"}/10, delivering ${fmtSpeed(top?.read_speed_mbps ?? 0)} sequential reads.`,
+    `We have evaluated ${count} drives to find the best ${hubName.toLowerCase()}. ${top ? `The ${linkProduct(top)} leads our ranking with ${top.overall_score.toFixed(1)}/10 and ${fmtSpeed(top.read_speed_mbps)} sequential reads.` : "The top pick leads our ranking."}`,
+    `${hubName} — after testing ${count} models side by side, ${top ? `the ${linkProduct(top)} earned our recommendation with a ${top.overall_score.toFixed(1)}/10 rating.` : "our top pick earned the recommendation."}`,
+    `Our lab tested ${count} drives for ${hubName.toLowerCase()}. ${top ? `The ${linkProduct(top)} scored ${top.overall_score.toFixed(1)}/10, delivering ${fmtSpeed(top.read_speed_mbps)} sequential reads.` : "The top pick led the pack."}`,
   ]);
 
   const blocks: EditorialBlock[] = Math.random() > 0.5
@@ -259,7 +270,7 @@ export function generatePerformanceEditorial(
       type: "callout",
       content: pick([
         `Thunderbolt and USB4 drives require a 40 Gbps host port. Standard USB-C ports max out at 10 Gbps, so check your machine's port specs before buying.`,
-        `To hit the advertised speeds of ${tbDrive?.interface || "these drives"}, your host must support 40 Gbps over USB-C. Many 2021-2023 laptops ship with 10 Gbps or 20 Gbps ports only.`,
+        `To hit the advertised speeds of ${tbDrive?.interface || "these drives"}, your host must support 40 Gbps over USB-C. Many 2021-2023 laptops ship with 10 Gbps or 20 Gbps ports only${tbDrive ? ` — the ${linkProduct(tbDrive)} is a good example of the performance at stake` : ""}.`,
         `A 40 Gbps host port is non-negotiable for Thunderbolt/USB4 drives. Without it, you are paying for bandwidth you cannot use.`,
       ]),
     });
@@ -289,15 +300,15 @@ export function generatePerformanceEditorial(
   }
 
   const summary = pick([
-    `${hubName} ranked by sequential read speed. The ${top?.name || "top performer"} leads at ${fmtSpeed(top?.read_speed_mbps ?? 0)}, with ${fastest.length} drives within 5% of the top speed.`,
-    `We benchmarked ${products.length} drives to find the fastest ${hubName.toLowerCase()}. The ${top?.name || "top performer"} tops the charts at ${fmtSpeed(top?.read_speed_mbps ?? 0)}.`,
-    `Speed comparison for ${hubName.toLowerCase()}. ${top?.name || "The leader"} achieves ${fmtSpeed(top?.read_speed_mbps ?? 0)} sequential reads, with ${fastest.length - 1} other drives within striking distance.`,
+    `${hubName} ranked by sequential read speed. ${top ? `The ${linkProduct(top)} leads at ${fmtSpeed(top.read_speed_mbps)},` : "The leader tops the charts at"} with ${fastest.length} drives within 5% of the top speed.`,
+    `We benchmarked ${products.length} drives to find the fastest ${hubName.toLowerCase()}. ${top ? `The ${linkProduct(top)} tops the charts at ${fmtSpeed(top.read_speed_mbps)}.` : "The top performer leads the pack."}`,
+    `Speed comparison for ${hubName.toLowerCase()}. ${top ? `${linkProduct(top)} achieves ${fmtSpeed(top.read_speed_mbps)} sequential reads,` : "The leader achieves top speeds,"} with ${fastest.length - 1} other drives within striking distance.`,
   ]);
 
   const breakdownContent = pick([
-    `Interface bandwidth determines the theoretical ceiling, but real-world speed depends on controller efficiency, thermal management, and NAND quality. The ${top?.name || "top drive"} achieves ${fmtSpeed(top?.read_speed_mbps ?? 0)} reads and ${fmtSpeed(top?.write_speed_mbps ?? 0)} writes over ${highestInterface} — enough for direct 4K/8K video editing, massive file transfers, and demanding creative workflows.`,
-    `Raw sequential numbers tell only part of the story. The ${top?.name || "top drive"} delivers ${fmtSpeed(top?.read_speed_mbps ?? 0)} reads over ${highestInterface}, but sustained throughput under heavy loads depends on thermal design and controller firmware. In our testing it maintained ${fmtSpeed((top?.read_speed_mbps ?? 0) * 0.9)}+ during extended writes.`,
-    `Benchmarks show the ${top?.name || "top drive"} at ${fmtSpeed(top?.read_speed_mbps ?? 0)} reads and ${fmtSpeed(top?.write_speed_mbps ?? 0)} writes. ${highestInterface} provides the bandwidth pipe, but the drive's controller and NAND determine how much of that pipe fills.`,
+    `Interface bandwidth determines the theoretical ceiling, but real-world speed depends on controller efficiency, thermal management, and NAND quality. ${top ? `The ${linkProduct(top)} achieves ${fmtSpeed(top.read_speed_mbps)} reads and ${fmtSpeed(top.write_speed_mbps)} writes over ${highestInterface}` : "The top drive delivers impressive speeds"} — enough for direct 4K/8K video editing, massive file transfers, and demanding creative workflows.`,
+    `Raw sequential numbers tell only part of the story. ${top ? `The ${linkProduct(top)} delivers ${fmtSpeed(top.read_speed_mbps)} reads over ${highestInterface}` : "The top drive delivers impressive reads"}, but sustained throughput under heavy loads depends on thermal design and controller firmware. In our testing it maintained ${top ? fmtSpeed(top.read_speed_mbps * 0.9) : "excellent speeds"}+ during extended writes.`,
+    `Benchmarks show ${top ? `the ${linkProduct(top)} at ${fmtSpeed(top.read_speed_mbps)} reads and ${fmtSpeed(top.write_speed_mbps)} writes` : "the top drive leading the pack"}. ${highestInterface} provides the bandwidth pipe, but the drive's controller and NAND determine how much of that pipe fills.`,
   ]);
 
   const blocks: EditorialBlock[] = [
@@ -371,7 +382,9 @@ export function generateValueEditorial(
   const selectedTips = shuffledTips.slice(0, tipCount);
 
   const summary = pick([
-    `The cheapest ${hubName.toLowerCase()} starts at $${cheapestPrice.toFixed(2)}. We have ranked ${products.length} drives by price to help you find maximum storage for minimum spend.`,
+    top
+      ? `The cheapest ${hubName.toLowerCase()} starts at $${cheapestPrice.toFixed(2)} with the ${linkProduct(top)}. We have ranked ${products.length} drives by price to help you find maximum storage for minimum spend.`
+      : `The cheapest ${hubName.toLowerCase()} starts at $${cheapestPrice.toFixed(2)}. We have ranked ${products.length} drives by price to help you find maximum storage for minimum spend.`,
     `Looking for a deal on ${hubName.toLowerCase()}? Prices start at $${cheapestPrice.toFixed(2)} across ${products.length} models we compared.`,
     `We priced ${products.length} ${hubName.toLowerCase()} drives side by side. The most affordable option lands at $${cheapestPrice.toFixed(2)}, and the full range spans up to $${mostExpensive.toFixed(2)}.`,
   ]);
@@ -383,7 +396,9 @@ export function generateValueEditorial(
         type: "prose",
         title: pick(["Cost-Per-Gigabyte Analysis", "Value Breakdown", "Price Analysis", "Where Your Money Goes"]),
         content: pick([
-          `For ${fmtCap(top?.capacity_gb ?? 0)} external SSDs, the price range spans from $${mostExpensive.toFixed(2)} down to $${cheapestPrice.toFixed(2)}. While the cheapest option saves you money up front, consider the overall value: a slightly more expensive drive may offer faster speeds, better build quality, or a longer warranty.`,
+          top
+            ? `For ${fmtCap(top.capacity_gb)} external SSDs, the price range spans from $${mostExpensive.toFixed(2)} down to $${cheapestPrice.toFixed(2)} for the ${linkProduct(top)}. While the cheapest option saves you money up front, consider the overall value: a slightly more expensive drive may offer faster speeds, better build quality, or a longer warranty.`
+            : `For ${fmtCap(top?.capacity_gb ?? 0)} external SSDs, the price range spans from $${mostExpensive.toFixed(2)} down to $${cheapestPrice.toFixed(2)}. While the cheapest option saves you money up front, consider the overall value: a slightly more expensive drive may offer faster speeds, better build quality, or a longer warranty.`,
           `Prices for ${fmtCap(top?.capacity_gb ?? 0)} drives in this category range from $${cheapestPrice.toFixed(2)} to $${mostExpensive.toFixed(2)}. The ${cpgPhrase} varies significantly — sometimes spending 20% more nets you double the endurance or a faster interface.`,
           `The value spread across ${products.length} drives runs from $${cheapestPrice.toFixed(2)} to $${mostExpensive.toFixed(2)}. Rather than picking the absolute cheapest, compare ${cpgPhrase} across the lineup — the sweet spot is often one tier above the entry model.`,
         ]),

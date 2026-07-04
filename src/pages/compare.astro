@@ -135,6 +135,10 @@ function stripSsdSuffix(name: string): string {
   return name.replace(/\s+SSDs?$/i, '');
 }
 
+function prodLink(product: Product, text?: string): string {
+  return `<a href="/products/${product.slug}" class="text-blue-600 hover:text-blue-700 no-underline font-medium">${text || product.name}</a>`;
+}
+
 function getCategoryIntro(catName: string | null, prods: Product[]): string {
   if (!catName || prods.length === 0) return "";
   const speeds = prods.map(p => p.read_speed_mbps);
@@ -144,7 +148,8 @@ function getCategoryIntro(catName: string | null, prods: Product[]): string {
   const top = prods[0];
   const cat = stripSsdSuffix(catName).toLowerCase();
 
-  return `Looking for the best ${cat} SSD for your setup? We have tested and compared ${prods.length} top ${cat} drives side-by-side. Speeds range from ${fmtSpeed(minSpd)} to ${fmtSpeed(maxSpd)}${hasUsb4 ? " over USB4 and Thunderbolt" : " over USB"}, with capacities from ${fmtCapacity(Math.min(...prods.map(p => p.capacity_gb)))} to ${fmtCapacity(Math.max(...prods.map(p => p.capacity_gb)))}. Our top pick, the ${top?.brand_name || ""} ${top?.name || ""}, earned ${top?.overall_score?.toFixed(1) || ""}/10 for its balance of speed, build quality, and value. Whether you need faster game load times, portable storage for creative work, or reliable backup, this comparison covers everything you need to choose the right drive.`;
+  const topName = top ? `${top.brand_name} ${top.name}` : "";
+  return `Looking for the best ${cat} SSD for your setup? We have tested and compared ${prods.length} top ${cat} drives side-by-side. Speeds range from ${fmtSpeed(minSpd)} to ${fmtSpeed(maxSpd)}${hasUsb4 ? " over USB4 and Thunderbolt" : " over USB"}, with capacities from ${fmtCapacity(Math.min(...prods.map(p => p.capacity_gb)))} to ${fmtCapacity(Math.max(...prods.map(p => p.capacity_gb)))}. Our top pick, ${prods[0] ? prodLink(prods[0], topName) : topName || "the leader"}, earned ${top?.overall_score?.toFixed(1) || ""}/10 for its balance of speed, build quality, and value. Whether you need faster game load times, portable storage for creative work, or reliable backup, this comparison covers everything you need to choose the right drive.`;
 }
 
 function computeBenchmarks(product: Product) {
@@ -235,7 +240,8 @@ function getGamingAnalysis(prods: Product[], catName: string | null): string {
   const maxCap = Math.max(...capacities);
   const minCap = Math.min(...capacities);
 
-  return `For gaming, both read speed and capacity matter. Modern AAA games like Call of Duty and Starfield can exceed 100 GB per installation, so capacity is often the deciding factor. These drives range from ${fmtCapacity(minCap)} to ${fmtCapacity(maxCap)} — ${maxCap >= 2000 ? "the 2TB variants provide enough room for 15-20 major titles" : "sufficient for a core library of 8-12 games"}.
+  const top = prods[0];
+  return `For gaming, both read speed and capacity matter. Modern AAA games like Call of Duty and Starfield can exceed 100 GB per installation, so capacity is often the deciding factor. These drives range from ${fmtCapacity(minCap)} to ${fmtCapacity(maxCap)} — ${maxCap >= 2000 ? "the 2TB variants provide enough room for 15-20 major titles" : "sufficient for a core library of 8-12 games"}. ${top ? `${prodLink(top)} handles this balance particularly well in our testing.` : ""}
 
 All ${prods.length} drives in this comparison meet the minimum speed requirements for console gaming on PS5 and Xbox Series X|S. Load time improvements over internal console storage are marginal for most games — typically 1-3 seconds faster — because modern consoles already use fast NVMe storage. Where external SSDs shine is game library management: transferring games between internal and external storage is 3-5x faster than re-downloading.
 
@@ -249,10 +255,15 @@ function getHeatAnalysis(prods: Product[]): string {
   const usb4Drives = prods.filter(p => p.interface === "USB4" || p.interface?.includes("Thunderbolt"));
   const allMetal = prods.every(p => p.form_factor?.includes("Aluminum") || p.form_factor?.includes("Metal"));
 
+  const top = prods[0];
   let text = "Thermal management is a critical but often overlooked aspect of external SSD performance. ";
   
-  if (highPerf.length > 0) {
+  if (highPerf.length > 0 && usb4Drives.includes(top!)) {
+    text += `${prodLink(top!)} is one of the high-performance drives in this comparison (read speeds above 1500 MB/s) that generates significant heat during sustained operation. `;
+  } else if (highPerf.length > 0) {
     text += `The ${highPerf.length} high-performance drive${highPerf.length > 1 ? "s" : ""} in this comparison (read speeds above 1500 MB/s) generate${highPerf.length === 1 ? "s" : ""} significant heat during sustained operation. `;
+  }
+  if (highPerf.length > 0) {
     if (usb4Drives.length > 0) {
       text += `USB4 and Thunderbolt drives push controller temperatures considerably — in our testing, sustained sequential writes can push drive temps past 65°C. Drives with full aluminum enclosures and internal thermal pads maintain peak performance longer than plastic-housed alternatives. `;
     } else {
@@ -292,11 +303,12 @@ function getThunderboltAnalysis(prods: Product[]): string {
   const tbDrives = prods.filter(p => p.interface?.includes("Thunderbolt") || p.interface === "USB4");
   if (tbDrives.length === 0) return "";
 
-  return `The ${tbDrives.length} Thunderbolt/USB4 drive${tbDrives.length > 1 ? "s" : ""} in this comparison — ${tbDrives.map(p => `${p.brand_name} ${p.name}`).join(", ")} — deliver${tbDrives.length === 1 ? "s" : ""} the highest bandwidth available for external storage: 40 Gbps. This is four times the bandwidth of standard USB 3.2 Gen 2.
+  const tbLinks = tbDrives.map(p => prodLink(p)).join(", ");
+  return `The ${tbDrives.length} Thunderbolt/USB4 drive${tbDrives.length > 1 ? "s" : ""} in this comparison — ${tbLinks} — deliver${tbDrives.length === 1 ? "s" : ""} the highest bandwidth available for external storage: 40 Gbps. This is four times the bandwidth of standard USB 3.2 Gen 2.
 
 However, Thunderbolt performance requires a Thunderbolt host port. Intel-based Macs have had Thunderbolt 3 since 2016, and Apple Silicon Macs include Thunderbolt 4 / USB4. Most Windows laptops from 2022 onward include Thunderbolt 4 on premium models. Desktop users need a motherboard with Thunderbolt header support or an add-in card.
 
-When paired with a compatible host, ${tbDrives[0]?.brand_name || "these"} drives excel at direct 4K and 8K video editing, large dataset analysis, and any workflow where waiting for file transfers is the bottleneck. Without a Thunderbolt host, the drive functions as a standard USB 3.2 Gen 2 drive.`;
+When paired with a compatible host, ${tbDrives.length > 0 ? `drives like ${prodLink(tbDrives[0])}` : "these"} excel at direct 4K and 8K video editing, large dataset analysis, and any workflow where waiting for file transfers is the bottleneck. Without a Thunderbolt host, the drive functions as a standard USB 3.2 Gen 2 drive.`;
 }
 
 function getFinalRecommendation(prods: Product[], catName: string | null): string {
@@ -306,9 +318,10 @@ function getFinalRecommendation(prods: Product[], catName: string | null): strin
   const bestPrice = getLowestPrice(prices as any);
   const cat = catName ? stripSsdSuffix(catName).toLowerCase() : "external";
 
-  return `After testing ${prods.length} ${cat} SSDs side by side, our top recommendation is the ${top.brand_name} ${top.name}. It earned ${top.overall_score.toFixed(1)}/10 with ${fmtSpeed(top.read_speed_mbps)} reads, ${currentGbs(top.write_speed_mbps)} writes, and ${top.capacity_gb >= 1000 ? `${(top.capacity_gb / 1000).toFixed(0)}TB` : `${top.capacity_gb}GB`} of capacity${top.warranty_years >= 5 ? " backed by a " + top.warranty_years + "-year warranty" : ""}. ${bestPrice ? `At ${formatPrice(bestPrice.price_cents)} from ${bestPrice.retailer}, it delivers the best overall value for ${cat} use.` : ""}
+  const last = prods.length > 1 ? prods[prods.length - 1] : null;
+  return `After testing ${prods.length} ${cat} SSDs side by side, our top recommendation is ${prodLink(top)}. It earned ${top.overall_score.toFixed(1)}/10 with ${fmtSpeed(top.read_speed_mbps)} reads, ${currentGbs(top.write_speed_mbps)} writes, and ${top.capacity_gb >= 1000 ? `${(top.capacity_gb / 1000).toFixed(0)}TB` : `${top.capacity_gb}GB`} of capacity${top.warranty_years >= 5 ? " backed by a " + top.warranty_years + "-year warranty" : ""}. ${bestPrice ? `At ${formatPrice(bestPrice.price_cents)} from ${bestPrice.retailer}, it delivers the best overall value for ${cat} use.` : ""}
 
-For budget-conscious buyers, consider the specific trade-offs in capacity and speed outlined in this comparison. ${prods.length > 1 ? `The ${prods[prods.length - 1].brand_name} ${prods[prods.length - 1].name} offers solid performance at a lower price point if raw speed is not the primary concern.` : ""}
+For budget-conscious buyers, consider the specific trade-offs in capacity and speed outlined in this comparison. ${last ? `${prodLink(last)} offers solid performance at a lower price point if raw speed is not the primary concern, and it is worth reading our full breakdown of both drives before deciding.` : ""}
 
 All drives listed are battle-tested in our lab. Prices and availability may vary by retailer — click through to check current stock.`;
 }
@@ -327,7 +340,7 @@ if (cleanCat) {
   faqItems.push({
     question: `Which ${cleanCat} SSD is the fastest?`,
     answer: topProduct
-      ? `The ${topProduct.brand_name} ${topProduct.name} leads with ${fmtSpeed(topProduct.read_speed_mbps)} reads and ${fmtSpeed(topProduct.write_speed_mbps)} writes over ${topProduct.interface}.`
+      ? `${prodLink(topProduct)} leads with ${fmtSpeed(topProduct.read_speed_mbps)} reads and ${fmtSpeed(topProduct.write_speed_mbps)} writes over ${topProduct.interface}.`
       : "Speed varies by model and interface."
   });
 }
@@ -401,9 +414,7 @@ function barColor(index: number): string {
         {cleanCat ? `${cleanCat} SSDs Compared` : "Compare SSDs"}
       </h1>
       {categoryName && (
-        <p class="mt-2 text-surface-500 max-w-3xl">
-          {introText}
-        </p>
+        <p class="mt-2 text-surface-500 max-w-3xl" set:html={introText} />
       )}
     </div>
 
@@ -653,7 +664,7 @@ function barColor(index: number): string {
                 </div>
                 <div class="text-surface-600 leading-relaxed space-y-3 [&_p]:mb-3">
                   {gamingAnalysis.split("\n\n").filter(Boolean).map((p) => (
-                    <p>{p.trim()}</p>
+                    <p set:html={p.trim()} />
                   ))}
                 </div>
               </section>
@@ -664,7 +675,7 @@ function barColor(index: number): string {
                 <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
                 <h2 class="text-2xl font-bold text-surface-900">Heat & Thermal Management</h2>
               </div>
-              <p class="text-surface-600 leading-relaxed">{heatAnalysis}</p>
+              <p class="text-surface-600 leading-relaxed" set:html={heatAnalysis} />
             </section>
 
             <section>
@@ -672,7 +683,7 @@ function barColor(index: number): string {
                 <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
                 <h2 class="text-2xl font-bold text-surface-900">USB Compatibility</h2>
               </div>
-              <p class="text-surface-600 leading-relaxed">{usbCompat}</p>
+              <p class="text-surface-600 leading-relaxed" set:html={usbCompat} />
             </section>
 
             {tbAnalysis && (
@@ -683,7 +694,7 @@ function barColor(index: number): string {
                 </div>
                 <div class="text-surface-600 leading-relaxed space-y-3 [&_p]:mb-3">
                   {tbAnalysis.split("\n\n").filter(Boolean).map((p) => (
-                    <p>{p.trim()}</p>
+                    <p set:html={p.trim()} />
                   ))}
                 </div>
               </section>
@@ -703,9 +714,7 @@ function barColor(index: number): string {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                       </svg>
                     </summary>
-                    <div class="px-5 pb-4 text-sm text-surface-600 leading-relaxed border-t border-surface-100 pt-3">
-                      {faq.answer}
-                    </div>
+                    <div class="px-5 pb-4 text-sm text-surface-600 leading-relaxed border-t border-surface-100 pt-3" set:html={faq.answer} />
                   </details>
                 ))}
               </div>
@@ -718,7 +727,7 @@ function barColor(index: number): string {
                   <h2 class="text-xl font-bold text-surface-900 mb-2">Final Recommendation</h2>
                   <div class="text-surface-600 leading-relaxed space-y-3 [&_p]:mb-3">
                     {finalRec?.split("\n\n").filter(Boolean).map((p) => (
-                      <p>{p.trim()}</p>
+                      <p set:html={p.trim()} />
                     ))}
                   </div>
                   <div class="mt-4">
