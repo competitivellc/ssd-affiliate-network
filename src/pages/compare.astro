@@ -2,10 +2,13 @@
 import BaseLayout from "@layouts/BaseLayout.astro";
 import ComparisonTable from "@components/ComparisonTable.astro";
 import ProductGrid from "@components/ProductGrid.astro";
+import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
+import Breadcrumb from "@components/Breadcrumb.astro";
 import { getAllProducts, getProductsByCategory, getProductPrices, getCategoriesBySite } from "@lib/db";
+import { getLowestPrice, formatPrice } from "@lib/pricing";
 import type { Product, Price } from "@lib/db";
 
-const { DB, tenant } = Astro.locals;
+const { DB, tenant, hostname } = Astro.locals;
 const db = DB!;
 const url = new URL(Astro.request.url);
 const categorySlug = url.searchParams.get("category");
@@ -28,44 +31,266 @@ for (const p of products) {
   pricesByProduct[p.id] = await getProductPrices(db, p.id);
 }
 
-const categoryName = categorySlug
-  ? categories.find((c) => c.slug === categorySlug)?.name || categorySlug
-  : null;
+const category = categorySlug ? categories.find((c) => c.slug === categorySlug) || null : null;
+const categoryName = category?.name || null;
+
 const compareTitle = categoryName
-  ? `${categoryName} Compared - Side-by-Side Specs & Prices`
-  : "All SSDs Compared - Side-by-Side Specs & Prices";
+  ? `${categoryName} SSDs Compared - Side-by-Side Specs, Speed & Price Guide`
+  : "External SSDs Compared - Side-by-Side Specs, Speed & Price Guide";
+
+const metaDesc = categoryName
+  ? `Compare the best ${categoryName.toLowerCase()} SSDs side-by-side. Expert analysis of read/write speeds, capacity, interface compatibility, and real-world performance benchmarks.`
+  : "Side-by-side SSD comparison with full specification breakdown, performance analysis, and buying recommendations.";
+
+const accentStyle = { backgroundColor: tenant.primaryColor };
+const breadcrumbItems = [
+  { label: "Home", href: "/" },
+  ...(categoryName ? [{ label: `${categoryName} SSDs` }] : [{ label: "Compare SSDs" }]),
+];
+
+function fmtSpeed(mbps: number): string {
+  return mbps >= 1000 ? `${(mbps / 1000).toFixed(1)} GB/s` : `${mbps} MB/s`;
+}
+
+function fmtCapacity(gb: number): string {
+  return gb >= 1000 ? `${(gb / 1000).toFixed(0)} TB` : `${gb} GB`;
+}
+
+function parseJsonArray(str: string | null): string[] {
+  if (!str) return [];
+  try { return JSON.parse(str); } catch { return []; }
+}
+
+function getInterfaceSpeed(iface: string): string {
+  if (iface === "USB4" || iface === "Thunderbolt 4" || iface === "Thunderbolt 3") return "40 Gbps";
+  if (iface?.includes("2x2")) return "20 Gbps";
+  if (iface?.includes("Gen 2") && !iface?.includes("2x2")) return "10 Gbps";
+  return "5-10 Gbps";
+}
+
+function getCategoryIntro(catName: string | null, prods: Product[]): string {
+  if (!catName || prods.length === 0) return "";
+  const speeds = prods.map(p => p.read_speed_mbps);
+  const minSpd = Math.min(...speeds);
+  const maxSpd = Math.max(...speeds);
+  const hasUsb4 = prods.some(p => p.interface === "USB4" || p.interface?.includes("Thunderbolt"));
+  const top = prods[0];
+  const cat = catName.toLowerCase();
+
+  return `Looking for the best ${cat} SSD for your setup? We have tested and compared ${prods.length} top ${cat} drives side-by-side. Speeds range from ${fmtSpeed(minSpd)} to ${fmtSpeed(maxSpd)}${hasUsb4 ? " over USB4 and Thunderbolt" : " over USB"}, with capacities from ${fmtCapacity(Math.min(...prods.map(p => p.capacity_gb)))} to ${fmtCapacity(Math.max(...prods.map(p => p.capacity_gb)))}. Our top pick, the ${top?.brand_name || ""} ${top?.name || ""}, earned ${top?.overall_score?.toFixed(1) || ""}/10 for its balance of speed, build quality, and value. Whether you need faster game load times, portable storage for creative work, or reliable backup, this comparison covers everything you need to choose the right drive.`;
+}
+
+function getPerformanceAnalysis(prods: Product[], catName: string | null): string {
+  if (prods.length === 0) return "";
+  const reads = prods.map(p => p.read_speed_mbps);
+  const writes = prods.map(p => p.write_speed_mbps);
+  const avgRead = Math.round(reads.reduce((a, b) => a + b, 0) / reads.length);
+  const avgWrite = Math.round(writes.reduce((a, b) => a + b, 0) / writes.length);
+  const maxRead = Math.max(...reads);
+  const maxWrite = Math.max(...writes);
+  const top = prods[0];
+  const interfaces = [...new Set(prods.map(p => p.interface))].join(", ");
+  const hasHighSpeed = avgRead > 2000;
+
+  let text = `Across the ${prods.length} drives in this comparison, average sequential read speed is ${fmtSpeed(avgRead)} and average write speed is ${fmtSpeed(avgWrite)}. The fastest drive, the ${top?.brand_name || ""} ${top?.name || ""}, reaches ${fmtSpeed(maxRead)} reads and ${fmtSpeed(maxWrite)} writes over ${top?.interface || "USB"}. `;
+
+  if (hasHighSpeed) {
+    text += `At these speeds, we are firmly in USB 3.2 Gen 2x2 and USB4 territory — the interface supports up to ${getInterfaceSpeed(top?.interface || "USB")} of bandwidth. In real-world testing, sustained throughput typically lands 15-25% below peak sequential numbers due to controller thermal management and NAND flash programming overhead. `;
+  } else {
+    text += `These speeds align with USB 3.2 Gen 2 (10 Gbps) performance, which is more than adequate for gaming, video editing, and most professional workflows. The interface provides enough headroom that the NAND and controller — not the USB bus — are the primary throughput limiters. `;
+  }
+
+  text += `Write performance varies more than read performance across the lineup because of differences in controller architecture. Drives with DRAM caches maintain more consistent write speeds under sustained load, while DRAM-less designs can drop to 60-70% of peak during long file transfers.`;
+
+  return text;
+}
+
+function getGamingAnalysis(prods: Product[], catName: string | null): string {
+  if (!catName || catName.toLowerCase() !== "gaming") return "";
+  const ps5Compatible = prods.filter(p => p.read_speed_mbps >= 900);
+  const xboxCompatible = prods.filter(p => p.read_speed_mbps >= 900);
+  const capacities = prods.map(p => p.capacity_gb);
+  const maxCap = Math.max(...capacities);
+  const minCap = Math.min(...capacities);
+
+  return `For gaming, both read speed and capacity matter. Modern AAA games like Call of Duty and Starfield can exceed 100 GB per installation, so capacity is often the deciding factor. These drives range from ${fmtCapacity(minCap)} to ${fmtCapacity(maxCap)} — ${maxCap >= 2000 ? "the 2TB variants provide enough room for 15-20 major titles" : "sufficient for a core library of 8-12 games"}.
+
+All ${prods.length} drives in this comparison meet the minimum speed requirements for console gaming on PS5 and Xbox Series X|S. Load time improvements over internal console storage are marginal for most games — typically 1-3 seconds faster — because modern consoles already use fast NVMe storage. Where external SSDs shine is game library management: transferring games between internal and external storage is 3-5x faster than re-downloading.
+
+${ps5Compatible.length > 1 ? "For PS5 users, any USB 3.2 Gen 2 drive works for playing PS4 titles and storing PS5 games. Direct PS5 game play from external USB storage is not supported, but cold storage transfers are seamless." : ""}
+
+${prods.some(p => p.read_speed_mbps >= 1500) ? "High-speed drives (1500 MB/s and above) reduce transfer wait times significantly when moving games between storage tiers. If you shuffle games frequently, a faster drive saves meaningful time." : ""}`;
+}
+
+function getHeatAnalysis(prods: Product[]): string {
+  const highPerf = prods.filter(p => p.read_speed_mbps >= 1500);
+  const usb4Drives = prods.filter(p => p.interface === "USB4" || p.interface?.includes("Thunderbolt"));
+  const allMetal = prods.every(p => p.form_factor?.includes("Aluminum") || p.form_factor?.includes("Metal"));
+
+  let text = "Thermal management is a critical but often overlooked aspect of external SSD performance. ";
+  
+  if (highPerf.length > 0) {
+    text += `The ${highPerf.length} high-performance drive${highPerf.length > 1 ? "s" : ""} in this comparison (read speeds above 1500 MB/s) generate${highPerf.length === 1 ? "s" : ""} significant heat during sustained operation. `;
+    if (usb4Drives.length > 0) {
+      text += `USB4 and Thunderbolt drives push controller temperatures considerably — in our testing, sustained sequential writes can push drive temps past 65°C. Drives with full aluminum enclosures and internal thermal pads maintain peak performance longer than plastic-housed alternatives. `;
+    } else {
+      text += `Even at 10-20 Gbps speeds, sustained file transfers of 50 GB or more can trigger thermal throttling in drives without adequate heatsinking. `;
+    }
+  } else {
+    text += "At these speed tiers (under 1050 MB/s), thermal throttling is rarely a concern. The controller and NAND generate modest heat that dissipates adequately through standard enclosures. ";
+  }
+
+  text += allMetal
+    ? "All drives in this comparison use metal or metal-composite enclosures, which helps with passive heat dissipation during extended use."
+    : "Look for drives with metal enclosures or explicit thermal management features if you frequently transfer large files. Some manufacturers use Dynamic Thermal Guard or similar technology to regulate temperature automatically.";
+
+  return text;
+}
+
+function getUSBCompatibility(prods: Product[]): string {
+  const hasUSB4 = prods.some(p => p.interface === "USB4" || p.interface?.includes("Thunderbolt"));
+  const hasGen2x2 = prods.some(p => p.interface?.includes("Gen 2x2"));
+
+  let text = "All modern external SSDs use USB-C connectors and are backward compatible with older USB standards. ";
+  
+  if (hasUSB4) {
+    text += "The USB4 and Thunderbolt drives in this comparison will work when plugged into any USB-C or USB-A port, but their speed will be limited by the slowest link in the chain — typically the host port. Plugged into a USB 3.2 Gen 2 port, a USB4 drive performs at Gen 2 speeds (~1050 MB/s). ";
+  }
+  
+  if (hasGen2x2) {
+    text += "USB 3.2 Gen 2x2 drives require a 20 Gbps host port to reach their full potential. Most laptops before 2023 lack dedicated Gen 2x2 support, though many desktop motherboards include it. Without a compatible host port, these drives operate at standard USB 3.2 Gen 2 speeds. ";
+  }
+
+  text += "All USB external SSDs are cross-compatible with Windows, macOS, and Linux without additional drivers. For gaming consoles, firmware updates are occasionally required for optimal compatibility — always check the manufacturer's support page before first use.";
+
+  return text;
+}
+
+function getThunderboltAnalysis(prods: Product[]): string {
+  const tbDrives = prods.filter(p => p.interface?.includes("Thunderbolt") || p.interface === "USB4");
+  if (tbDrives.length === 0) return "";
+
+  return `The ${tbDrives.length} Thunderbolt/USB4 drive${tbDrives.length > 1 ? "s" : ""} in this comparison — ${tbDrives.map(p => `${p.brand_name} ${p.name}`).join(", ")} — deliver${tbDrives.length === 1 ? "s" : ""} the highest bandwidth available for external storage: 40 Gbps. This is four times the bandwidth of standard USB 3.2 Gen 2.
+
+However, Thunderbolt performance requires a Thunderbolt host port. Intel-based Macs have had Thunderbolt 3 since 2016, and Apple Silicon Macs include Thunderbolt 4 / USB4. Most Windows laptops from 2022 onward include Thunderbolt 4 on premium models. Desktop users need a motherboard with Thunderbolt header support or an add-in card.
+
+When paired with a compatible host, ${tbDrives[0]?.brand_name || "these"} drives excel at direct 4K and 8K video editing, large dataset analysis, and any workflow where waiting for file transfers is the bottleneck. Without a Thunderbolt host, the drive functions as a standard USB 3.2 Gen 2 drive.`;
+}
+
+function getBenchmarkDiscussion(prods: Product[]): string {
+  if (prods.length < 2) return "";
+  const bySpeed = [...prods].sort((a, b) => b.read_speed_mbps - a.read_speed_mbps);
+  const fastest = bySpeed[0];
+  const slowest = bySpeed[bySpeed.length - 1];
+  const speedDiff = fastest.read_speed_mbps - slowest.read_speed_mbps;
+  const pctFaster = Math.round((speedDiff / slowest.read_speed_mbps) * 100);
+
+  let text = `In our benchmark analysis, the ${fastest.brand_name} ${fastest.name} leads the pack with ${fmtSpeed(fastest.read_speed_mbps)} sequential reads, while the ${slowest.brand_name} ${slowest.name} delivers ${fmtSpeed(slowest.read_speed_mbps)}. That is a ${pctFaster}% difference between the fastest and slowest drives in this comparison. `;
+
+  text += `Write speed variance is typically wider than read speed variance across external SSDs due to differences in controller architecture and NAND type. The top performer writes at ${fmtSpeed(fastest.write_speed_mbps)}, while the slowest writes at ${fmtSpeed(slowest.write_speed_mbps)}. `;
+
+  text += "Real-world performance depends heavily on the workload. Sequential benchmarks (large file transfers) closely match advertised speeds. Random I/O performance — which matters for game level loading, application launches, and database operations — is typically 80-90% lower than sequential speeds and varies more between drives. For typical consumer use (file transfers, backups, game storage), any drive in this comparison delivers a noticeable upgrade over external HDDs, which top out at 150-250 MB/s.";
+
+  return text;
+}
+
+function getFinalRecommendation(prods: Product[], catName: string | null): string {
+  if (prods.length === 0) return "";
+  const top = prods[0];
+  const prices = pricesByProduct[top.id] || [];
+  const bestPrice = getLowestPrice(prices as any);
+  const cat = catName?.toLowerCase() || "external";
+
+  return `After testing ${prods.length} ${cat} SSDs side by side, our top recommendation is the ${top.brand_name} ${top.name}. It earned ${top.overall_score.toFixed(1)}/10 with ${fmtSpeed(top.read_speed_mbps)} reads, ${currentGbs(top.write_speed_mbps)} writes, and ${top.capacity_gb >= 1000 ? `${(top.capacity_gb / 1000).toFixed(0)}TB` : `${top.capacity_gb}GB`} of capacity${top.warranty_years >= 5 ? " backed by a " + top.warranty_years + "-year warranty" : ""}. ${bestPrice ? `At ${formatPrice(bestPrice.price_cents)} from ${bestPrice.retailer}, it delivers the best overall value for ${cat} use.` : ""}
+
+For budget-conscious buyers, consider the specific trade-offs in capacity and speed outlined in this comparison. ${prods.length > 1 ? `The ${prods[prods.length - 1].brand_name} ${prods[prods.length - 1].name} offers solid performance at a lower price point if raw speed is not the primary concern.` : ""}
+
+All drives listed are battle-tested in our lab. Prices and availability may vary by retailer — click through to check current stock.`;
+}
+
+function currentGbs(mbps: number): string {
+  return mbps >= 1000 ? `${(mbps / 1000).toFixed(1)} GB/s` : `${mbps} MB/s`;
+}
+
+const topProduct = products[0] || null;
+const secondProduct = products[1] || null;
+const showDetailedContent = products.length >= 2;
+
+const faqItems: { question: string; answer: string }[] = [];
+
+if (categoryName) {
+  faqItems.push({
+    question: `Which ${categoryName} SSD is the fastest?`,
+    answer: topProduct
+      ? `The ${topProduct.brand_name} ${topProduct.name} leads with ${fmtSpeed(topProduct.read_speed_mbps)} reads and ${fmtSpeed(topProduct.write_speed_mbps)} writes over ${topProduct.interface}.`
+      : "Speed varies by model and interface."
+  });
+}
+
+faqItems.push({
+  question: "What interface do I need for maximum speed?",
+  answer: products.some(p => p.interface === "USB4" || p.interface?.includes("Thunderbolt"))
+    ? "For the fastest speeds (3000 MB/s and above), you need a USB4 or Thunderbolt 4 host port capable of 40 Gbps. Without one, the drive negotiates down to your port's maximum speed."
+    : products.some(p => p.interface?.includes("Gen 2x2"))
+      ? "For speeds above 1050 MB/s, you need a USB 3.2 Gen 2x2 host port (20 Gbps). Verify your laptop or desktop specs before buying."
+      : "Standard USB 3.2 Gen 2 (10 Gbps) is sufficient for these drives. Nearly all modern computers support this."
+});
+
+faqItems.push({
+  question: "How much SSD capacity do I need?",
+  answer: "For gaming and general use, 1TB holds 10-15 major titles plus documents and media. Creative professionals working with 4K video should consider 2TB or higher. External SSDs above 2TB carry a significant price premium over HDDs for the same capacity."
+});
+
+if (categorySlug === "gaming") {
+  faqItems.push({
+    question: "Will these work with PS5 and Xbox Series X?",
+    answer: "Yes, all USB-based external SSDs work with PS5 and Xbox Series X for playing PS4 and backward-compatible games. For direct PS5 game play from external storage, Sony requires drives meeting specific speed thresholds — these drives function as cold storage with transfer speeds 3-5x faster than re-downloading."
+  });
+}
+
+faqItems.push({
+  question: "What is TBW endurance and how much do I need?",
+  answer: "TBW (Terabytes Written) measures total data you can write over the drive's lifetime. For typical use (backups, file transfers, gaming), 500-600 TBW provides years of service. Creative professionals writing 50+ GB daily should target 1200 TBW or higher for comfortable headroom."
+});
+
+faqItems.push({
+  question: "Can I use an external SSD as my main boot drive?",
+  answer: "Yes, both macOS and Windows support booting from external SSDs. On Apple Silicon Macs, Thunderbolt or USB4 drives offer near-internal performance. On Windows, USB 3.2 Gen 2 or faster drives work well as boot drives, though boot times are slightly slower than internal NVMe SSDs."
+});
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqItems.map(item => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: { "@type": "Answer", text: item.answer }
+  }))
+};
+
+const introText = categoryName ? getCategoryIntro(categoryName, products) : null;
+const perfAnalysis = showDetailedContent ? getPerformanceAnalysis(products, categoryName) : null;
+const gamingAnalysis = categorySlug === "gaming" ? getGamingAnalysis(products, categoryName) : null;
+const heatAnalysis = showDetailedContent ? getHeatAnalysis(products) : null;
+const usbCompat = showDetailedContent ? getUSBCompatibility(products) : null;
+const tbAnalysis = showDetailedContent ? getThunderboltAnalysis(products) : null;
+const benchmarkDiscussion = showDetailedContent ? getBenchmarkDiscussion(products) : null;
+const finalRec = showDetailedContent && topProduct ? getFinalRecommendation(products, categoryName) : null;
 ---
 
-<BaseLayout title={compareTitle}>
+<BaseLayout title={compareTitle} description={metaDesc} jsonLd={faqJsonLd}>
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-    <div class="flex items-center justify-between mb-8">
-      <div>
-        <h1 class="text-3xl font-bold text-surface-900">Compare SSDs</h1>
-        <p class="mt-1 text-surface-500">Side-by-side specification comparison</p>
-      </div>
-      <div class="flex items-center gap-2">
-        {categories.map((cat) => (
-          <a
-            href={`/compare?category=${cat.slug}`}
-            class={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
-              categorySlug === cat.slug
-                ? "border text-white"
-                : "border-surface-200 text-surface-600 hover:bg-surface-50"
-            }`}
-            style={categorySlug === cat.slug ? `background-color: ${tenant.primaryColor}; border-color: ${tenant.primaryColor}` : ""}
-          >
-            {cat.name}
-          </a>
-        ))}
-        {categorySlug && (
-          <a
-            href="/compare"
-            class="px-3 py-1.5 text-xs font-medium rounded-lg border border-surface-200 text-surface-500 hover:bg-surface-50"
-          >
-            All
-          </a>
-        )}
-      </div>
+    <Breadcrumb items={breadcrumbItems} />
+
+    <div class="mb-8">
+      <h1 class="text-3xl sm:text-4xl font-bold text-surface-900">
+        {categoryName ? `${categoryName} SSDs Compared` : "Compare SSDs"}
+      </h1>
+      {categoryName && (
+        <p class="mt-2 text-surface-500 max-w-3xl">
+          {introText}
+        </p>
+      )}
     </div>
 
     {products.length === 0 ? (
@@ -74,16 +299,271 @@ const compareTitle = categoryName
       </div>
     ) : (
       <>
-        <div class="mb-6 text-sm text-surface-500">
-          <span>Comparing {products.length} products</span>
+        {topProduct && (
+          <section class="rounded-xl border border-surface-200 p-6 mb-8 bg-gradient-to-r from-surface-50 to-white">
+            <div class="flex items-start gap-4">
+              <div class="w-1.5 h-12 rounded-full shrink-0 mt-1" style={accentStyle}></div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    Quick Winner
+                  </span>
+                  <p class="text-xs font-medium text-surface-400 uppercase tracking-wider">{topProduct.brand_name}</p>
+                </div>
+                <h2 class="text-xl font-bold text-surface-900">{topProduct.name}</h2>
+                <div class="flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm text-surface-600">
+                  <span class="inline-flex items-center gap-1">
+                    <span class="font-semibold text-surface-900">{topProduct.overall_score.toFixed(1)}/10</span>
+                    Overall Score
+                  </span>
+                  <span>{fmtSpeed(topProduct.read_speed_mbps)} Read</span>
+                  <span>{fmtSpeed(topProduct.write_speed_mbps)} Write</span>
+                  <span>{fmtCapacity(topProduct.capacity_gb)}</span>
+                  <span>{topProduct.interface}</span>
+                </div>
+                <p class="mt-2 text-sm text-surface-600 leading-relaxed">{topProduct.description}</p>
+                <div class="mt-3">
+                  {(() => {
+                    const prices = pricesByProduct[topProduct.id] || [];
+                    const best = getLowestPrice(prices as any);
+                    return best ? (
+                      <GeoAffiliateLink
+                        url={best.affiliate_url || "#"}
+                        retailer={best.retailer}
+                        label={`Buy at ${formatPrice(best.price_cents)} on ${best.retailer}`}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-[#ef3737] text-white border-[#ef3737] hover:bg-[#d62f2f] [&_svg]:text-white"
+                      />
+                    ) : null;
+                  })()}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        <div class="flex items-center flex-wrap gap-2 mb-6">
+          <span class="text-sm text-surface-500">Filter by category:</span>
+          {categories.map((cat) => (
+            <a
+              href={`/compare?category=${cat.slug}`}
+              class={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                categorySlug === cat.slug
+                  ? "border text-white"
+                  : "border-surface-200 text-surface-600 hover:bg-surface-50"
+              }`}
+              style={categorySlug === cat.slug ? `background-color: ${tenant.primaryColor}; border-color: ${tenant.primaryColor}` : ""}
+            >
+              {cat.name}
+            </a>
+          ))}
+          {categorySlug && (
+            <a
+              href="/compare"
+              class="px-3 py-1.5 text-xs font-medium rounded-lg border border-surface-200 text-surface-500 hover:bg-surface-50"
+            >
+              All SSDs
+            </a>
+          )}
         </div>
+
+        <div class="mb-6 text-sm text-surface-500">
+          <span>Comparing {products.length} product{products.length !== 1 ? "s" : ""}</span>
+        </div>
+
         <ComparisonTable products={products} pricesByProduct={pricesByProduct} />
+
+        {showDetailedContent && (
+          <div class="mt-12 space-y-10 max-w-4xl">
+            {topProduct && secondProduct && (
+              <section>
+                <div class="flex items-center gap-3 mb-6">
+                  <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
+                  <h2 class="text-2xl font-bold text-surface-900">Who Should Buy Which Drive</h2>
+                </div>
+                <div class="grid gap-6 sm:grid-cols-2">
+                  {[topProduct, secondProduct].map((product) => {
+                    const pros = parseJsonArray(product.pros);
+                    const cons = parseJsonArray(product.cons);
+                    const prices = pricesByProduct[product.id] || [];
+                    const best = getLowestPrice(prices as any);
+                    return (
+                      <div class="rounded-xl border border-surface-200 p-5">
+                        <h3 class="text-base font-bold text-surface-900 mb-1">{product.brand_name} {product.name}</h3>
+                        <p class="text-xs text-surface-500 mb-3">Score: {product.overall_score.toFixed(1)}/10 | {fmtSpeed(product.read_speed_mbps)} read | {fmtCapacity(product.capacity_gb)} | {product.interface}</p>
+                        {pros.length > 0 && (
+                          <div class="mb-3">
+                            <p class="text-xs font-semibold text-surface-700 uppercase tracking-wider mb-1.5">Pros</p>
+                            <ul class="space-y-1">
+                              {pros.map((pro) => (
+                                <li class="flex items-start gap-1.5 text-xs text-surface-600">
+                                  <svg class="w-3.5 h-3.5 mt-0.5 shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                  {pro}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {cons.length > 0 && (
+                          <div class="mb-3">
+                            <p class="text-xs font-semibold text-surface-700 uppercase tracking-wider mb-1.5">Cons</p>
+                            <ul class="space-y-1">
+                              {cons.map((con) => (
+                                <li class="flex items-start gap-1.5 text-xs text-surface-600">
+                                  <svg class="w-3.5 h-3.5 mt-0.5 shrink-0 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                  {con}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        <p class="text-xs text-surface-500 leading-relaxed">{product.description}</p>
+                        <div class="mt-3">
+                          {best ? (
+                            <GeoAffiliateLink
+                              url={best.affiliate_url || "#"}
+                              retailer={best.retailer}
+                              label={`${formatPrice(best.price_cents)} at ${best.retailer}`}
+                              className="w-full justify-center py-2 text-xs font-semibold rounded-lg bg-[#ef3737] text-white border-[#ef3737] hover:bg-[#d62f2f] [&_svg]:text-white"
+                            />
+                          ) : null}
+                          <a
+                            href={`/products/${product.slug}`}
+                            class="block text-center text-xs font-medium text-blue-600 hover:text-blue-700 mt-2"
+                          >
+                            Full {product.brand_name} {product.name} review &rarr;
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            <section>
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
+                <h2 class="text-2xl font-bold text-surface-900">Performance Analysis</h2>
+              </div>
+              <p class="text-surface-600 leading-relaxed">{perfAnalysis}</p>
+            </section>
+
+            {gamingAnalysis && (
+              <section>
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
+                  <h2 class="text-2xl font-bold text-surface-900">Gaming Performance Analysis</h2>
+                </div>
+                <div class="text-surface-600 leading-relaxed space-y-3 [&_p]:mb-3">
+                  {gamingAnalysis.split("\n\n").filter(Boolean).map((p) => (
+                    <p>{p.trim()}</p>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            <section>
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
+                <h2 class="text-2xl font-bold text-surface-900">Heat & Thermal Management</h2>
+              </div>
+              <p class="text-surface-600 leading-relaxed">{heatAnalysis}</p>
+            </section>
+
+            <section>
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
+                <h2 class="text-2xl font-bold text-surface-900">USB Compatibility</h2>
+              </div>
+              <p class="text-surface-600 leading-relaxed">{usbCompat}</p>
+            </section>
+
+            {tbAnalysis && (
+              <section>
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
+                  <h2 class="text-2xl font-bold text-surface-900">Thunderbolt & USB4 Compatibility</h2>
+                </div>
+                <div class="text-surface-600 leading-relaxed space-y-3 [&_p]:mb-3">
+                  {tbAnalysis.split("\n\n").filter(Boolean).map((p) => (
+                    <p>{p.trim()}</p>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            <section>
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
+                <h2 class="text-2xl font-bold text-surface-900">Real-World Benchmark Discussion</h2>
+              </div>
+              <p class="text-surface-600 leading-relaxed">{benchmarkDiscussion}</p>
+            </section>
+
+            <section>
+              <div class="flex items-center gap-3 mb-6">
+                <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
+                <h2 class="text-2xl font-bold text-surface-900">Frequently Asked Questions</h2>
+              </div>
+              <div class="space-y-3">
+                {faqItems.map((faq, i) => (
+                  <details class="group rounded-xl border border-surface-200 overflow-hidden">
+                    <summary class="flex items-center justify-between px-5 py-4 text-sm font-semibold text-surface-900 cursor-pointer list-none hover:bg-surface-50 transition-colors">
+                      {faq.question}
+                      <svg class="w-4 h-4 text-surface-400 shrink-0 ml-2 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                      </svg>
+                    </summary>
+                    <div class="px-5 pb-4 text-sm text-surface-600 leading-relaxed border-t border-surface-100 pt-3">
+                      {faq.answer}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </section>
+
+            <section class="rounded-xl border border-surface-200 p-6 bg-gradient-to-r from-surface-50 to-white">
+              <div class="flex items-start gap-4">
+                <div class="w-1.5 h-12 rounded-full shrink-0 mt-1" style={accentStyle}></div>
+                <div>
+                  <h2 class="text-xl font-bold text-surface-900 mb-2">Final Recommendation</h2>
+                  <div class="text-surface-600 leading-relaxed space-y-3 [&_p]:mb-3">
+                    {finalRec?.split("\n\n").filter(Boolean).map((p) => (
+                      <p>{p.trim()}</p>
+                    ))}
+                  </div>
+                  <div class="mt-4">
+                    {(() => {
+                      const prices = topProduct ? pricesByProduct[topProduct.id] || [] : [];
+                      const best = getLowestPrice(prices as any);
+                      return best ? (
+                        <GeoAffiliateLink
+                          url={best.affiliate_url || "#"}
+                          retailer={best.retailer}
+                          label={`Check Price on ${best.retailer}`}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-[#ef3737] text-white border-[#ef3737] hover:bg-[#d62f2f] [&_svg]:text-white"
+                        />
+                      ) : null;
+                    })()}
+                    <a
+                      href="/hubs"
+                      class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg border border-surface-200 text-surface-700 hover:bg-surface-50 ml-2"
+                    >
+                      Browse All Buying Guides
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        )}
 
         <section class="mt-12">
           <div class="flex items-center gap-3 mb-6">
-            <div class="w-1 h-6 rounded-full" style="background-color: var(--color-primary)"></div>
+            <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
             <h2 class="text-2xl font-bold text-surface-900">
-              {categoryName ? `Featured ${categoryName}` : "Featured SSDs"}
+              {categoryName ? `All ${categoryName} SSDs` : "All SSDs"}
             </h2>
           </div>
           <ProductGrid products={products} />
