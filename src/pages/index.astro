@@ -54,6 +54,16 @@ const year = new Date().getFullYear();
       </div>
     </section>
 
+    {allProducts.length > 3 && (
+      <section class="mb-16">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
+          <h2 class="text-2xl font-bold text-surface-900">All {tenant.name} — {allProducts.length} Drives</h2>
+        </div>
+        <ProductGrid products={allProducts} />
+      </section>
+    )}
+
     {byHubType["use-case"]?.length > 0 && (
       <section class="mb-16">
         <div class="flex items-center gap-3 mb-2">
