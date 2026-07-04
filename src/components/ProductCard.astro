@@ -19,17 +19,30 @@ const scoreColor =
     : product.overall_score >= 8
     ? "text-blue-600 bg-blue-50"
     : "text-amber-600 bg-amber-50";
+
+const isTopPick = rank === 1;
+const cardBorder = isTopPick
+  ? "border-amber-300 ring-1 ring-amber-200/50"
+  : "border-surface-200";
 ---
 
 <div
-  class="product-card block no-underline cursor-pointer"
+  class={`product-card block no-underline cursor-pointer relative ${cardBorder}`}
   onclick={`location.href='/products/${product.slug}'`}
 >
   <div class="flex items-start justify-between mb-3">
     <div class="flex items-center gap-2">
-      {rank && (
+      {rank && rank > 1 && (
         <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-surface-900 text-white text-sm font-bold shrink-0">
           #{rank}
+        </span>
+      )}
+      {isTopPick && (
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-400 text-white text-xs font-bold shrink-0 shadow-sm">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+          </svg>
+          Top Pick
         </span>
       )}
       <div>
