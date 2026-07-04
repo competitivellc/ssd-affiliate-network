@@ -34,18 +34,20 @@ for (const p of products) {
 const category = categorySlug ? categories.find((c) => c.slug === categorySlug) || null : null;
 const categoryName = category?.name || null;
 
-const compareTitle = categoryName
-  ? `${categoryName} SSDs Compared - Side-by-Side Specs, Speed & Price Guide`
+const cleanCat = categoryName ? stripSsdSuffix(categoryName) : null;
+
+const compareTitle = cleanCat
+  ? `${cleanCat} SSDs Compared - Side-by-Side Specs, Speed & Price Guide`
   : "External SSDs Compared - Side-by-Side Specs, Speed & Price Guide";
 
-const metaDesc = categoryName
-  ? `Compare the best ${categoryName.toLowerCase()} SSDs side-by-side. Expert analysis of read/write speeds, capacity, interface compatibility, and real-world performance benchmarks.`
+const metaDesc = cleanCat
+  ? `Compare the best ${cleanCat.toLowerCase()} SSDs side-by-side. Expert analysis of read/write speeds, capacity, interface compatibility, and real-world performance benchmarks.`
   : "Side-by-side SSD comparison with full specification breakdown, performance analysis, and buying recommendations.";
 
 const accentStyle = { backgroundColor: tenant.primaryColor };
 const breadcrumbItems = [
   { label: "Home", href: "/" },
-  ...(categoryName ? [{ label: `${categoryName} SSDs` }] : [{ label: "Compare SSDs" }]),
+  ...(cleanCat ? [{ label: `${cleanCat} SSDs` }] : [{ label: "Compare SSDs" }]),
 ];
 
 function starsHtml(score: number): string {
@@ -129,6 +131,10 @@ function getInterfaceSpeed(iface: string): string {
   return "5-10 Gbps";
 }
 
+function stripSsdSuffix(name: string): string {
+  return name.replace(/\s+SSDs?$/i, '');
+}
+
 function getCategoryIntro(catName: string | null, prods: Product[]): string {
   if (!catName || prods.length === 0) return "";
   const speeds = prods.map(p => p.read_speed_mbps);
@@ -136,7 +142,7 @@ function getCategoryIntro(catName: string | null, prods: Product[]): string {
   const maxSpd = Math.max(...speeds);
   const hasUsb4 = prods.some(p => p.interface === "USB4" || p.interface?.includes("Thunderbolt"));
   const top = prods[0];
-  const cat = catName.toLowerCase();
+  const cat = stripSsdSuffix(catName).toLowerCase();
 
   return `Looking for the best ${cat} SSD for your setup? We have tested and compared ${prods.length} top ${cat} drives side-by-side. Speeds range from ${fmtSpeed(minSpd)} to ${fmtSpeed(maxSpd)}${hasUsb4 ? " over USB4 and Thunderbolt" : " over USB"}, with capacities from ${fmtCapacity(Math.min(...prods.map(p => p.capacity_gb)))} to ${fmtCapacity(Math.max(...prods.map(p => p.capacity_gb)))}. Our top pick, the ${top?.brand_name || ""} ${top?.name || ""}, earned ${top?.overall_score?.toFixed(1) || ""}/10 for its balance of speed, build quality, and value. Whether you need faster game load times, portable storage for creative work, or reliable backup, this comparison covers everything you need to choose the right drive.`;
 }
@@ -298,7 +304,7 @@ function getFinalRecommendation(prods: Product[], catName: string | null): strin
   const top = prods[0];
   const prices = pricesByProduct[top.id] || [];
   const bestPrice = getLowestPrice(prices as any);
-  const cat = catName?.toLowerCase() || "external";
+  const cat = catName ? stripSsdSuffix(catName).toLowerCase() : "external";
 
   return `After testing ${prods.length} ${cat} SSDs side by side, our top recommendation is the ${top.brand_name} ${top.name}. It earned ${top.overall_score.toFixed(1)}/10 with ${fmtSpeed(top.read_speed_mbps)} reads, ${currentGbs(top.write_speed_mbps)} writes, and ${top.capacity_gb >= 1000 ? `${(top.capacity_gb / 1000).toFixed(0)}TB` : `${top.capacity_gb}GB`} of capacity${top.warranty_years >= 5 ? " backed by a " + top.warranty_years + "-year warranty" : ""}. ${bestPrice ? `At ${formatPrice(bestPrice.price_cents)} from ${bestPrice.retailer}, it delivers the best overall value for ${cat} use.` : ""}
 
@@ -317,9 +323,9 @@ const showDetailedContent = products.length >= 2;
 
 const faqItems: { question: string; answer: string }[] = [];
 
-if (categoryName) {
+if (cleanCat) {
   faqItems.push({
-    question: `Which ${categoryName} SSD is the fastest?`,
+    question: `Which ${cleanCat} SSD is the fastest?`,
     answer: topProduct
       ? `The ${topProduct.brand_name} ${topProduct.name} leads with ${fmtSpeed(topProduct.read_speed_mbps)} reads and ${fmtSpeed(topProduct.write_speed_mbps)} writes over ${topProduct.interface}.`
       : "Speed varies by model and interface."
@@ -392,7 +398,7 @@ function barColor(index: number): string {
 
     <div class="mb-8">
       <h1 class="text-3xl sm:text-4xl font-bold text-surface-900">
-        {categoryName ? `${categoryName} SSDs Compared` : "Compare SSDs"}
+        {cleanCat ? `${cleanCat} SSDs Compared` : "Compare SSDs"}
       </h1>
       {categoryName && (
         <p class="mt-2 text-surface-500 max-w-3xl">
@@ -745,7 +751,7 @@ function barColor(index: number): string {
           <div class="flex items-center gap-3 mb-6">
             <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
             <h2 class="text-2xl font-bold text-surface-900">
-              {categoryName ? `All ${categoryName} SSDs` : "All SSDs"}
+              {cleanCat ? `All ${cleanCat} SSDs` : "All SSDs"}
             </h2>
           </div>
           <ProductGrid products={products} />
