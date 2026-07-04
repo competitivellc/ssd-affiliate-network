@@ -349,6 +349,10 @@ export function generateValueEditorial(
     ? ((products[products.length - 1]?._lowestPrice ?? 0) === Infinity ? 0 : (products[products.length - 1]?._lowestPrice ?? 0)) / 100
     : cheapestPrice;
 
+  const topCpg = top && cheapestPrice > 0 && top.capacity_gb > 0
+    ? cheapestPrice / top.capacity_gb
+    : null;
+
   const cpgPhrase = pick([
     "cost per GB",
     "price per terabyte",
@@ -397,10 +401,10 @@ export function generateValueEditorial(
         title: pick(["Cost-Per-Gigabyte Analysis", "Value Breakdown", "Price Analysis", "Where Your Money Goes"]),
         content: pick([
           top
-            ? `For ${fmtCap(top.capacity_gb)} external SSDs, the price range spans from $${mostExpensive.toFixed(2)} down to $${cheapestPrice.toFixed(2)} for the ${linkProduct(top)}. While the cheapest option saves you money up front, consider the overall value: a slightly more expensive drive may offer faster speeds, better build quality, or a longer warranty.`
+            ? `For ${fmtCap(top.capacity_gb)} external SSDs, the price range spans from $${mostExpensive.toFixed(2)} down to $${cheapestPrice.toFixed(2)} for the ${linkProduct(top)}. While the cheapest option saves you money up front, consider the overall value: a slightly more expensive drive may offer faster speeds, better build quality, or a longer warranty. (${linkProduct(top)} cost per GB: $${topCpg?.toFixed(2) ?? "?"}/GB)`
             : `For ${fmtCap(top?.capacity_gb ?? 0)} external SSDs, the price range spans from $${mostExpensive.toFixed(2)} down to $${cheapestPrice.toFixed(2)}. While the cheapest option saves you money up front, consider the overall value: a slightly more expensive drive may offer faster speeds, better build quality, or a longer warranty.`,
-          `Prices for ${fmtCap(top?.capacity_gb ?? 0)} drives in this category range from $${cheapestPrice.toFixed(2)} to $${mostExpensive.toFixed(2)}. The ${cpgPhrase} varies significantly — sometimes spending 20% more nets you double the endurance or a faster interface.`,
-          `The value spread across ${products.length} drives runs from $${cheapestPrice.toFixed(2)} to $${mostExpensive.toFixed(2)}. Rather than picking the absolute cheapest, compare ${cpgPhrase} across the lineup — the sweet spot is often one tier above the entry model.`,
+          `Prices for ${fmtCap(top?.capacity_gb ?? 0)} drives in this category range from $${cheapestPrice.toFixed(2)} to $${mostExpensive.toFixed(2)}. The ${cpgPhrase} varies significantly — sometimes spending 20% more nets you double the endurance or a faster interface.${topCpg !== null ? ` (${linkProduct(top!)} cost per GB: $${topCpg.toFixed(2)}/GB)` : ""}`,
+          `The value spread across ${products.length} drives runs from $${cheapestPrice.toFixed(2)} to $${mostExpensive.toFixed(2)}. Rather than picking the absolute cheapest, compare ${cpgPhrase} across the lineup — the sweet spot is often one tier above the entry model.${topCpg !== null ? ` (${linkProduct(top!)} cost per GB: $${topCpg.toFixed(2)}/GB)` : ""}`,
         ]),
       },
       {
