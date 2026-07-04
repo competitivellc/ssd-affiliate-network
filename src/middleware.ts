@@ -4,7 +4,15 @@ import { getCountryCode } from "@lib/affiliate";
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const hostname = context.request.headers.get("host") || "externalssds.com";
-  const tenant = getTenant(hostname);
+  const normalized = hostname.replace(/^www\./, "").toLowerCase();
+
+  if (hostname.toLowerCase() !== normalized) {
+    const url = new URL(context.request.url);
+    url.hostname = normalized;
+    return Response.redirect(url.toString(), 301);
+  }
+
+  const tenant = getTenant(normalized);
 
   if (!tenant) {
     const url = new URL(context.request.url);
