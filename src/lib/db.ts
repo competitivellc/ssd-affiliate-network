@@ -481,12 +481,19 @@ export async function getRelatedHubs(
     .prepare(
       `SELECT * FROM hubs
        WHERE site_id = ? AND slug != ? AND is_active = 1
-       ORDER BY display_order ASC
-       LIMIT ?`
+       ORDER BY display_order ASC`
     )
-    .bind(siteId, currentSlug, maxResults)
+    .bind(siteId, currentSlug)
     .all<Hub>();
-  return results;
+
+  // Deterministic rotation per hub slug so every page gets a unique set
+  // of related hubs. This ensures broad reciprocal linking across the graph
+  // instead of every page linking to the same subset.
+  const seed = currentSlug.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  const offset = seed % Math.max(results.length, 1);
+  const rotated = [...results.slice(offset), ...results.slice(0, offset)];
+
+  return rotated.slice(0, maxResults);
 }
 
 function productMatchesFilter(product: Product, criteria: FilterCriteria): boolean {
