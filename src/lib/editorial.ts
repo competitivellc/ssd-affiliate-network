@@ -173,6 +173,8 @@ function eliteProCreator(p: Product): DriveArchetype {
     `Data scientists managing large training datasets on the go`,
     `Video editors cutting proxy-free 8K footage from the drive`,
     `DAW users streaming sample libraries directly from external storage`,
+    `Professionals who need AES 256-bit hardware encryption for sensitive client data on portable drives`,
+    `Users who push sustained transfers and need an aluminum enclosure for passive thermal management`,
   ];
 
   const variant = Math.floor(Math.random() * 4);
@@ -258,6 +260,7 @@ function consoleGaming(p: Product): DriveArchetype {
     "While USB-connected externals store and play Xbox Series X|S and PS5 titles, native internal SSDs may be required for full next-gen optimized performance on certain titles.",
     "External USB drives work for playing Xbox and PlayStation games, but native internal NVMe storage is still required for Velocity Architecture and DirectStorage optimizations on some titles.",
     "You can store and play current-gen console games from an external USB drive, but the fastest load times still come from the console's internal SSD for games built with DirectStorage or the PS5's custom architecture.",
+    "An NVMe-based external like this one still beats SATA-based externals for console use — expect 2-3x faster level loading and asset streaming compared to a SATA USB drive, even over the same USB interface.",
   ];
 
   const speedCallout = consoleSpeedCallout(p.read_speed_mbps);
@@ -270,6 +273,7 @@ function consoleGaming(p: Product): DriveArchetype {
         `With ${read} reads and ${fmtSpeed(p.write_speed_mbps)} writes, the ${p.name} delivers load times that rival internal SSDs. Open-world asset streaming, fast travel, and level transitions all benefit from the jump over traditional HDD external storage.`,
         `${read} reads means games load 3-5× faster than from an external HDD. The ${p.name} eliminates the lag between pressing start and being in the action — whether you are fast-traveling across a map or loading into a multiplayer match.`,
         `Game storage with ${read} reads and ${fmtSpeed(p.write_speed_mbps)} writes cuts load times dramatically compared to HDDs. Open-world games benefit most — assets stream in faster, reducing texture pop-in and stutter.`,
+        `As an NVMe-based external, the ${p.name} loads games significantly faster than SATA-based USB drives — expect level transitions in roughly half the time versus a 550 MB/s SATA external, even on the same console USB port.`,
       ]),
     },
     {
@@ -294,10 +298,11 @@ function consoleGaming(p: Product): DriveArchetype {
     id: "console-gaming",
     label: "Console Expansion",
     tagline: pick([
-      `Expand your game library with the ${p.name} — ${cap} of ${read} storage purpose-built for consoles and gaming PCs.`,
-      `The ${p.brand_name} ${p.name} adds ${cap} of ${read} game storage — plug, format, and start downloading.`,
-      `${cap} at ${read} — the ${p.name} is the game drive that keeps up with your growing library.`,
-      `Game storage expanded: ${cap}, ${read}, and console-ready. The ${p.name} loads games fast and holds dozens of titles.`,
+      `Expand your game library with the ${p.name} — ${cap} of ${read} NVMe storage purpose-built for consoles and gaming PCs.`,
+      `The ${p.brand_name} ${p.name} adds ${cap} of ${read} NVMe game storage — plug, format, and start downloading.`,
+      `${cap} at ${read} — the ${p.name} is the NVMe game drive that keeps up with your growing library.`,
+      `Game storage expanded: ${cap}, ${read} NVMe, and console-ready. The ${p.name} loads games fast and holds dozens of titles.`,
+      `NVMe-powered game storage: ${cap} at ${read} — faster than any SATA external and built for today's sprawling game libraries.`,
     ]),
     blocks,
   };
@@ -324,6 +329,7 @@ function ruggedPortable(p: Product): DriveArchetype {
     "Construction and industrial sites where dust and drops are routine",
     "Videographers shooting on location who need weather-resistant backup",
     "Anyone who wants storage that keeps up with an active, on-the-go lifestyle",
+    "Field workers handling sensitive data who need AES 256-bit hardware encryption on a rugged drive",
   ];
 
   const speedNote = p.read_speed_mbps > 1000
@@ -371,6 +377,7 @@ function ruggedPortable(p: Product): DriveArchetype {
       `${cap} of ${read} rugged storage — the ${p.brand_name} ${p.name} is built for the field, not just the desk.`,
       `Drop-tested, sealed, and ${cap} of ${read} fast — the ${p.name} is the rugged drive that keeps pace with an active workflow.`,
       `Rugged, portable, and ${read} fast: the ${p.name} protects ${cap} of data through whatever the day throws at it.`,
+      `${cap} rugged NVMe storage with AES 256-bit hardware encryption — the ${p.name} keeps your data safe from drops and prying eyes alike.`,
     ]),
     blocks,
   };
@@ -387,6 +394,7 @@ function highspeedUsbPro(p: Product): DriveArchetype {
     `The ${p.brand_name} ${p.name} harnesses USB 3.2 Gen 2×2 to deliver ${read} reads and ${write} writes — a fraction of the cost of Thunderbolt storage with comparable real-world throughput for most creative workflows.`,
     `${read} reads and ${write} writes over USB 3.2 Gen 2×2 put the ${p.name} in a sweet spot: faster than any standard USB drive, without the premium Thunderbolt tax. Edit 4K video directly from the drive and move large project files in seconds.`,
     `Think of the ${p.name} as Thunderbolt performance without the Thunderbolt price. ${read} reads and ${write} writes over USB 3.2 Gen 2×2 handle 4K/6K video, massive photo catalogs, and frequent large file transfers with room to spare.`,
+    `This NVMe drive over Gen 2×2 leaves SATA-based USB drives in the dust — expect 3-4x the throughput of a 550 MB/s SATA external. ${read} reads and ${write} writes put it in Thunderbolt-adjacent territory for a fraction of the cost.`,
   ];
 
   const whoItServesPool = [
@@ -398,6 +406,8 @@ function highspeedUsbPro(p: Product): DriveArchetype {
     "IT professionals deploying bootable external drives for diagnostics and recovery",
     "Creative teams sharing project files between workstations without a NAS",
     "Power users who want the fastest USB drive their laptop supports",
+    "Professionals who need AES 256-bit encryption on a high-speed NVMe external",
+    "Users who prioritize aluminum enclosure construction for sustained write performance",
   ];
 
   const hostNote = hostPortCallout(p.interface);
@@ -462,12 +472,14 @@ function budgetEveryday(p: Product): DriveArchetype {
     "Bootable recovery or OS installation media",
     "Media server staging — downloading and organizing files before archiving",
     "A shared family drive for documents, photos, and homework files",
+    "Users who want AES 256-bit hardware encryption without paying pro-tier prices",
   ];
 
   const speedCompareVariants = [
     `${read} reads are typical of a SATA SSD in an external enclosure — noticeably faster than any external HDD, yet well below the speed of Gen 2×2 or Thunderbolt drives. For most daily tasks, this is more than enough.`,
     `This drive performs like a SATA SSD over USB — roughly 5-6× faster than an external HDD for random reads, but not in the same league as NVMe-based externals. For documents, photos, and backups, the difference is academic.`,
     `In the speed hierarchy, the ${p.name} sits above HDDs and below NVMe. Think of it as a SATA SSD in your pocket — fast enough for 95% of daily tasks at a fraction of the cost of the fastest USB drives.`,
+    `SATA-based externals like the ${p.name} are the sensible choice when NVMe speed is overkill — the 550 MB/s ceiling is plenty for system backups, media playback, and document storage, and the savings are significant.`,
   ];
 
   const endurance = endurancePhrase(p.tbw);
