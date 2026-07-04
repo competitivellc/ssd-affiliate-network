@@ -344,9 +344,9 @@ export function generateValueEditorial(
   hubName: string
 ): HubEditorial {
   const top = products[0];
-  const cheapestPrice = (top?.price_cents ?? 0) / 100;
+  const cheapestPrice = ((top?._lowestPrice ?? 0) === Infinity ? 0 : (top?._lowestPrice ?? 0)) / 100;
   const mostExpensive = products.length > 1
-    ? (products[products.length - 1]?.price_cents ?? 0) / 100
+    ? ((products[products.length - 1]?._lowestPrice ?? 0) === Infinity ? 0 : (products[products.length - 1]?._lowestPrice ?? 0)) / 100
     : cheapestPrice;
 
   const cpgPhrase = pick([

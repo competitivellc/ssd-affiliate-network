@@ -28,6 +28,7 @@ export interface Product {
   category_name?: string;
   category_slug?: string;
   updated_at?: string;
+  _lowestPrice?: number;
 }
 
 export interface Price {
