@@ -12,11 +12,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return Response.redirect(url.toString(), 301);
   }
 
+  const url = new URL(context.request.url);
+  const pathname = url.pathname;
+
+  if (!pathname.startsWith("/_astro/") && !pathname.startsWith("/assets/") && !pathname.includes(".")) {
+    if (pathname.length > 1 && pathname.endsWith("/")) {
+      url.pathname = pathname.replace(/\/+$/, "");
+      return Response.redirect(url.toString(), 301);
+    }
+  }
+
   const tenant = getTenant(normalized);
 
   if (!tenant) {
-    const url = new URL(context.request.url);
-    if (url.pathname.startsWith("/_astro/") || url.pathname.startsWith("/assets/")) {
+    if (pathname.startsWith("/_astro/") || pathname.startsWith("/assets/")) {
       return next();
     }
     return new Response("Site not found", { status: 404 });
