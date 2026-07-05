@@ -19,9 +19,11 @@ const homeUrl = hosts[tenant.domain] || "/";
       <a href={homeUrl} class="no-underline">
         <span class="text-xl font-bold text-surface-900">{tenant.name}</span>
       </a>
-      <nav class="flex items-center gap-6">
-        <a href={homeUrl} class="text-sm font-medium text-surface-600 hover:text-surface-900 transition-colors">Home</a>
-        <a href="/compare" class="text-sm font-medium text-surface-600 hover:text-surface-900 transition-colors">Compare</a>
+      <nav class="flex items-center gap-5 sm:gap-6">
+        <a href={homeUrl} class="text-sm font-medium text-surface-600 hover:text-surface-900 transition-colors whitespace-nowrap">Home</a>
+        <a href="/compare" class="text-sm font-medium text-surface-600 hover:text-surface-900 transition-colors whitespace-nowrap">Compare</a>
+        <a href="/hubs" class="text-sm font-medium text-surface-600 hover:text-surface-900 transition-colors whitespace-nowrap">Buying Guides</a>
+        <a href="/hubs" class="text-sm font-medium text-surface-600 hover:text-surface-900 transition-colors whitespace-nowrap">Rankings</a>
       </nav>
     </div>
   </div>
