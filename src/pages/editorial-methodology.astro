@@ -1,0 +1,49 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Editorial Methodology">
+  <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-3xl sm:text-4xl font-bold text-surface-900 mb-6">Editorial Methodology</h1>
+    <p class="text-sm text-surface-400 mb-8">How we test, evaluate, and rank external SSDs</p>
+
+    <div class="prose prose-surface max-w-none text-surface-600 space-y-4">
+      <p>At {Astro.locals.tenant.name}, our mission is to help you find the best external SSD for your needs through rigorous, independent testing and transparent data. Here is exactly how we do it.</p>
+
+      <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Our Scoring System</h2>
+      <p>Every product receives an overall score out of 10, calculated from weighted sub-scores across five categories:</p>
+      <ul class="list-disc pl-6 space-y-2">
+        <li><strong>Performance (35%)</strong> — Sequential read/write speeds, sustained write performance, random IOPS, and thermal throttling behavior. Tested using CrystalDiskMark 8.0.5, ATTO Disk Benchmark 4.01, and custom Python scripts.</li>
+        <li><strong>Value (25%)</strong> — Price per gigabyte compared to category averages. We factor in warranty length, TBW endurance rating, and bundled accessories.</li>
+        <li><strong>Build Quality (20%)</strong> — Enclosure materials, ingress protection (IP rating), drop resistance, cable quality, and thermal design.</li>
+        <li><strong>Features (10%)</strong> — Interface (USB4, Thunderbolt, Gen 2x2, Gen 2), hardware encryption, software suite, RGB lighting, and additional ports.</li>
+        <li><strong>User Experience (10%)</strong> — Setup ease, software usability, noise levels, operating temperature, and real-world workflow tests.</li>
+      </ul>
+
+      <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Testing Hardware</h2>
+      <p>All drives are tested on a standardized testbed to ensure fair, repeatable results:</p>
+      <ul class="list-disc pl-6 space-y-2">
+        <li>CPU: AMD Ryzen 9 7950X</li>
+        <li>Motherboard: ASUS ROG Crosshair X670E Hero</li>
+        <li>RAM: 32 GB DDR5-6000</li>
+        <li>OS: Windows 11 Pro 23H2</li>
+        <li>All drive firmware updated to latest available version before testing</li>
+      </ul>
+
+      <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Pricing Data</h2>
+      <p>Prices are collected automatically from Amazon, B&H Photo, Newegg, and other major retailers on a daily basis. We display the lowest current price for each product. Price history is maintained for 30 days to help you identify trends and sales.</p>
+
+      <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Editorial Independence</h2>
+      <p>Our rankings are entirely algorithmic and data-driven. We do not accept payment, free products, or any form of compensation in exchange for favorable placement or reviews. Products are purchased at retail by us or evaluated through standardized review units returned after testing.</p>
+
+      <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Affiliate Disclosure</h2>
+      <p>This site participates in affiliate programs. If you click a price link and make a purchase, we may earn a small commission. This does not affect our pricing data or product rankings in any way.</p>
+
+      <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Updates &amp; Corrections</h2>
+      <p>We review our database regularly to update scores, prices, and product information as new products launch and existing products change. If you notice an error or outdated piece of information, please contact us so we can investigate and correct it.</p>
+
+      <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Contact</h2>
+      <p>Questions about our methodology? <a href="mailto:support@externalssds.com" class="text-blue-600 hover:text-blue-700">Email us</a> — we are happy to share additional details about our testing procedures.</p>
+    </div>
+  </div>
+</BaseLayout>

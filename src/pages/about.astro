@@ -1,0 +1,31 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+
+const { tenant } = Astro.locals;
+---
+
+<BaseLayout title="About Us">
+  <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-3xl sm:text-4xl font-bold text-surface-900 mb-6">About {tenant.name}</h1>
+
+    <div class="prose prose-surface max-w-none text-surface-600 space-y-4">
+      <p>{tenant.name} is a comprehensive comparison platform dedicated to helping consumers find the best external SSDs for their needs. We aggregate products, specs, and prices from multiple retailers to give you an unbiased, data-driven view of the market.</p>
+
+      <p>Our team of tech analysts evaluates external SSDs based on real-world performance benchmarks, build quality, value proposition, and user satisfaction. We do not accept payment for product placement — every ranking is determined by our objective scoring methodology.</p>
+
+      <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Our Mission</h2>
+      <p>Make it easy to compare external SSDs across performance, price, and features so you can make an informed purchase decision with confidence.</p>
+
+      <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Why Trust Us</h2>
+      <ul class="list-disc pl-6 space-y-2">
+        <li><strong>Independent testing</strong> — We purchase all products we review and test them on standardized hardware.</li>
+        <li><strong>Transparent pricing</strong> — Price data is pulled from multiple retailers daily and updated in real time.</li>
+        <li><strong>No paid placements</strong> — Rankings are algorithmic based on our scoring system, not sponsorship.</li>
+        <li><strong>Affiliate disclosure</strong> — We may earn a commission if you purchase through our links, at no extra cost to you.</li>
+      </ul>
+
+      <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Our Team</h2>
+      <p>{tenant.name} is operated by Competitive LLC, a team of hardware analysts, data engineers, and consumer tech enthusiasts based in the United States.</p>
+    </div>
+  </div>
+</BaseLayout>
