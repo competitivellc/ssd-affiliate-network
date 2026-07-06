@@ -23,18 +23,21 @@ const scoreColor =
 const isTopPick = rank === 1;
 ---
 
-<a
-  href={`/products/${product.slug}`}
-  class="product-card flex flex-col justify-between h-full no-underline cursor-pointer relative rounded-xl border border-surface-200 bg-white p-4"
->
-  <div class="aspect-[4/3] max-h-40 bg-surface-50 rounded-lg border border-surface-100 mb-2.5 flex items-center justify-center overflow-hidden">
+<article class="product-card product-card-grid-item flex flex-col h-full rounded-xl border border-surface-200 bg-white p-4 transition-all hover:shadow-lg hover:-translate-y-0.5 relative">
+  <a
+    href={`/products/${product.slug}`}
+    class="absolute inset-0 z-10 rounded-xl cursor-pointer no-underline"
+    aria-label={`View ${product.name} details`}
+  ></a>
+
+  <div class="aspect-[4/3] max-h-40 bg-surface-50 rounded-lg border border-surface-100 mb-2.5 flex items-center justify-center overflow-hidden pointer-events-none">
     <svg class="w-8 h-8 text-surface-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
     </svg>
   </div>
 
-  <div class="flex items-start justify-between mb-2">
-    <div class="flex items-center gap-2 min-w-0">
+  <div class="flex items-start justify-between mb-2 gap-2">
+    <div class="flex items-center gap-2 min-w-0 flex-1">
       {rank && rank > 1 && (
         <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-surface-900 text-white text-xs font-bold shrink-0">
           #{rank}
@@ -57,7 +60,7 @@ const isTopPick = rank === 1;
         </h3>
       </div>
     </div>
-    <div class={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold shrink-0 ${scoreColor}`}>
+    <div class={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold shrink-0 pointer-events-none ${scoreColor}`}>
       <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
       </svg>
@@ -65,7 +68,7 @@ const isTopPick = rank === 1;
     </div>
   </div>
 
-  <div class="grid grid-cols-2 gap-x-3 gap-y-1 mb-3 text-xs">
+  <div class="grid grid-cols-2 gap-x-3 gap-y-1 mb-3 text-xs pointer-events-none">
     <div class="flex items-center justify-between border-b border-surface-50 pb-1">
       <span class="text-surface-500">Capacity</span>
       <span class="font-medium text-surface-700">{(product.capacity_gb >= 1000 ? `${(product.capacity_gb / 1000).toFixed(0)}TB` : `${product.capacity_gb}GB`)}</span>
@@ -80,21 +83,17 @@ const isTopPick = rank === 1;
     </div>
   </div>
 
-  <div class="pt-2.5 border-t border-surface-100 space-y-1.5 mt-auto">
+  <div class="pt-2.5 border-t border-surface-100 space-y-1.5 mt-auto relative z-20">
     {lowestPrice && (
-      <div onclick="event.stopPropagation()">
-        <GeoAffiliateLink
-          url={lowestPrice.affiliate_url || "#"}
-          retailer={lowestPrice.retailer}
-          label="Click for Best Price"
-          className="w-full justify-center py-2 text-sm font-semibold bg-blue-600 text-white border-blue-600 hover:bg-blue-700 [&_svg]:text-white"
-        />
-      </div>
+      <GeoAffiliateLink
+        url={lowestPrice.affiliate_url || "#"}
+        retailer={lowestPrice.retailer}
+        label="Click for Best Price"
+        className="w-full justify-center py-2 text-sm font-semibold bg-blue-600 text-white border-blue-600 hover:bg-blue-700 [&_svg]:text-white"
+      />
     )}
-    <span
-      class="block text-center text-xs font-medium text-blue-600"
-    >
+    <span class="block text-center text-xs font-medium text-blue-600 pointer-events-none">
       View Full Specs &rarr;
     </span>
   </div>
-</a>
+</article>
