@@ -21,14 +21,11 @@ const scoreColor =
     : "text-amber-600 bg-amber-50";
 
 const isTopPick = rank === 1;
-const cardBorder = isTopPick
-  ? "border-amber-300 ring-1 ring-amber-200/50"
-  : "border-surface-200";
 ---
 
 <a
   href={`/products/${product.slug}`}
-  class={`product-card flex flex-col no-underline cursor-pointer relative rounded-xl border bg-white p-4 ${cardBorder}`}
+  class="product-card flex flex-col justify-between h-full no-underline cursor-pointer relative rounded-xl border border-surface-200 bg-white p-4"
 >
   <div class="aspect-[4/3] max-h-40 bg-surface-50 rounded-lg border border-surface-100 mb-2.5 flex items-center justify-center overflow-hidden">
     <svg class="w-8 h-8 text-surface-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
