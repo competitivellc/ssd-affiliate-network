@@ -182,6 +182,9 @@ const calloutText: Record<string, string> = {
           <section class="mb-6">
             <h2 class="text-xl font-semibold text-surface-900 mb-3">Overview</h2>
             <p class="text-surface-600 leading-relaxed">{product.description}</p>
+            <p class="text-sm text-surface-500 mt-2">
+              See how it stacks up against competitors in our <a href={`/compare?category=${product.category_slug}`} class="text-blue-600 hover:text-blue-700 font-medium">{product.category_name} SSD comparison</a>, or browse related <a href="/hubs" class="text-blue-600 hover:text-blue-700 font-medium">SSD buying guides</a>.
+            </p>
           </section>
         )}
 

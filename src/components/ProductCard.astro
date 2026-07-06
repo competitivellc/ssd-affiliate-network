@@ -26,9 +26,9 @@ const cardBorder = isTopPick
   : "border-surface-200";
 ---
 
-<div
+<a
+  href={`/products/${product.slug}`}
   class={`product-card block no-underline cursor-pointer relative ${cardBorder}`}
-  onclick={`location.href='/products/${product.slug}'`}
 >
   <div class="flex items-start justify-between mb-3">
     <div class="flex items-center gap-2">
@@ -88,12 +88,10 @@ const cardBorder = isTopPick
         />
       </div>
     )}
-    <a
-      href={`/products/${product.slug}`}
-      class="block text-center text-sm font-medium text-blue-600 hover:text-blue-700 no-underline"
-      onclick="event.stopPropagation()"
+    <span
+      class="block text-center text-sm font-medium text-blue-600"
     >
-      View Details &rarr;
-    </a>
+      View Full Specs &rarr;
+    </span>
   </div>
-</div>
+</a>

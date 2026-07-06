@@ -34,6 +34,21 @@ const year = new Date().getFullYear();
       ))}
     </nav>
 
+    <section class="mb-12 grid gap-3 sm:grid-cols-3 text-sm">
+      <a href="/compare" class="flex items-center gap-2 rounded-lg border border-surface-200 p-3 hover:bg-surface-50 transition-colors no-underline">
+        <span class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0">1</span>
+        <span class="text-surface-700 font-medium">Compare all external SSDs side-by-side &rarr;</span>
+      </a>
+      <a href="/hubs/best-ssd-for-ps5" class="flex items-center gap-2 rounded-lg border border-surface-200 p-3 hover:bg-surface-50 transition-colors no-underline">
+        <span class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold shrink-0">2</span>
+        <span class="text-surface-700 font-medium">Best external SSD for PS5 gaming &rarr;</span>
+      </a>
+      <a href="/hubs/cheapest-1tb-external-ssd" class="flex items-center gap-2 rounded-lg border border-surface-200 p-3 hover:bg-surface-50 transition-colors no-underline">
+        <span class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold shrink-0">3</span>
+        <span class="text-surface-700 font-medium">Cheapest 1TB external SSDs ranked &rarr;</span>
+      </a>
+    </section>
+
     {topRated.length > 0 && (
       <section class="mb-16">
         <div class="flex items-center gap-3 mb-6">
@@ -75,6 +90,13 @@ const year = new Date().getFullYear();
           <h2 class="text-2xl font-bold text-surface-900">All {tenant.name} — {allProducts.length} Drives</h2>
         </div>
         <ProductGrid products={allProducts} />
+        <div class="mt-4 text-sm text-surface-500 text-center">
+          See individual reviews:
+          {allProducts.slice(0, 5).map((p, i) => (
+            <><a href={`/products/${p.slug}`} class="text-blue-600 hover:text-blue-700 font-medium">{p.name}</a>{i < Math.min(allProducts.length, 5) - 1 ? ", " : ""}</>
+          ))}
+          {allProducts.length > 5 && <> and <a href="/compare" class="text-blue-600 hover:text-blue-700 font-medium">compare all {allProducts.length} drives</a></>}
+        </div>
       </section>
     )}
 
@@ -106,6 +128,19 @@ const year = new Date().getFullYear();
         </div>
       </section>
     )}
+
+    <section class="mb-16">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
+        <h2 class="text-2xl font-bold text-surface-900">Popular Comparisons</h2>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 text-sm">
+        <a href="/compare?category=usb-c" class="rounded-lg border border-surface-200 p-3 hover:bg-surface-50 transition-colors no-underline text-surface-700 font-medium">USB-C External SSDs Compared</a>
+        <a href="/compare?category=thunderbolt" class="rounded-lg border border-surface-200 p-3 hover:bg-surface-50 transition-colors no-underline text-surface-700 font-medium">Thunderbolt External SSDs Compared</a>
+        <a href="/compare?category=gaming" class="rounded-lg border border-surface-200 p-3 hover:bg-surface-50 transition-colors no-underline text-surface-700 font-medium">Gaming External SSDs Compared</a>
+        <a href="/compare" class="rounded-lg border border-surface-200 p-3 hover:bg-surface-50 transition-colors no-underline text-surface-700 font-medium">All SSDs Side-by-Side</a>
+      </div>
+    </section>
 
     {(byHubType["performance"]?.length > 0 || byHubType["value"]?.length > 0) && (
       <section class="mb-16">

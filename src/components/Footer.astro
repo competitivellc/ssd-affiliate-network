@@ -15,9 +15,21 @@ const categories = tenant.id === "portablessds"
       { label: "Rugged SSDs", href: "/compare?category=rugged" },
     ]
   : [
-      { label: "USB-C SSDs", href: "/compare?category=usb-c" },
-      { label: "Thunderbolt SSDs", href: "/compare?category=thunderbolt" },
-      { label: "Gaming SSDs", href: "/compare?category=gaming" },
+      { label: "USB-C External SSDs", href: "/compare?category=usb-c" },
+      { label: "Thunderbolt External SSDs", href: "/compare?category=thunderbolt" },
+      { label: "Gaming External SSDs", href: "/compare?category=gaming" },
+    ];
+
+const hubLinks = tenant.id === "portablessds"
+  ? [
+      { label: "Best Portable SSD for Console Gaming", href: "/hubs/best-portable-ssd-for-console-gaming" },
+      { label: "Fastest USB-C Portable SSDs", href: "/hubs/fastest-usb-c-portable-ssd" },
+      { label: "Cheapest 1TB Portable SSD", href: "/hubs/cheapest-1tb-portable-ssd" },
+    ]
+  : [
+      { label: "Best External SSD for PS5", href: "/hubs/best-ssd-for-ps5" },
+      { label: "Fastest USB4 External Drives", href: "/hubs/fastest-usb4-external-ssd" },
+      { label: "Cheapest 1TB External SSD", href: "/hubs/cheapest-1tb-external-ssd" },
     ];
 ---
 
@@ -37,6 +49,14 @@ const categories = tenant.id === "portablessds"
         <ul class="space-y-2">
           {categories.map((cat) => (
             <li><a href={cat.href} class="text-sm text-surface-500 hover:text-surface-800 transition-colors">{cat.label}</a></li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold text-surface-800 uppercase tracking-wider mb-3">Buying Guides</h3>
+        <ul class="space-y-2">
+          {hubLinks.map((hub) => (
+            <li><a href={hub.href} class="text-sm text-surface-500 hover:text-surface-800 transition-colors">{hub.label}</a></li>
           ))}
         </ul>
       </div>
