@@ -8,11 +8,14 @@ export interface Props {
 }
 
 const { products, showRank } = Astro.props;
+const valid = products.filter(
+  (p) => p && p.name && p.slug && p.capacity_gb != null && p.interface
+);
 ---
 
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
   {
-    products.map((product, i) => (
+    valid.map((product, i) => (
       <ProductCard product={product} rank={showRank ? i + 1 : undefined} />
     ))
   }
