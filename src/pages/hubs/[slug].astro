@@ -301,14 +301,14 @@ const hubJsonLd = {
               {relatedHubs.map((rh) => (
                 <a
                   href={`/hubs/${rh.slug}`}
-                  class="rounded-xl border border-surface-200 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all no-underline group"
+                  class="rounded-xl border border-surface-200 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all no-underline group flex flex-col"
                 >
                   <p class="text-xs font-medium text-surface-400 uppercase tracking-wider mb-1">
                     {rh.hub_type === "use-case" ? "Buying Guide" : rh.hub_type === "performance" ? "Performance" : "Value"}
                   </p>
                   <h3 class="text-sm font-semibold text-surface-900 group-hover:text-blue-600 transition-colors">{rh.name}</h3>
                   {rh.description && (
-                    <p class="mt-1 text-xs text-surface-500 line-clamp-2">{rh.description}</p>
+                    <p class="mt-1 text-xs text-surface-500 line-clamp-2 flex-1">{rh.description}</p>
                   )}
                 </a>
               ))}

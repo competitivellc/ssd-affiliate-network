@@ -326,7 +326,7 @@ const calloutText: Record<string, string> = {
               url={sortedPrices[0].affiliate_url || "#"}
               retailer={sortedPrices[0].retailer}
               label="Click for Best Price"
-              className="w-full justify-center py-3 text-sm bg-[#ef3737] text-white border-[#ef3737] hover:bg-[#d62f2f] [&_svg]:text-white"
+              className="w-full justify-center py-3 text-sm font-semibold bg-blue-600 text-white border-blue-600 hover:bg-blue-700 [&_svg]:text-white"
             />
           )}
 
@@ -339,7 +339,7 @@ const calloutText: Record<string, string> = {
                   <span class="font-mono font-medium text-surface-700">{product.read_speed_mbps} MB/s</span>
                 </div>
                 <div class="spec-bar">
-                  <div class="spec-bar-fill bg-blue-500" style={`width: ${Math.min(100, (product.read_speed_mbps / 3000) * 100)}%`}></div>
+                  <div class="spec-bar-fill bg-blue-500" style={{ width: `${Math.min(100, (product.read_speed_mbps / 3000) * 100)}%` }}></div>
                 </div>
               </div>
               <div>
@@ -348,7 +348,7 @@ const calloutText: Record<string, string> = {
                   <span class="font-mono font-medium text-surface-700">{product.write_speed_mbps} MB/s</span>
                 </div>
                 <div class="spec-bar">
-                  <div class="spec-bar-fill bg-emerald-500" style={`width: ${Math.min(100, (product.write_speed_mbps / 3000) * 100)}%`}></div>
+                  <div class="spec-bar-fill bg-emerald-500" style={{ width: `${Math.min(100, (product.write_speed_mbps / 3000) * 100)}%` }}></div>
                 </div>
               </div>
             </div>

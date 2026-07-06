@@ -35,7 +35,7 @@
     @apply h-full rounded-full transition-all duration-500;
   }
   .product-card {
-    @apply relative rounded-xl border border-surface-200 bg-white p-5 transition-all hover:shadow-lg hover:-translate-y-0.5;
+    @apply relative rounded-xl border border-surface-200 bg-white p-5 transition-all hover:shadow-lg hover:-translate-y-0.5 flex flex-col;
   }
   .product-card.featured {
     @apply ring-2 ring-amber-400 border-amber-300;
