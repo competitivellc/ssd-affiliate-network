@@ -39,6 +39,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (runtime?.env) {
     context.locals.DB = runtime.env.DB;
     context.locals.PRICE_CACHE = runtime.env.PRICE_CACHE;
+    context.locals.INDEXNOW_KEY = runtime.env.INDEXNOW_KEY;
   }
 
   return next();

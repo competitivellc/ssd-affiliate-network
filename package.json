@@ -10,7 +10,11 @@
     "cf:publish": "wrangler pages deploy dist",
     "db:init": "wrangler d1 execute ssd-affiliate-db --file=./db/schema.sql",
     "db:seed": "wrangler d1 execute ssd-affiliate-db --file=./db/seed.sql",
-    "worker:deploy": "wrangler deploy worker/price-sync.ts --name ssd-price-sync"
+    "worker:deploy": "wrangler deploy worker/price-sync.ts --name ssd-price-sync",
+    "indexnow:submit": "node scripts/indexnow-submit.mjs",
+    "indexnow:submit:all": "INDEXNOW_HOST=externalssds.com node scripts/indexnow-submit.mjs && INDEXNOW_HOST=portablessds.com node scripts/indexnow-submit.mjs",
+    "indexnow:postdeploy": "astro build && node scripts/indexnow-submit.mjs",
+    "indexnow:gen-key": "node -e \"const c=require('crypto');console.log(c.randomBytes(32).toString('hex'))\""
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12.0.0",

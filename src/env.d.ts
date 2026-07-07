@@ -11,10 +11,13 @@ declare namespace App {
     hostname: string;
     DB: import("@cloudflare/workers-types").D1Database;
     PRICE_CACHE: import("@cloudflare/workers-types").KVNamespace;
+    INDEXNOW_KEY?: string;
     runtime: {
       env: {
         DB: import("@cloudflare/workers-types").D1Database;
         PRICE_CACHE: import("@cloudflare/workers-types").KVNamespace;
+        INDEXNOW_KEY?: string;
+        INDEXNOW_ADMIN_TOKEN?: string;
         AMAZON_API_KEY?: string;
         BHPHOTO_API_KEY?: string;
         NEWEGG_API_KEY?: string;
