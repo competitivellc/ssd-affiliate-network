@@ -20,13 +20,14 @@ Multi-tenant affiliate comparison site for external SSDs served on `externalssds
 
 | File | Purpose |
 |------|---------|
-| `src/middleware.ts` | Multi-tenant detection, Cloudflare binding propagation |
+| `src/middleware.ts` | Multi-tenant detection, Cloudflare binding propagation (incl. INDEXNOW_KEY) |
 | `src/config/tenants.ts` | Tenant definitions (2 domains + pages.dev preview) |
 | `src/lib/db.ts` | All D1 queries: products, prices, categories, affiliates, search, price history |
 | `src/lib/affiliate.ts` | Country detection, affiliate URL rewriting |
 | `src/lib/pricing.ts` | Price formatting, lowest price, savings calculation |
 | `src/lib/kv.ts` | KV cache read/write helpers |
 | `src/lib/hubs.ts` | Hub editorial content generation (use-case, performance, value) |
+| `src/lib/indexnow.ts` | IndexNow submission: batch, retry with exponential backoff, sitemap |
 | `src/pages/index.astro` | Home: hero, featured picks, categories, all products, hub navigation |
 | `src/pages/compare.astro` | Spec comparison table with category filtering |
 | `src/pages/products/[slug].astro` | Product detail: specs, pros/cons, price history, buy buttons |
@@ -50,6 +51,14 @@ Multi-tenant affiliate comparison site for external SSDs served on `externalssds
 ## Tenant Colors
 - `externalssds.com` → blue (`#0c8ee7`)
 - `portablessds.com` → green (`#10b981`)
+
+## IndexNow
+- **Key**: `899c04f2948896bb0b7cf612a792b2abc7a0ebb7eee71feed16f2d1a2ac8ac42` (stored as Cloudflare secret `INDEXNOW_KEY`)
+- **Admin token**: `3bf9050d00ac4dc4f1038bc97e785da764a092d55113c78269076e8c5ec46654` (stored as `INDEXNOW_ADMIN_TOKEN`)
+- **Verification**: `https://<domain>/<KEY>.txt` — served dynamically by `src/pages/[key].txt.ts`
+- **Endpoints**: `POST /api/indexnow/submit` (Bearer auth with admin token)
+- **Script**: `npm run indexnow:submit` (reads `.env.indexnow`)
+- **Library**: `src/lib/indexnow.ts` — `submitSingleUrl()`, `submitBatch()`, `submitSitemap()` with exponential backoff
 
 ## Important Patterns
 - **Dynamic styles**: Use `style={{ property: value }}` (object syntax), NOT `style="prop: {expr}"` (Cloudflare SSR doesn't evaluate the latter)
@@ -78,6 +87,10 @@ The AI agent must always commit and push changes directly after making any code 
 - [x] Taxonomy hub pages: use-case, performance, value with editorial content
 - [x] Hub directory listing all programmatic hub pages
 - [x] Hub navigation on homepage (buying guides + rankings)
+- [x] IndexNow verification key file served dynamically (`/[key].txt.ts`)
+- [x] IndexNow batch submission library with retry/exponential backoff
+- [x] Admin submission API endpoint (Bearer auth)
+- [x] Post-deploy submission script (npm run indexnow:submit)
 
 ## What's Pending
 - [ ] Cron price-sync worker not deployed (needs API keys → `npx wrangler deploy worker/price-sync.ts --name ssd-price-sync`)
