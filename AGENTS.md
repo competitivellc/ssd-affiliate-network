@@ -72,6 +72,33 @@ Multi-tenant affiliate comparison site for external SSDs served on `externalssds
 ## Critical Policy: Commit & Push
 The AI agent must always commit and push changes directly after making any code modifications. The user will never do this. Stage the file(s), write a concise commit message, and push to trigger Cloudflare auto-deploy. Do not ask for permission - just do it.
 
+## Post-Deploy Checklist (MANDATORY)
+
+After EVERY push/deploy, you MUST run the IndexNow submission for BOTH production domains using their REAL sitemaps. Never use `ssd-affiliate-network.pages.dev` for anything production-related — that staging URL will get you yelled at.
+
+```bash
+# 1. Submit externalssds.com
+Set-Content -Path ".env.indexnow" -Value @"
+INDEXNOW_KEY=899c04f2948896bb0b7cf612a792b2abc7a0ebb7eee71feed16f2d1a2ac8ac42
+INDEXNOW_HOST=externalssds.com
+INDEXNOW_SITEMAP=https://externalssds.com/sitemap.xml
+"@
+npm run indexnow:submit
+
+# 2. Submit portablessds.com
+Set-Content -Path ".env.indexnow" -Value @"
+INDEXNOW_KEY=899c04f2948896bb0b7cf612a792b2abc7a0ebb7eee71feed16f2d1a2ac8ac42
+INDEXNOW_HOST=portablessds.com
+INDEXNOW_SITEMAP=https://portablessds.com/sitemap.xml
+"@
+npm run indexnow:submit
+
+# 3. Clean up
+Remove-Item -Force ".env.indexnow" -ErrorAction SilentlyContinue
+```
+
+**CRITICAL**: Always use `externalssds.com` and `portablessds.com` as the sitemap URLs. Never substitute `ssd-affiliate-network.pages.dev` — that is a preview/staging domain and its sitemap is NOT correct for IndexNow submissions even though the canonical URLs happen to resolve correctly due to tenant config. Using it is incorrect and will be rejected.
+
 ## What's Done
 - [x] Full project scaffold, Astro + Cloudflare adapter + Tailwind
 - [x] D1 schema + seed data deployed to remote
@@ -102,7 +129,7 @@ The AI agent must always commit and push changes directly after making any code 
 ## New Session Boilerplate
 Paste this at the start of a new conversation with any AI coding agent:
 
-> I am building a multi-tenant SSD affiliate comparison network. The repo is at `github.com/competitivellc/ssd-affiliate-network` on branch `main`. It's an Astro 5 SSR site deployed on Cloudflare Pages with D1 (SQLite) and KV cache, serving `externalssds.com` and `portablessds.com`. The codebase is fully functional and deployed. Read `AGENTS.md` in the repo root for full context. I need you to help with [your specific task]. No global installs - use `npx` for all wrangler commands. After making code changes, commit and push - I won't do it.
+> I am building a multi-tenant SSD affiliate comparison network. The repo is at `github.com/competitivellc/ssd-affiliate-network` on branch `main`. It's an Astro 5 SSR site deployed on Cloudflare Pages with D1 (SQLite) and KV cache, serving `externalssds.com` and `portablessds.com`. The codebase is fully functional and deployed. Read `AGENTS.md` in the repo root for full context. I need you to help with [your specific task]. No global installs - use `npx` for all wrangler commands. After making code changes, commit and push - I won't do it. After pushing, run the Post-Deploy Checklist to submit IndexNow for both domains.
 
 ## D1 CLI Commands
 ```bash
@@ -115,4 +142,5 @@ npx wrangler d1 execute ssd-affiliate-db --file=./db/seed.sql --remote
 ```bash
 npm run build         # Build Astro locally
 git push              # Triggers Cloudflare auto-deploy
+# AFTER deploy: run the Post-Deploy Checklist above (IndexNow for both domains)
 ```
