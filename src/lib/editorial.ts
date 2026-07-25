@@ -316,7 +316,7 @@ function ruggedPortable(p: Product): DriveArchetype {
   const builtForProse = [
     `Unlike bare internal drives or fragile externals, the ${p.name} is engineered for the field. Drop-tested and sealed against dust and water ingress, it survives the bumps of daily commuting, coffee shop tables, and outdoor shoots.`,
     `The ${p.name} is built for real-world conditions — not just a desk. IP-rated dust and water resistance, drop protection, and a reinforced casing mean it handles the accidental knock, the coffee spill, and the packed bag.`,
-    `Field-tested and weather-sealed, the ${p.name} shrugs off what would ruin a standard external drive. Rain, dust, drops from pocket height — this drive keeps your data safe when conditions get rough.`,
+    `Built for the field and weather-sealed, the ${p.name} shrugs off what would ruin a standard external drive. Rain, dust, drops from pocket height — this drive keeps your data safe when conditions get rough.`,
     `Rugged by design: the ${p.name} survives 2-meter drops, water immersion, and dust ingress. It is built for photographers in the field, contractors on site, and anyone whose storage leaves the desk.`,
   ];
 

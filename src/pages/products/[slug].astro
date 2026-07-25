@@ -62,38 +62,6 @@ const productJsonLd: Record<string, unknown> = {
     "@type": "Brand",
     name: product.brand_name,
   },
-  review: {
-    "@type": "Review",
-    author: {
-      "@type": "Person",
-      name: `${tenant.name} Testing Lab`,
-    },
-    reviewRating: {
-      "@type": "Rating",
-      ratingValue: product.overall_score.toFixed(1),
-      bestRating: "10",
-    },
-    ...(pros.length > 0 && {
-      positiveNotes: {
-        "@type": "ItemList",
-        itemListElement: pros.map((item, i) => ({
-          "@type": "ListItem",
-          position: i + 1,
-          name: item,
-        })),
-      },
-    }),
-    ...(cons.length > 0 && {
-      negativeNotes: {
-        "@type": "ItemList",
-        itemListElement: cons.map((item, i) => ({
-          "@type": "ListItem",
-          position: i + 1,
-          name: item,
-        })),
-      },
-    }),
-  },
 };
 
 const archetype = classifyDrive(product);
@@ -117,7 +85,7 @@ const calloutText: Record<string, string> = {
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-6">
       <p class="text-xs text-surface-700 italic leading-relaxed">
-        Disclosure: We may earn a commission from qualifying purchases made through links on this page. Prices and availability are subject to change. We are reader-supported and independent — our rankings are based on objective testing, not sponsorship.
+        Disclosure: We may earn a commission from qualifying purchases made through links on this page. Prices and availability are subject to change. We are reader-supported and independent — our rankings are based on an objective scoring rubric, not sponsorship.
       </p>
     </div>
     <div class="grid lg:grid-cols-3 gap-8">

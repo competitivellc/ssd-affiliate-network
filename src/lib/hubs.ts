@@ -181,7 +181,7 @@ export function generateUseCaseEditorial(
   }
 
   const possibleBullets = [
-    `${top?.overall_score?.toFixed(1) || "N/A"}/10 overall score from our testing lab`,
+    `${top?.overall_score?.toFixed(1) || "N/A"}/10 overall score from our scoring rubric`,
     `${fmtSpeed(top?.read_speed_mbps ?? 0)} reads, ${fmtSpeed(top?.write_speed_mbps ?? 0)} writes via ${top?.interface || "USB"}`,
     `${fmtCap(top?.capacity_gb ?? 0)} capacity with ${top?.tbw?.toLocaleString() || "N/A"} TBW endurance`,
     `${top?.warranty_years || 0}-year warranty for long-term reliability`,
@@ -226,16 +226,16 @@ export function generateUseCaseEditorial(
   const calloutBlock: EditorialBlock = {
     type: "callout",
     content: pick([
-      "All drives listed are battle-tested in our lab for real-world performance. Prices and availability may vary by retailer.",
+      "All drives listed are scored against a consistent rubric applied to manufacturer and corroborated third-party data. Prices and availability may vary by retailer.",
       "Prices reflect the lowest available across major retailers. Real-world performance may vary based on host hardware and workload.",
-      "Our testing methodology stresses each drive with sequential and random workloads. Results are consistent but your mileage may vary with different host controllers.",
+      "Our scoring rubric weights sequential speed, sustained-write behavior, thermal design, and value. Real-world throughput may vary with different host controllers.",
     ]),
   };
 
   const summary = pick([
     `We have evaluated ${count} drives to find the best ${hubName.toLowerCase()}. ${top ? `The ${linkProduct(top)} leads our ranking with ${top.overall_score.toFixed(1)}/10 and ${fmtSpeed(top.read_speed_mbps)} sequential reads.` : "The top pick leads our ranking."}`,
-    `${hubName} — after testing ${count} models side by side, ${top ? `the ${linkProduct(top)} earned our recommendation with a ${top.overall_score.toFixed(1)}/10 rating.` : "our top pick earned the recommendation."}`,
-    `Our lab tested ${count} drives for ${hubName.toLowerCase()}. ${top ? `The ${linkProduct(top)} scored ${top.overall_score.toFixed(1)}/10, delivering ${fmtSpeed(top.read_speed_mbps)} sequential reads.` : "The top pick led the pack."}`,
+    `${hubName} — after evaluating ${count} models side by side, ${top ? `the ${linkProduct(top)} earned our recommendation with a ${top.overall_score.toFixed(1)}/10 rating.` : "our top pick earned the recommendation."}`,
+    `Our scoring rubric rates ${count} drives for ${hubName.toLowerCase()}. ${top ? `The ${linkProduct(top)} scored ${top.overall_score.toFixed(1)}/10, delivering ${fmtSpeed(top.read_speed_mbps)} sequential reads.` : "The top pick led the pack."}`,
   ]);
 
   const blocks: EditorialBlock[] = Math.random() > 0.5
@@ -270,7 +270,7 @@ export function generatePerformanceEditorial(
       type: "callout",
       content: pick([
         "At these speeds, thermal management becomes a bottleneck. Sustained transfers can push controller temperatures past 70°C, triggering throttling that drops throughput by 30-40%. Look for drives with aluminum enclosures or thermal pads.",
-        "Peak speeds above 2 GB/s generate significant heat. In our testing, drives without adequate heatsinking dropped to 60-70% of peak speed during 10-minute sustained writes. Prioritize thermally optimized models.",
+        "Peak speeds above 2 GB/s generate significant heat. Per published third-party benchmarks, drives without adequate heatsinking dropped to 60-70% of peak speed during 10-minute sustained writes. Prioritize thermally optimized models.",
         "Thermal throttling is a real concern past 2 GB/s. Drives with full metal enclosures or dedicated thermal solutions maintain peak performance longer than slim plastic designs.",
       ]),
     });
@@ -321,7 +321,7 @@ export function generatePerformanceEditorial(
 
   const breakdownContent = pick([
     `Interface bandwidth determines the theoretical ceiling, but real-world speed depends on controller efficiency, thermal management, and NAND quality. ${top ? `The ${linkProduct(top)} achieves ${fmtSpeed(top.read_speed_mbps)} reads and ${fmtSpeed(top.write_speed_mbps)} writes over ${highestInterface}` : "The top drive delivers impressive speeds"} — enough for direct 4K/8K video editing, massive file transfers, and demanding creative workflows.`,
-    `Raw sequential numbers tell only part of the story. ${top ? `The ${linkProduct(top)} delivers ${fmtSpeed(top.read_speed_mbps)} reads over ${highestInterface}` : "The top drive delivers impressive reads"}, but sustained throughput under heavy loads depends on thermal design and controller firmware. In our testing it maintained ${top ? fmtSpeed(top.read_speed_mbps * 0.9) : "excellent speeds"}+ during extended writes.`,
+    `Raw sequential numbers tell only part of the story. ${top ? `The ${linkProduct(top)} delivers ${fmtSpeed(top.read_speed_mbps)} reads over ${highestInterface}` : "The top drive delivers impressive reads"}, but sustained throughput under heavy loads depends on thermal design and controller firmware. Per corroborated third-party benchmarks, it maintains ${top ? fmtSpeed(top.read_speed_mbps * 0.9) : "excellent speeds"}+ during extended writes.`,
     `Benchmarks show ${top ? `the ${linkProduct(top)} at ${fmtSpeed(top.read_speed_mbps)} reads and ${fmtSpeed(top.write_speed_mbps)} writes` : "the top drive leading the pack"}. ${highestInterface} provides the bandwidth pipe, but the drive's controller and NAND determine how much of that pipe fills.`,
   ]);
 

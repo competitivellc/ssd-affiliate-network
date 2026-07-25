@@ -149,7 +149,7 @@ function getCategoryIntro(catName: string | null, prods: Product[]): string {
   const cat = stripSsdSuffix(catName).toLowerCase();
 
   const topName = top ? `${top.brand_name} ${top.name}` : "";
-  return `Looking for the best ${cat} SSD for your setup? We have tested and compared ${prods.length} top ${cat} drives side-by-side. Speeds range from ${fmtSpeed(minSpd)} to ${fmtSpeed(maxSpd)}${hasUsb4 ? " over USB4 and Thunderbolt" : " over USB"}, with capacities from ${fmtCapacity(Math.min(...prods.map(p => p.capacity_gb)))} to ${fmtCapacity(Math.max(...prods.map(p => p.capacity_gb)))}. Our top pick, ${prods[0] ? prodLink(prods[0], topName) : topName || "the leader"}, earned ${top?.overall_score?.toFixed(1) || ""}/10 for its balance of speed, build quality, and value. Whether you need faster game load times, portable storage for creative work, or reliable backup, this comparison covers everything you need to choose the right drive.`;
+  return `Looking for the best ${cat} SSD for your setup? We compared ${prods.length} top ${cat} drives side by side. Speeds range from ${fmtSpeed(minSpd)} to ${fmtSpeed(maxSpd)}${hasUsb4 ? " over USB4 and Thunderbolt" : " over USB"}, with capacities from ${fmtCapacity(Math.min(...prods.map(p => p.capacity_gb)))} to ${fmtCapacity(Math.max(...prods.map(p => p.capacity_gb)))}. Our top pick, ${prods[0] ? prodLink(prods[0], topName) : topName || "the leader"}, earned ${top?.overall_score?.toFixed(1) || ""}/10 for its balance of speed, build quality, and value. Whether you need faster game load times, portable storage for creative work, or reliable backup, this comparison covers everything you need to choose the right drive.`;
 }
 
 function computeBenchmarks(product: Product) {
@@ -241,7 +241,7 @@ function getGamingAnalysis(prods: Product[], catName: string | null): string {
   const minCap = Math.min(...capacities);
 
   const top = prods[0];
-  return `For gaming, both read speed and capacity matter. Modern AAA games like Call of Duty and Starfield can exceed 100 GB per installation, so capacity is often the deciding factor. These drives range from ${fmtCapacity(minCap)} to ${fmtCapacity(maxCap)} — ${maxCap >= 2000 ? "the 2TB variants provide enough room for 15-20 major titles" : "sufficient for a core library of 8-12 games"}. ${top ? `${prodLink(top)} handles this balance particularly well in our testing.` : ""}
+  return `For gaming, both read speed and capacity matter. Modern AAA games like Call of Duty and Starfield can exceed 100 GB per installation, so capacity is often the deciding factor. These drives range from ${fmtCapacity(minCap)} to ${fmtCapacity(maxCap)} — ${maxCap >= 2000 ? "the 2TB variants provide enough room for 15-20 major titles" : "sufficient for a core library of 8-12 games"}. ${top ? `${prodLink(top)} scores particularly well on this balance in our rubric.` : ""}
 
 All ${prods.length} drives in this comparison meet the minimum speed requirements for console gaming on PS5 and Xbox Series X|S. Load time improvements over internal console storage are marginal for most games — typically 1-3 seconds faster — because modern consoles already use fast NVMe storage. Where external SSDs shine is game library management: transferring games between internal and external storage is 3-5x faster than re-downloading.
 
@@ -265,7 +265,7 @@ function getHeatAnalysis(prods: Product[]): string {
   }
   if (highPerf.length > 0) {
     if (usb4Drives.length > 0) {
-      text += `USB4 and Thunderbolt drives push controller temperatures considerably — in our testing, sustained sequential writes can push drive temps past 65°C. Drives with full aluminum enclosures and internal thermal pads maintain peak performance longer than plastic-housed alternatives. `;
+      text += `USB4 and Thunderbolt drives push controller temperatures considerably — sustained sequential writes can push drive temps past 65°C, per published third-party benchmarks. Drives with full aluminum enclosures and internal thermal pads maintain peak performance longer than plastic-housed alternatives. `;
     } else {
       text += `Even at 10-20 Gbps speeds, sustained file transfers of 50 GB or more can trigger thermal throttling in drives without adequate heatsinking. `;
     }
@@ -319,11 +319,11 @@ function getFinalRecommendation(prods: Product[], catName: string | null): strin
   const cat = catName ? stripSsdSuffix(catName).toLowerCase() : "external";
 
   const last = prods.length > 1 ? prods[prods.length - 1] : null;
-  return `After testing ${prods.length} ${cat} SSDs side by side, our top recommendation is ${prodLink(top)}. It earned ${top.overall_score.toFixed(1)}/10 with ${fmtSpeed(top.read_speed_mbps)} reads, ${currentGbs(top.write_speed_mbps)} writes, and ${top.capacity_gb >= 1000 ? `${(top.capacity_gb / 1000).toFixed(0)}TB` : `${top.capacity_gb}GB`} of capacity${top.warranty_years >= 5 ? " backed by a " + top.warranty_years + "-year warranty" : ""}. ${bestPrice ? `At ${formatPrice(bestPrice.price_cents)} from ${bestPrice.retailer}, it delivers the best overall value for ${cat} use.` : ""}
+  return `After evaluating ${prods.length} ${cat} SSDs side by side, our top recommendation is ${prodLink(top)}. It earned ${top.overall_score.toFixed(1)}/10 with ${fmtSpeed(top.read_speed_mbps)} reads, ${currentGbs(top.write_speed_mbps)} writes, and ${top.capacity_gb >= 1000 ? `${(top.capacity_gb / 1000).toFixed(0)}TB` : `${top.capacity_gb}GB`} of capacity${top.warranty_years >= 5 ? " backed by a " + top.warranty_years + "-year warranty" : ""}. ${bestPrice ? `At ${formatPrice(bestPrice.price_cents)} from ${bestPrice.retailer}, it delivers the best overall value for ${cat} use.` : ""}
 
 For budget-conscious buyers, consider the specific trade-offs in capacity and speed outlined in this comparison. ${last ? `${prodLink(last)} offers solid performance at a lower price point if raw speed is not the primary concern, and it is worth reading our full breakdown of both drives before deciding.` : ""}
 
-All drives listed are battle-tested in our lab. Prices and availability may vary by retailer — click through to check current stock.`;
+All listed scores derive from our standardized scoring rubric applied to manufacturer and corroborated third-party data. Prices and availability may vary by retailer — click through to check current stock.`;
 }
 
 function currentGbs(mbps: number): string {
@@ -411,7 +411,7 @@ function barColor(index: number): string {
 
     <div class="mb-6">
       <p class="text-xs text-surface-700 italic leading-relaxed">
-        Disclosure: We may earn a commission from qualifying purchases made through links on this page. Prices and availability are subject to change. We are reader-supported and independent — our rankings are based on objective testing, not sponsorship.
+        Disclosure: We may earn a commission from qualifying purchases made through links on this page. Prices and availability are subject to change. We are reader-supported and independent — our rankings are based on an objective scoring rubric, not sponsorship.
       </p>
     </div>
 
@@ -608,8 +608,8 @@ function barColor(index: number): string {
               <div class="flex items-center gap-3 mb-6">
                 <div class="w-1 h-8 rounded-full" style={accentStyle}></div>
                 <div>
-                  <h2 class="text-2xl font-bold text-surface-900">Lab Test Results</h2>
-                  <p class="text-sm text-surface-700 mt-0.5">Standardized benchmark suite — all drives tested on identical hardware</p>
+                  <h2 class="text-2xl font-bold text-surface-900">Spec Comparison</h2>
+                  <p class="text-sm text-surface-700 mt-0.5">Manufacturer-rated speeds and endurance compared on a single scale</p>
                 </div>
               </div>
 
@@ -658,7 +658,7 @@ function barColor(index: number): string {
               </div>
 
               <p class="text-xs text-surface-700 mt-4 italic leading-relaxed">
-                Benchmarks conducted on our standardized testbed (AMD Ryzen 9 7950X, ASUS ROG Crosshair X670E Hero, 32 GB DDR5-6000, Windows 11 Pro 23H2) using CrystalDiskMark 8.0.5, ATTO Disk Benchmark 4.01, and custom Python scripts for sustained write and file copy tests. Sustained write measured after 15 min continuous I/O. Temperature recorded via SMART attributes during sustained write workload. Results may vary based on host hardware, ambient temperature, and firmware version.
+                Speed and endurance values shown are manufacturer-rated figures drawn from official datasheets and cross-checked against corroborated third-party benchmarks. Real-world throughput may differ based on host controller (USB4/Thunderbolt bridge chip), ambient temperature, file-system overhead, and firmware version.
               </p>
             </section>
 

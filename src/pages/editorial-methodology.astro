@@ -8,33 +8,34 @@ import BaseLayout from "@layouts/BaseLayout.astro";
     <p class="text-sm text-surface-700 mb-8">How we test, evaluate, and rank external SSDs</p>
 
     <div class="prose prose-surface max-w-none text-surface-700 space-y-4">
-      <p>At {Astro.locals.tenant.name}, our mission is to help you find the <a href="/compare" class="text-blue-800 hover:text-blue-900">best external SSD</a> for your needs through rigorous, independent testing and transparent data. Here is exactly how we do it. Browse our <a href="/hubs" class="text-blue-800 hover:text-blue-900">curated SSD rankings and buying guides</a>.</p>
+      <p>At {Astro.locals.tenant.name}, our mission is to help you find the <a href="/compare" class="text-blue-800 hover:text-blue-900">best external SSD</a> for your needs through rigorous, independent analysis and transparent data. Here is exactly how we do it. Browse our <a href="/hubs" class="text-blue-800 hover:text-blue-900">curated SSD rankings and buying guides</a>.</p>
 
       <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Our Scoring System</h2>
       <p>Every product receives an overall score out of 10, calculated from weighted sub-scores across five categories:</p>
       <ul class="list-disc pl-6 space-y-2">
-        <li><strong>Performance (35%)</strong> — Sequential read/write speeds, sustained write performance, random IOPS, and thermal throttling behavior. Tested using CrystalDiskMark 8.0.5, ATTO Disk Benchmark 4.01, and custom Python scripts.</li>
+        <li><strong>Performance (35%)</strong> — Sequential read/write speeds, sustained write performance, random IOPS, and thermal throttling behavior, based on manufacturer-published specifications and corroborated third-party benchmark data.</li>
         <li><strong>Value (25%)</strong> — Price per gigabyte compared to category averages. We factor in warranty length, TBW endurance rating, and bundled accessories.</li>
-        <li><strong>Build Quality (20%)</strong> — Enclosure materials, ingress protection (IP rating), drop resistance, cable quality, and thermal design.</li>
+        <li><strong>Build Quality (20%)</strong> — Enclosure materials, ingress protection (IP rating), drop resistance, cable quality, and thermal design, assessed from manufacturer specifications and corroborated editorial and third-party impressions.</li>
         <li><strong>Features (10%)</strong> — Interface (USB4, Thunderbolt, Gen 2x2, Gen 2), hardware encryption, software suite, RGB lighting, and additional ports.</li>
-        <li><strong>User Experience (10%)</strong> — Setup ease, software usability, noise levels, operating temperature, and real-world workflow tests.</li>
+        <li><strong>User Experience (10%)</strong> — Setup ease, software usability, noise levels, and operating temperature, drawn from aggregated editorial and user feedback.</li>
       </ul>
+      <p>Scores are calculated from manufacturer-published specifications and corroborated third-party data, not from benchmark runs conducted in our lab. We apply a consistent rubric so products are comparable on the same axes.</p>
 
-      <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Testing Hardware</h2>
-      <p>All drives are tested on a standardized testbed to ensure fair, repeatable results:</p>
+      <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">How We Source Product Data</h2>
       <ul class="list-disc pl-6 space-y-2">
-        <li>CPU: AMD Ryzen 9 7950X</li>
-        <li>Motherboard: ASUS ROG Crosshair X670E Hero</li>
-        <li>RAM: 32 GB DDR5-6000</li>
-        <li>OS: Windows 11 Pro 23H2</li>
-        <li>All drive firmware updated to latest available version before testing</li>
+        <li><strong>Specifications</strong> — Capacity, interface, read/write speeds, endurance (TBW), warranty, and form factor are taken from manufacturer datasheets and official product pages, cross-checked against retailer listings.</li>
+        <li><strong>Prices</strong> — Collected from Amazon, B&H Photo, and Newegg via their authorized APIs and updated regularly. We display the lowest available current price and retain 30 days of price history for each product. Coverage expands as additional retailer feeds are integrated.</li>
+        <li><strong>Editorial notes</strong> — Pros, cons, and archetype fit are written by our editorial staff based on aggregated specifications, third-party benchmark data, and category expertise.</li>
       </ul>
 
       <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Pricing Data</h2>
-      <p>Prices are collected automatically from Amazon, B&H Photo, Newegg, and other major retailers on a daily basis. We display the lowest current price for each product. Price history is maintained for 30 days to help you identify trends and sales.</p>
+      <p>Prices are collected from Amazon, B&H Photo, and Newegg via their authorized APIs and updated regularly. We display the lowest current price for each product and maintain 30 days of price history to help you identify trends and sales. Coverage expands as additional retailer feeds are integrated.</p>
 
       <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Editorial Independence</h2>
-      <p>Our rankings are entirely algorithmic and data-driven. We do not accept payment, free products, or any form of compensation in exchange for favorable placement or reviews. Products are purchased at retail by us or evaluated through standardized review units returned after testing.</p>
+      <p>Our rankings are entirely algorithmic and data-driven. We do not accept payment, free products, or any form of compensation in exchange for favorable placement or reviews. Editorial assessments are based on aggregated specifications, third-party benchmark data, and our standardized scoring rubric — not on hands-on testing of retail samples.</p>
+
+      <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Our Roadmap</h2>
+      <p>We are actively expanding coverage and rigor. Planned improvements include broader retailer price feeds, expanded editorial review coverage, and — when warranted — a standardized external-SSD benchmark testbed (with disclosed USB4/Thunderbolt bridge chips and host controllers). Current rankings rely on aggregated manufacturer and third-party data.</p>
 
       <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Affiliate Disclosure</h2>
       <p>This site participates in affiliate programs. If you click a price link and make a purchase, we may earn a small commission. This does not affect our pricing data or product rankings in any way.</p>
@@ -43,7 +44,7 @@ import BaseLayout from "@layouts/BaseLayout.astro";
       <p>We review our database regularly to update scores, prices, and product information as new products launch and existing products change. If you notice an error or outdated piece of information, please contact us so we can investigate and correct it.</p>
 
       <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Contact</h2>
-      <p>Questions about our methodology? <a href={`mailto:support@${Astro.locals.hostname}`} class="text-blue-800 hover:text-blue-900">Email us</a> — we are happy to share additional details about our testing procedures.</p>
+      <p>Questions about our methodology? <a href={`mailto:support@${Astro.locals.hostname}`} class="text-blue-800 hover:text-blue-900">Email us</a> — we are happy to share additional details about our scoring and sourcing procedures.</p>
     </div>
   </div>
 </BaseLayout>
