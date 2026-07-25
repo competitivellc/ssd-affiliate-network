@@ -29,7 +29,7 @@ import BaseLayout from "@layouts/BaseLayout.astro";
       <p>We reserve the right to modify these Terms at any time. Changes will be posted on this page with an updated revision date. Continued use of the Site after changes constitutes acceptance of the new Terms.</p>
 
       <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Contact</h2>
-      <p>For questions about these Terms, contact us at <a href="mailto:support@externalssds.com" class="text-blue-600 hover:text-blue-700">support@externalssds.com</a>.</p>
+      <p>For questions about these Terms, contact us at <a href={`mailto:support@${Astro.locals.hostname}`} class="text-blue-600 hover:text-blue-700">support@{Astro.locals.hostname}</a>.</p>
     </div>
   </div>
 </BaseLayout>

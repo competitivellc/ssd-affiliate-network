@@ -29,7 +29,7 @@ import BaseLayout from "@layouts/BaseLayout.astro";
       <p>Depending on your jurisdiction, you may have rights to access, correct, delete, or port your personal data. To exercise these rights, contact us at the email below.</p>
 
       <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Contact</h2>
-      <p>If you have questions about this Privacy Policy, please contact us at <a href="mailto:support@externalssds.com" class="text-blue-600 hover:text-blue-700">support@externalssds.com</a>.</p>
+      <p>If you have questions about this Privacy Policy, please contact us at <a href={`mailto:support@${Astro.locals.hostname}`} class="text-blue-600 hover:text-blue-700">support@{Astro.locals.hostname}</a>.</p>
     </div>
   </div>
 </BaseLayout>

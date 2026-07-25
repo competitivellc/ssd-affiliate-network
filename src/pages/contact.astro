@@ -10,7 +10,7 @@ import BaseLayout from "@layouts/BaseLayout.astro";
       <p>We value your feedback and inquiries. Whether you have a question about a <a href="/compare" class="text-blue-600 hover:text-blue-700">product comparison</a>, want to report a pricing error, or are interested in partnering with us, we would love to hear from you. Browse our <a href="/hubs" class="text-blue-600 hover:text-blue-700">SSD buying guides</a> or <a href="/about" class="text-blue-600 hover:text-blue-700">learn more about us</a>.</p>
 
       <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Get in Touch</h2>
-      <p>Email us directly at: <a href="mailto:support@externalssds.com" class="text-blue-600 hover:text-blue-700">support@externalssds.com</a></p>
+      <p>Email us directly at: <a href={`mailto:support@${Astro.locals.hostname}`} class="text-blue-600 hover:text-blue-700">support@{Astro.locals.hostname}</a></p>
 
       <h2 class="text-xl font-bold text-surface-900 mt-8 mb-3">Business Address</h2>
       <p>Competitive LLC<br />
