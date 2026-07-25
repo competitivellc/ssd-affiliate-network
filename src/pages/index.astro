@@ -18,6 +18,18 @@ const byHubType: Record<string, Hub[]> = { "use-case": [], performance: [], valu
 for (const h of hubs) { byHubType[h.hub_type]?.push(h); }
 const accentStyle = { backgroundColor: tenant.primaryColorDark };
 const year = new Date().getFullYear();
+
+const topPicks = tenant.id === "portablessds"
+  ? [
+      { href: "/compare", label: "Compare all portable SSDs side-by-side →" },
+      { href: "/hubs/best-portable-ssd-for-console-gaming", label: "Best portable SSD for console gaming →" },
+      { href: "/hubs/cheapest-1tb-portable-ssd", label: "Cheapest 1TB portable SSDs ranked →" },
+    ]
+  : [
+      { href: "/compare", label: "Compare all external SSDs side-by-side →" },
+      { href: "/hubs/best-ssd-for-ps5", label: "Best external SSD for PS5 gaming →" },
+      { href: "/hubs/cheapest-1tb-external-ssd", label: "Cheapest 1TB external SSDs ranked →" },
+    ];
 ---
 
 <BaseLayout title={tenant.id === "portablessds" ? `Top Portable SSDs ${year} - Expert Reviews, Prices & Comparisons` : `Best External SSDs ${year} - Expert Reviews, Prices & Comparisons`}>
@@ -41,18 +53,19 @@ const year = new Date().getFullYear();
     </nav>
 
     <section class="mb-12 grid gap-3 sm:grid-cols-3 text-sm">
-      <a href="/compare" class="flex items-center gap-2 rounded-lg border border-surface-500 p-3 hover:border-surface-700 hover:bg-surface-50 transition-colors no-underline">
-        <span class="w-8 h-8 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center text-xs font-bold shrink-0">1</span>
-        <span class="text-surface-700 font-medium">Compare all external SSDs side-by-side &rarr;</span>
-      </a>
-      <a href="/hubs/best-ssd-for-ps5" class="flex items-center gap-2 rounded-lg border border-surface-500 p-3 hover:border-surface-700 hover:bg-surface-50 transition-colors no-underline">
-        <span class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 flex items-center justify-center text-xs font-bold shrink-0">2</span>
-        <span class="text-surface-700 font-medium">Best external SSD for PS5 gaming &rarr;</span>
-      </a>
-      <a href="/hubs/cheapest-1tb-external-ssd" class="flex items-center gap-2 rounded-lg border border-surface-500 p-3 hover:border-surface-700 hover:bg-surface-50 transition-colors no-underline">
-        <span class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-900 flex items-center justify-center text-xs font-bold shrink-0">3</span>
-        <span class="text-surface-700 font-medium">Cheapest 1TB external SSDs ranked &rarr;</span>
-      </a>
+      {topPicks.map((pick, i) => {
+        const badgeClasses = [
+          "bg-blue-100 text-blue-800",
+          "bg-indigo-100 text-indigo-800",
+          "bg-emerald-100 text-emerald-900",
+        ];
+        return (
+          <a href={pick.href} class="flex items-center gap-2 rounded-lg border border-surface-500 p-3 hover:border-surface-700 hover:bg-surface-50 transition-colors no-underline">
+            <span class={`w-8 h-8 rounded-full ${badgeClasses[i]} flex items-center justify-center text-xs font-bold shrink-0`}>{i + 1}</span>
+            <span class="text-surface-700 font-medium">{pick.label}</span>
+          </a>
+        );
+      })}
     </section>
 
     {topRated.length > 0 && (
@@ -112,7 +125,7 @@ const year = new Date().getFullYear();
           <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
           <h2 class="text-2xl font-bold text-surface-900">Buying Guides</h2>
         </div>
-        <p class="text-surface-700 text-sm mb-4">Find the best external SSD for your specific needs.</p>
+        <p class="text-surface-700 text-sm mb-4">Find the best {tenant.name.toLowerCase()} for your specific needs.</p>
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {byHubType["use-case"].map((hub) => (
             <a
@@ -141,10 +154,10 @@ const year = new Date().getFullYear();
         <h2 class="text-2xl font-bold text-surface-900">Popular Comparisons</h2>
       </div>
       <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 text-sm">
-        <a href="/compare?category=usb-c" class="rounded-lg border border-surface-500 p-3 hover:border-surface-700 hover:bg-surface-50 transition-colors no-underline text-surface-800 font-medium flex items-center min-h-[44px]">USB-C External SSDs Compared</a>
-        <a href="/compare?category=thunderbolt" class="rounded-lg border border-surface-500 p-3 hover:border-surface-700 hover:bg-surface-50 transition-colors no-underline text-surface-800 font-medium flex items-center min-h-[44px]">Thunderbolt External SSDs Compared</a>
-        <a href="/compare?category=gaming" class="rounded-lg border border-surface-500 p-3 hover:border-surface-700 hover:bg-surface-50 transition-colors no-underline text-surface-800 font-medium flex items-center min-h-[44px]">Gaming External SSDs Compared</a>
-        <a href="/compare" class="rounded-lg border border-surface-500 p-3 hover:border-surface-700 hover:bg-surface-50 transition-colors no-underline text-surface-800 font-medium flex items-center min-h-[44px]">All SSDs Side-by-Side</a>
+        {categories.slice(0, 3).map((cat) => (
+          <a href={`/compare?category=${cat.slug}`} class="rounded-lg border border-surface-500 p-3 hover:border-surface-700 hover:bg-surface-50 transition-colors no-underline text-surface-800 font-medium flex items-center min-h-[44px]">{cat.name} Compared</a>
+        ))}
+        <a href="/compare" class="rounded-lg border border-surface-500 p-3 hover:border-surface-700 hover:bg-surface-50 transition-colors no-underline text-surface-800 font-medium flex items-center min-h-[44px]">All {tenant.name} Side-by-Side</a>
       </div>
     </section>
 

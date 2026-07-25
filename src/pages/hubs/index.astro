@@ -19,15 +19,15 @@ for (const h of hubs) {
 const typeMeta: Record<string, { label: string; description: string }> = {
   "use-case": {
     label: "Use-Case Hubs",
-    description: "Find the best external SSD for your specific needs - gaming, creative work, travel, and more.",
+    description: "Find the best " + tenant.name.toLowerCase() + " for your specific needs - gaming, creative work, travel, and more.",
   },
   performance: {
     label: "Performance Hubs",
-    description: "Compare the fastest external SSDs ranked by read/write speed and interface bandwidth.",
+    description: "Compare the fastest " + tenant.name.toLowerCase() + " ranked by read/write speed and interface bandwidth.",
   },
   value: {
     label: "Value Hubs",
-    description: "Discover the cheapest and best-value external SSDs ranked by price and cost-per-gigabyte.",
+    description: "Discover the cheapest and best-value " + tenant.name.toLowerCase() + " ranked by price and cost-per-gigabyte.",
   },
 };
 
@@ -47,7 +47,7 @@ const accentStyle = { backgroundColor: tenant.primaryColorDark };
       <h1 class="text-2xl sm:text-3xl font-bold text-surface-900">SSD Buying Guides & Rankings</h1>
     </div>
     <p class="text-surface-700 mt-2 mb-8 max-w-3xl">
-      Browse our curated hub pages to find the perfect external SSD for your needs. Whether you are looking for the best drive for a specific use case, the fastest performance, or the best value, we have you covered.
+      Browse our curated hub pages to find the perfect {tenant.name.toLowerCase()} for your needs. Whether you are looking for the best drive for a specific use case, the fastest performance, or the best value, we have you covered.
     </p>
 
     {(["use-case", "performance", "value"] as const).map((type) => {
