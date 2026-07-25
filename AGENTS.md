@@ -14,7 +14,7 @@ Multi-tenant affiliate comparison site for external SSDs served on `externalssds
 - **Multi-tenancy**: `src/middleware.ts` detects `Host` header, resolves tenant config, populates `Astro.locals`
 - **Geo-targeting**: `src/lib/affiliate.ts` reads `request.cf.country` (Cloudflare edge) → queries `affiliate_configs` for per-country affiliate tag
 - **Price sync**: `worker/price-sync.ts` - standalone cron Worker (daily 06:00 UTC), fetches Amazon PAAPI/B&H/Newegg, writes to D1 + KV
-- **Auth**: GitHub fine-grained PAT stored in Windows Credentials (`ssd-affliate-network_GitHub_AI_Token`)
+- **Auth**: GitHub fine-grained PAT for `competitivellc` stored in Windows Credentials under target `LegacyGeneric:target=ssd-affliate-network_GitHub_AI_Token` (note: original credential name has a typo — `ssd-affliate` not `ssd-affiliate`). User is `competitivellc`. PAT length is 93 chars, starts with `github_pat_`. See "Git Push Authentication" below for the working push method — plain `git push` may hang silently.
 
 ## Key Files
 
@@ -71,6 +71,61 @@ Multi-tenant affiliate comparison site for external SSDs served on `externalssds
 
 ## Critical Policy: Commit & Push
 The AI agent must always commit and push changes directly after making any code modifications. The user will never do this. Stage the file(s), write a concise commit message, and push to trigger Cloudflare auto-deploy. Do not ask for permission - just do it.
+
+## Git Push Authentication
+
+**Symptom**: plain `git push` (or `git push origin main`) may hang silently for 60+ seconds and produce no output. This is git-credential-manager waiting on an interactive auth dialog for the *stale* cached GitHub credential (`businessdevelopmentcompanies`), which lacks push rights to `competitivellc/ssd-affiliate-network`. Do **not** retry the same command — it will hang again.
+
+**Root cause**: a stale Windows Credential at target `git:https://github.com` (user `businessdevelopmentcompanies`) shadows the fine-grained PAT stored under `LegacyGeneric:target=ssd-affliate-network_GitHub_AI_Token` (note the typo — `ssd-affliate`, not `ssd-affiliate`). The PAT is NOT registered with git-credential-manager, so GCM never tries it.
+
+**Working push method** — retrieve the PAT via the Win32 `CredRead` API (type 1 = `CRED_TYPE_GENERIC`) and inject it into a one-shot push URL with the credential helper disabled. PAT is never written to disk, never echoed in output, and the variable holding it is nulled after use:
+
+```powershell
+Add-Type -ErrorAction Stop @"
+using System;
+using System.Runtime.InteropServices;
+public static class CredRead2 {
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct CREDENTIAL {
+        public uint Flags; public uint Type; public string TargetName; public string Comment;
+        public System.Runtime.InteropServices.ComTypes.FILETIME LastWritten;
+        public uint CredentialBlobSize; public IntPtr CredentialBlob; public uint Persist;
+        public uint AttributeCount; public IntPtr Attributes; public string TargetAlias; public string UserName;
+    }
+    [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    public static extern bool CredRead(string target, uint type, uint flags, out IntPtr cred);
+    [DllImport("advapi32.dll")] public static extern void CredFree(IntPtr cred);
+    public static string GetPassword(string target) {
+        IntPtr credPtr;
+        if (!CredRead(target, 1, 0, out credPtr))
+            throw new System.ComponentModel.Win32Exception(System.Runtime.InteropServices.Marshal.GetLastWin32Error());
+        try {
+            CREDENTIAL cred = (CREDENTIAL)System.Runtime.InteropServices.Marshal.PtrToStructure(credPtr, typeof(CREDENTIAL));
+            if (cred.CredentialBlobSize == 0) return "";
+            byte[] blob = new byte[cred.CredentialBlobSize];
+            System.Runtime.InteropServices.Marshal.Copy(cred.CredentialBlob, blob, 0, (int)cred.CredentialBlobSize);
+            return System.Text.Encoding.Unicode.GetString(blob).TrimEnd('\0');
+        } finally { CredFree(credPtr); }
+    }
+}
+"@
+$pat = [CredRead2]::GetPassword("LegacyGeneric:target=ssd-affliate-network_GitHub_AI_Token")
+$url  = "https://competitivellc:" + [Uri]::EscapeDataString($pat) + "@github.com/competitivellc/ssd-affiliate-network.git"
+git -c credential.helper= push $url main 2>&1
+$pat = $null; [GC]::Collect()
+# Then sync local remote-tracking refs:
+git fetch origin
+```
+
+Push output (e.g. `837a4b1..19775a6  main -> main`) confirms success even though PowerShell wraps git's stderr as a RemoteException. The exit=0 and ref-update line are what matter.
+
+**After a successful push**, run `git fetch origin` to sync the local `origin/main` remote-tracking ref — direct-URL pushes bypass the standard tracking-ref update, so `git status` may still show "ahead N" even though the remote has accepted the commits.
+
+**One-time permanent fix (user-only, not recommended for AI to run unprompted)**: clear the stale shadowing credential so GCM falls through to interactive auth:
+```powershell
+cmdkey /delete:git:https://github.com
+```
+This does NOT delete the PAT target. Only do this if pushes keep hanging and the user has authorized it.
 
 ## Post-Deploy Checklist (MANDATORY)
 
@@ -141,6 +196,7 @@ npx wrangler d1 execute ssd-affiliate-db --file=./db/seed.sql --remote
 ## Build & Deploy
 ```bash
 npm run build         # Build Astro locally
-git push              # Triggers Cloudflare auto-deploy
-# AFTER deploy: run the Post-Deploy Checklist above (IndexNow for both domains)
+# Then push using the PAT-injection method in "Git Push Authentication" above.
+# Plain `git push` may hang silently — see that section.
+# AFTER push: run the Post-Deploy Checklist above (IndexNow for both domains)
 ```
