@@ -7,6 +7,25 @@
     @apply bg-white text-surface-900 antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
+  /* WCAG 2.4.7 Focus Visible: clear keyboard focus indicator on all interactive elements */
+  a:focus-visible,
+  button:focus-visible,
+  summary:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible,
+  [role="button"]:focus-visible {
+    @apply outline-none ring-2 ring-offset-2 ring-offset-white ring-blue-800 rounded-sm;
+  }
+  /* SVG icons that are purely decorative should be hidden from AT */
+  svg[aria-hidden="true"] {
+    pointer-events: none;
+  }
+  /* Decorative SVG when explicit color is null or transparent is irrelevant to AT */
+  a[href^="#"]:focus-visible {
+    @apply ring-blue-800;
+  }
 }
 
 @layer components {
@@ -14,7 +33,7 @@
     @apply w-full border-collapse;
   }
   .compare-grid th {
-    @apply px-4 py-3 text-left text-sm font-semibold text-surface-700 bg-surface-50 border-b border-surface-200;
+    @apply px-4 py-3 text-left text-sm font-semibold text-surface-700 bg-surface-50 border-b border-surface-300;
   }
   .compare-grid td {
     @apply px-4 py-3 text-sm border-b border-surface-100;
@@ -35,7 +54,10 @@
     @apply h-full rounded-full transition-all duration-500;
   }
   .product-card {
-    @apply relative rounded-xl border border-surface-200 bg-white p-4 transition-all hover:shadow-lg hover:-translate-y-0.5 flex flex-col h-full overflow-hidden;
+    @apply relative rounded-xl border border-surface-500 bg-white p-4 transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-surface-700 flex flex-col h-full overflow-hidden;
+  }
+  .product-card:focus-within {
+    @apply ring-2 ring-blue-800 ring-offset-2 ring-offset-white;
   }
   .product-card-grid-item {
     height: 100%;

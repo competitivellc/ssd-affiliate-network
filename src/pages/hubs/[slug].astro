@@ -72,7 +72,7 @@ const hubTypeLabels: Record<string, string> = {
   value: "Value Rankings",
 };
 
-const accentStyle = { backgroundColor: tenant.primaryColor };
+const accentStyle = { backgroundColor: tenant.primaryColorDark };
 const title = hub.h1 || hub.name;
 const metaDesc = hub.meta_description || hub.description || "";
 
@@ -132,7 +132,7 @@ const hubJsonLd = {
     )}
 
     {products.length === 0 && (
-      <div class="rounded-xl border border-surface-200 p-8 text-center">
+      <div class="rounded-xl border border-surface-300 p-8 text-center">
         <p class="text-surface-700">No products found for this category.</p>
       </div>
     )}
@@ -148,7 +148,7 @@ const hubJsonLd = {
         </section>
 
         {editorial && editorial.summary && (
-          <section class="rounded-xl border border-surface-200 p-6 mb-8">
+          <section class="rounded-xl border border-surface-300 p-6 mb-8">
             <div class="flex items-start gap-3 mb-4">
               <div class="w-1 h-6 rounded-full mt-1" style={accentStyle}></div>
               <div>
@@ -177,7 +177,7 @@ const hubJsonLd = {
                 <ul class="space-y-2">
                   {block.items.map((item) => (
                     <li class="flex items-start gap-2 text-sm text-surface-700">
-                      <svg class="w-4 h-4 mt-0.5 shrink-0 text-surface-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg aria-hidden="true" class="w-4 h-4 mt-0.5 shrink-0 text-surface-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                       </svg>
                       {item}
@@ -187,7 +187,7 @@ const hubJsonLd = {
               </section>
             )}
             {block.type === "callout" && block.content && (
-              <div class="rounded-lg border border-surface-200 bg-surface-50 px-4 py-3 mb-6">
+              <div class="rounded-lg border border-surface-300 bg-surface-50 px-4 py-3 mb-6">
                 <p class="text-sm text-surface-700 leading-relaxed" set:html={block.content} />
               </div>
             )}
@@ -196,7 +196,7 @@ const hubJsonLd = {
                 {block.title && (
                   <h3 class="text-base font-semibold text-surface-800 mb-3">{block.title}</h3>
                 )}
-                <div class="overflow-x-auto rounded-xl border border-surface-200">
+                <div class="overflow-x-auto rounded-xl border border-surface-300">
                   <table class="min-w-full text-sm">
                     <thead>
                       <tr class="bg-surface-50">
@@ -226,7 +226,7 @@ const hubJsonLd = {
         {hub.hub_type === "value" && products.length > 0 && (
           <section class="mb-8">
             <h3 class="text-base font-semibold text-surface-800 mb-3">Price Overview</h3>
-            <div class="overflow-x-auto rounded-xl border border-surface-200">
+            <div class="overflow-x-auto rounded-xl border border-surface-300">
               <table class="min-w-full text-sm">
                 <thead>
                   <tr class="bg-surface-50">
@@ -307,7 +307,7 @@ const hubJsonLd = {
               {relatedHubs.map((rh) => (
                 <a
                   href={`/hubs/${rh.slug}`}
-                  class="rounded-xl border border-surface-200 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all no-underline group flex flex-col"
+                  class="rounded-xl border border-surface-500 p-4 hover:shadow-md hover:-translate-y-0.5 hover:border-surface-700 transition-all no-underline group flex flex-col"
                 >
                   <p class="text-xs font-medium text-surface-700 uppercase tracking-wider mb-1">
                     {rh.hub_type === "use-case" ? "Buying Guide" : rh.hub_type === "performance" ? "Performance" : "Value"}
@@ -322,7 +322,7 @@ const hubJsonLd = {
           </section>
         )}
 
-        <section class="rounded-xl border border-surface-200 p-5 mb-8">
+        <section class="rounded-xl border border-surface-300 p-5 mb-8">
           <div class="flex items-center gap-3 mb-4">
             <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
             <h3 class="text-base font-semibold text-surface-900">{ctayLabels[hub.hub_type]}</h3>
