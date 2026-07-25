@@ -27,9 +27,9 @@ const specs = [
         <th class="w-40">Specification</th>
         {products.map((p) => (
           <th class="min-w-[200px]">
-            <span class="text-xs text-surface-400">{p.brand_name}</span>
-            <a href={`/products/${p.slug}`} class="block text-sm font-semibold text-surface-900 hover:text-blue-600 mt-0.5">{p.name}</a>
-            <a href={`/products/${p.slug}`} class="block text-xs text-blue-600 hover:text-blue-700 mt-1.5 font-medium">
+            <span class="text-xs text-surface-700">{p.brand_name}</span>
+            <a href={`/products/${p.slug}`} class="block text-sm font-semibold text-surface-900 hover:text-blue-800 mt-0.5">{p.name}</a>
+            <a href={`/products/${p.slug}`} class="block text-xs text-blue-800 hover:text-blue-900 mt-1.5 font-medium">
               Read our full {p.brand_name} {p.name} benchmark review &rarr;
             </a>
           </th>
@@ -39,18 +39,18 @@ const specs = [
     <tbody>
       {specs.map((spec) => (
         <tr>
-          <td class="font-medium text-surface-600 bg-surface-50/50">{spec.label}</td>
+          <td class="font-medium text-surface-700 bg-surface-50/50">{spec.label}</td>
           {products.map((p) => (
             <td class="text-surface-900">{spec.render(p)}</td>
           ))}
         </tr>
       ))}
       <tr>
-        <td class="font-medium text-surface-600 bg-surface-50/50">Rating</td>
+        <td class="font-medium text-surface-700 bg-surface-50/50">Rating</td>
         {products.map((p) => (
           <td>
             <span class={`inline-flex items-center gap-1 text-sm font-bold ${
-              p.overall_score >= 9 ? "text-emerald-600" : p.overall_score >= 8 ? "text-blue-600" : "text-amber-600"
+              p.overall_score >= 9 ? "text-emerald-800" : p.overall_score >= 8 ? "text-blue-800" : "text-amber-900"
             }`}>
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
@@ -72,10 +72,10 @@ const specs = [
                   url={best.affiliate_url || "#"}
                   retailer={best.retailer}
                   label={`See Price on ${best.retailer} →`}
-                  className="w-full justify-center py-2 text-xs font-semibold bg-blue-600 text-white border-blue-600 hover:bg-blue-700 [&_svg]:text-white"
+                  className="w-full justify-center py-2 text-xs font-semibold bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
                 />
               ) : (
-                <span class="text-sm text-surface-400">--</span>
+                <span class="text-sm text-surface-700">--</span>
               )}
             </td>
           );

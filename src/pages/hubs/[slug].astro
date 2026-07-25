@@ -112,28 +112,28 @@ const hubJsonLd = {
     />
 
     <div class="mb-6">
-      <p class="text-xs text-surface-400 italic leading-relaxed">
+      <p class="text-xs text-surface-700 italic leading-relaxed">
         Disclosure: We may earn a commission from qualifying purchases made through links on this page. Prices and availability are subject to change. We are reader-supported and independent — our rankings are based on objective testing, not sponsorship.
       </p>
     </div>
 
     <div class="mb-8">
-      <p class="text-sm font-medium text-surface-500 uppercase tracking-wider">
+      <p class="text-sm font-medium text-surface-700 uppercase tracking-wider">
         {hubTypeLabels[hub.hub_type]}
       </p>
       <h1 class="text-2xl sm:text-3xl font-bold text-surface-900 mt-1">{hub.h1 || hub.name}</h1>
       {hub.description && (
-        <p class="text-surface-600 mt-2 max-w-3xl">{hub.description}</p>
+        <p class="text-surface-700 mt-2 max-w-3xl">{hub.description}</p>
       )}
     </div>
 
     {hub.intro_html && (
-      <div class="prose prose-surface max-w-3xl mb-8 text-surface-600 leading-relaxed" set:html={hub.intro_html} />
+      <div class="prose prose-surface max-w-3xl mb-8 text-surface-700 leading-relaxed" set:html={hub.intro_html} />
     )}
 
     {products.length === 0 && (
       <div class="rounded-xl border border-surface-200 p-8 text-center">
-        <p class="text-surface-500">No products found for this category.</p>
+        <p class="text-surface-700">No products found for this category.</p>
       </div>
     )}
 
@@ -153,7 +153,7 @@ const hubJsonLd = {
               <div class="w-1 h-6 rounded-full mt-1" style={accentStyle}></div>
               <div>
                 <h2 class="text-lg font-semibold text-surface-900">Our Take</h2>
-                <p class="text-surface-600 mt-2 leading-relaxed" set:html={editorial.summary} />
+                <p class="text-surface-700 mt-2 leading-relaxed" set:html={editorial.summary} />
               </div>
             </div>
           </section>
@@ -166,7 +166,7 @@ const hubJsonLd = {
                 {block.title && (
                   <h3 class="text-base font-semibold text-surface-800 mb-2" set:html={block.title} />
                 )}
-                <p class="text-surface-600 leading-relaxed" set:html={block.content} />
+                <p class="text-surface-700 leading-relaxed" set:html={block.content} />
               </section>
             )}
             {block.type === "bullets" && block.items && (
@@ -176,8 +176,8 @@ const hubJsonLd = {
                 )}
                 <ul class="space-y-2">
                   {block.items.map((item) => (
-                    <li class="flex items-start gap-2 text-sm text-surface-600">
-                      <svg class="w-4 h-4 mt-0.5 shrink-0 text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <li class="flex items-start gap-2 text-sm text-surface-700">
+                      <svg class="w-4 h-4 mt-0.5 shrink-0 text-surface-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                       </svg>
                       {item}
@@ -200,10 +200,10 @@ const hubJsonLd = {
                   <table class="min-w-full text-sm">
                     <thead>
                       <tr class="bg-surface-50">
-                        <th class="text-left px-4 py-2.5 font-medium text-surface-600">Drive</th>
-                        <th class="text-left px-4 py-2.5 font-medium text-surface-600">Read Speed</th>
-                        <th class="text-left px-4 py-2.5 font-medium text-surface-600">Write Speed</th>
-                        <th class="text-left px-4 py-2.5 font-medium text-surface-600">Interface</th>
+                        <th class="text-left px-4 py-2.5 font-medium text-surface-700">Drive</th>
+                        <th class="text-left px-4 py-2.5 font-medium text-surface-700">Read Speed</th>
+                        <th class="text-left px-4 py-2.5 font-medium text-surface-700">Write Speed</th>
+                        <th class="text-left px-4 py-2.5 font-medium text-surface-700">Interface</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -211,7 +211,7 @@ const hubJsonLd = {
                         <tr class={i % 2 === 0 ? "" : "bg-surface-50/50"}>
                           <td class="px-4 py-2.5 font-medium text-surface-900">{row.label}</td>
                           {row.values.map((v) => (
-                            <td class="px-4 py-2.5 text-surface-600">{v}</td>
+                            <td class="px-4 py-2.5 text-surface-700">{v}</td>
                           ))}
                         </tr>
                       ))}
@@ -230,10 +230,10 @@ const hubJsonLd = {
               <table class="min-w-full text-sm">
                 <thead>
                   <tr class="bg-surface-50">
-                    <th class="text-left px-4 py-2.5 font-medium text-surface-600">Drive</th>
-                    <th class="text-left px-4 py-2.5 font-medium text-surface-600">Capacity</th>
-                    <th class="text-left px-4 py-2.5 font-medium text-surface-600">Lowest Price</th>
-                    <th class="text-left px-4 py-2.5 font-medium text-surface-600">Retailer</th>
+                    <th class="text-left px-4 py-2.5 font-medium text-surface-700">Drive</th>
+                    <th class="text-left px-4 py-2.5 font-medium text-surface-700">Capacity</th>
+                    <th class="text-left px-4 py-2.5 font-medium text-surface-700">Lowest Price</th>
+                    <th class="text-left px-4 py-2.5 font-medium text-surface-700">Retailer</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -243,7 +243,7 @@ const hubJsonLd = {
                     return (
                       <tr class={i % 2 === 0 ? "" : "bg-surface-50/50"}>
                         <td class="px-4 py-2.5 font-medium text-surface-900">{p.name}</td>
-                        <td class="px-4 py-2.5 text-surface-600">
+                        <td class="px-4 py-2.5 text-surface-700">
                           {p.capacity_gb >= 1000
                             ? `${(p.capacity_gb / 1000).toFixed(0)}TB`
                             : `${p.capacity_gb}GB`}
@@ -257,10 +257,10 @@ const hubJsonLd = {
                               url={lowest.affiliate_url}
                               retailer={lowest.retailer}
                               label={`Buy at ${lowest.retailer}`}
-                              className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 no-underline"
+                              className="inline-flex items-center gap-1 text-sm font-medium text-blue-800 hover:text-blue-900 no-underline"
                             />
                           ) : (
-                            <span class="text-surface-400">—</span>
+                            <span class="text-surface-700">—</span>
                           )}
                         </td>
                       </tr>
@@ -280,7 +280,7 @@ const hubJsonLd = {
                 {hub.hub_type === "use-case" ? "Performance & Value Data" : hub.hub_type === "performance" ? "Value Comparisons" : "Performance Rankings"}
               </h3>
             </div>
-            <p class="text-surface-600 text-sm leading-relaxed mb-3">
+            <p class="text-surface-700 text-sm leading-relaxed mb-3">
               {hub.hub_type === "use-case"
                 ? `To see how these drives compare by raw speed and throughput, review the detailed benchmarks in our `
                 : hub.hub_type === "performance"
@@ -289,7 +289,7 @@ const hubJsonLd = {
               {(() => {
                 const linkHubs = complementaryHubs.slice(0, 2);
                 return linkHubs.map((ch, i) => (
-                  <><a href={`/hubs/${ch.slug}`} class="text-blue-600 hover:text-blue-700 font-medium">{ch.name}</a>{i < linkHubs.length - 1 ? " or " : ""}</>
+                  <><a href={`/hubs/${ch.slug}`} class="text-blue-800 hover:text-blue-900 font-medium">{ch.name}</a>{i < linkHubs.length - 1 ? " or " : ""}</>
                 ));
               })()}
               {hub.hub_type === "use-case" ? " guide." : hub.hub_type === "performance" ? " value guide." : " performance guide."}
@@ -309,12 +309,12 @@ const hubJsonLd = {
                   href={`/hubs/${rh.slug}`}
                   class="rounded-xl border border-surface-200 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all no-underline group flex flex-col"
                 >
-                  <p class="text-xs font-medium text-surface-400 uppercase tracking-wider mb-1">
+                  <p class="text-xs font-medium text-surface-700 uppercase tracking-wider mb-1">
                     {rh.hub_type === "use-case" ? "Buying Guide" : rh.hub_type === "performance" ? "Performance" : "Value"}
                   </p>
-                  <h3 class="text-sm font-semibold text-surface-900 group-hover:text-blue-600 transition-colors">{rh.name}</h3>
+                  <h3 class="text-sm font-semibold text-surface-900 group-hover:text-blue-800 transition-colors">{rh.name}</h3>
                   {rh.description && (
-                    <p class="mt-1 text-xs text-surface-500 line-clamp-2 flex-1">{rh.description}</p>
+                    <p class="mt-1 text-xs text-surface-700 line-clamp-2 flex-1">{rh.description}</p>
                   )}
                 </a>
               ))}
@@ -327,18 +327,18 @@ const hubJsonLd = {
             <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
             <h3 class="text-base font-semibold text-surface-900">{ctayLabels[hub.hub_type]}</h3>
           </div>
-          <p class="text-surface-600 leading-relaxed text-sm">
-            Visit our <a href="/compare" class="text-blue-600 hover:text-blue-700 no-underline font-medium">spec comparison tool</a> to compare drives side-by-side, or browse our <a href="/hubs" class="text-blue-600 hover:text-blue-700 no-underline font-medium">full library of buying guides and rankings</a>.
+          <p class="text-surface-700 leading-relaxed text-sm">
+            Visit our <a href="/compare" class="text-blue-800 hover:text-blue-900 no-underline font-medium">spec comparison tool</a> to compare drives side-by-side, or browse our <a href="/hubs" class="text-blue-800 hover:text-blue-900 no-underline font-medium">full library of buying guides and rankings</a>.
           </p>
           {complementaryHubs.length > 0 && (
-            <p class="text-surface-600 leading-relaxed text-sm mt-2">
+            <p class="text-surface-700 leading-relaxed text-sm mt-2">
               {hub.hub_type === "use-case"
                 ? `You may also want to read our performance-focused `
                 : hub.hub_type === "performance"
                   ? `Pair this guide with our value-focused `
                   : `See top-rated drives in our `}
               {complementaryHubs.slice(0, 2).map((ch, i) => (
-                <><a href={`/hubs/${ch.slug}`} class="text-blue-600 hover:text-blue-700 no-underline font-medium">{ch.name.toLowerCase().includes("ssd") ? ch.name : `${ch.name} guide`}</a>{i < Math.min(complementaryHubs.length, 2) - 1 ? " or " : ""}</>
+                <><a href={`/hubs/${ch.slug}`} class="text-blue-800 hover:text-blue-900 no-underline font-medium">{ch.name.toLowerCase().includes("ssd") ? ch.name : `${ch.name} guide`}</a>{i < Math.min(complementaryHubs.length, 2) - 1 ? " or " : ""}</>
               ))}.
             </p>
           )}

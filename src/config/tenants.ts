@@ -5,6 +5,7 @@ export interface TenantConfig {
   name: string;
   tagline: string;
   primaryColor: string;
+  primaryColorDark: string;
   accentColor: string;
   defaultCurrency: string;
   defaultLocale: string;
@@ -18,6 +19,7 @@ export const tenants: Record<string, TenantConfig> = {
     name: "External SSDs",
     tagline: "Find the Best External Solid State Drives - Expert Reviews & Price Comparisons",
     primaryColor: "#0c8ee7",
+    primaryColorDark: "#064c83",
     accentColor: "#f59e0b",
     defaultCurrency: "USD",
     defaultLocale: "en-US",
@@ -29,6 +31,7 @@ export const tenants: Record<string, TenantConfig> = {
     name: "Portable SSDs",
     tagline: "Compare the Best Portable Solid State Drives - Speed, Reliability & Value",
     primaryColor: "#10b981",
+    primaryColorDark: "#065f46",
     accentColor: "#f59e0b",
     defaultCurrency: "USD",
     defaultLocale: "en-US",
@@ -40,6 +43,7 @@ export const tenants: Record<string, TenantConfig> = {
     name: "External SSDs",
     tagline: "Find the Best External Solid State Drives - Expert Reviews & Price Comparisons",
     primaryColor: "#0c8ee7",
+    primaryColorDark: "#064c83",
     accentColor: "#f59e0b",
     defaultCurrency: "USD",
     defaultLocale: "en-US",

@@ -29,11 +29,11 @@ function fmtCap(gb: number): string {
 
 function linkProduct(p: Product | undefined | null): string {
   if (!p?.slug) return "the top pick";
-  return `<a href="/products/${p.slug}" class="text-blue-600 hover:text-blue-700 no-underline font-medium">${p.name}</a>`;
+  return `<a href="/products/${p.slug}" class="text-blue-800 hover:text-blue-900 no-underline font-medium">${p.name}</a>`;
 }
 
 function linkProductName(name: string, slug: string): string {
-  return `<a href="/products/${slug}" class="text-blue-600 hover:text-blue-700 no-underline font-medium">${name}</a>`;
+  return `<a href="/products/${slug}" class="text-blue-800 hover:text-blue-900 no-underline font-medium">${name}</a>`;
 }
 
 function hostPortWarning(iface: string): string {

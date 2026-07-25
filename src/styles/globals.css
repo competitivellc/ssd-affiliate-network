@@ -14,7 +14,7 @@
     @apply w-full border-collapse;
   }
   .compare-grid th {
-    @apply px-4 py-3 text-left text-sm font-semibold text-surface-600 bg-surface-50 border-b border-surface-200;
+    @apply px-4 py-3 text-left text-sm font-semibold text-surface-700 bg-surface-50 border-b border-surface-200;
   }
   .compare-grid td {
     @apply px-4 py-3 text-sm border-b border-surface-100;
@@ -23,10 +23,10 @@
     @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
   .price-badge-lowest {
-    @apply bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200;
+    @apply bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200;
   }
   .price-badge-current {
-    @apply bg-blue-50 text-blue-700 ring-1 ring-blue-200;
+    @apply bg-blue-50 text-blue-800 ring-1 ring-blue-200;
   }
   .spec-bar {
     @apply h-2 rounded-full bg-surface-100 overflow-hidden;

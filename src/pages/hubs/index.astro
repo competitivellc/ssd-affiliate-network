@@ -46,7 +46,7 @@ const accentStyle = { backgroundColor: tenant.primaryColor };
       <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
       <h1 class="text-2xl sm:text-3xl font-bold text-surface-900">SSD Buying Guides & Rankings</h1>
     </div>
-    <p class="text-surface-600 mt-2 mb-8 max-w-3xl">
+    <p class="text-surface-700 mt-2 mb-8 max-w-3xl">
       Browse our curated hub pages to find the perfect external SSD for your needs. Whether you are looking for the best drive for a specific use case, the fastest performance, or the best value, we have you covered.
     </p>
 
@@ -60,7 +60,7 @@ const accentStyle = { backgroundColor: tenant.primaryColor };
             <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
             <h2 class="text-xl font-bold text-surface-900">{meta.label}</h2>
           </div>
-          <p class="text-surface-500 text-sm mb-4">{meta.description}</p>
+          <p class="text-surface-700 text-sm mb-4">{meta.description}</p>
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {typeHubs.map((hub) => (
               <a
@@ -68,12 +68,12 @@ const accentStyle = { backgroundColor: tenant.primaryColor };
                 class="rounded-xl border border-surface-200 p-5 hover:shadow-md hover:-translate-y-0.5 transition-all no-underline group flex flex-col"
               >
                 <div class="flex items-center gap-2 mb-2">
-                  <span class="text-surface-400 group-hover:text-surface-500 transition-colors" set:html={typeIcons[type]}></span>
-                  <span class="text-xs font-medium text-surface-400 uppercase tracking-wider">{typeMeta[type]?.label.slice(0, -1) || type}</span>
+                  <span class="text-surface-700 group-hover:text-surface-700 transition-colors" set:html={typeIcons[type]}></span>
+                  <span class="text-xs font-medium text-surface-700 uppercase tracking-wider">{typeMeta[type]?.label.slice(0, -1) || type}</span>
                 </div>
                 <h3 class="text-base font-semibold text-surface-900">{hub.name}</h3>
                 {hub.description && (
-                  <p class="mt-1 text-sm text-surface-500 line-clamp-2 flex-1">{hub.description}</p>
+                  <p class="mt-1 text-sm text-surface-700 line-clamp-2 flex-1">{hub.description}</p>
                 )}
               </a>
             ))}

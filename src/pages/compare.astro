@@ -136,7 +136,7 @@ function stripSsdSuffix(name: string): string {
 }
 
 function prodLink(product: Product, text?: string): string {
-  return `<a href="/products/${product.slug}" class="text-blue-600 hover:text-blue-700 no-underline font-medium">${text || product.name}</a>`;
+  return `<a href="/products/${product.slug}" class="text-blue-800 hover:text-blue-900 no-underline font-medium">${text || product.name}</a>`;
 }
 
 function getCategoryIntro(catName: string | null, prods: Product[]): string {
@@ -399,7 +399,7 @@ for (const p of products) {
 }
 const benchmarkRows = showDetailedContent ? getBenchmarkRows(products, benchMap) : [];
 
-const colorPalette = [tenant.primaryColor, "#10b981", "#8b5cf6", "#f59e0b", "#ec4899"];
+const colorPalette = [tenant.primaryColorDark, "#065f46", "#6b21a8", "#78350f", "#9f1239"];
 function barColor(index: number): string {
   return colorPalette[index % colorPalette.length];
 }
@@ -410,7 +410,7 @@ function barColor(index: number): string {
     <Breadcrumb items={breadcrumbItems} />
 
     <div class="mb-6">
-      <p class="text-xs text-surface-400 italic leading-relaxed">
+      <p class="text-xs text-surface-700 italic leading-relaxed">
         Disclosure: We may earn a commission from qualifying purchases made through links on this page. Prices and availability are subject to change. We are reader-supported and independent — our rankings are based on objective testing, not sponsorship.
       </p>
     </div>
@@ -420,13 +420,13 @@ function barColor(index: number): string {
         {cleanCat ? `${cleanCat} SSDs Compared` : "Compare SSDs"}
       </h1>
       {categoryName && (
-        <p class="mt-2 text-surface-500 max-w-3xl" set:html={introText} />
+        <p class="mt-2 text-surface-700 max-w-3xl" set:html={introText} />
       )}
     </div>
 
     {products.length === 0 ? (
       <div class="text-center py-16">
-        <p class="text-surface-500">No products found in this category.</p>
+        <p class="text-surface-700">No products found in this category.</p>
       </div>
     ) : (
       <>
@@ -441,21 +441,21 @@ function barColor(index: number): string {
               <div class="w-1.5 h-full min-h-[200px] rounded-full shrink-0 hidden sm:block" style={accentStyle}></div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-3 mb-2">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-300">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                     Quick Winner
                   </span>
-                  <p class="text-xs font-medium text-surface-400 uppercase tracking-wider">{topProduct.brand_name}</p>
+                  <p class="text-xs font-medium text-surface-700 uppercase tracking-wider">{topProduct.brand_name}</p>
                 </div>
 
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div class="flex-1">
                     <h2 class="text-xl font-bold text-surface-900">{topProduct.name}</h2>
-                    <div class="flex items-center gap-2 mt-1 text-amber-500" aria-label={`${(topProduct.overall_score / 2).toFixed(1)} out of 5 stars`}>
+                    <div class="flex items-center gap-2 mt-1 text-amber-800" aria-label={`${(topProduct.overall_score / 2).toFixed(1)} out of 5 stars`}>
                       <span class="text-lg tracking-wider">{scoreStars}</span>
-                      <span class="text-xs text-surface-400 font-medium">({topProduct.overall_score.toFixed(1)}/10)</span>
+                      <span class="text-xs text-surface-700 font-medium">({topProduct.overall_score.toFixed(1)}/10)</span>
                     </div>
-                    <div class="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-sm text-surface-600">
+                    <div class="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-sm text-surface-700">
                       <span>{fmtSpeed(topProduct.read_speed_mbps)} Read</span>
                       <span>{fmtSpeed(topProduct.write_speed_mbps)} Write</span>
                       <span>{fmtCapacity(topProduct.capacity_gb)}</span>
@@ -468,7 +468,7 @@ function barColor(index: number): string {
                         url={topBest.affiliate_url || "#"}
                         retailer={topBest.retailer}
                         label={`See Price on ${topBest.retailer} →`}
-                        className="w-full sm:w-auto justify-center py-2.5 px-5 text-sm font-bold rounded-lg bg-blue-600 text-white border-blue-600 hover:bg-blue-700 [&_svg]:text-white shadow-sm"
+                        className="w-full sm:w-auto justify-center py-2.5 px-5 text-sm font-bold rounded-lg bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white shadow-sm"
                       />
                     ) : null}
                   </div>
@@ -480,7 +480,7 @@ function barColor(index: number): string {
                     <ul class="space-y-1.5">
                       {topBullets.map((bullet) => (
                         <li class="flex items-start gap-2 text-sm text-surface-700">
-                          <svg class="w-4 h-4 mt-0.5 shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                          <svg class="w-4 h-4 mt-0.5 shrink-0 text-emerald-800" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                           {bullet}
                         </li>
                       ))}
@@ -488,17 +488,17 @@ function barColor(index: number): string {
                   </div>
                   <div>
                     <p class="text-xs font-semibold text-surface-700 uppercase tracking-wider mb-1">Specs at a Glance</p>
-                    <div class="space-y-1 text-sm text-surface-600">
-                      <div class="flex justify-between"><span class="text-surface-500">Capacity</span><span class="font-medium">{fmtCapacity(topProduct.capacity_gb)}</span></div>
-                      <div class="flex justify-between"><span class="text-surface-500">Interface</span><span class="font-medium">{topProduct.interface}</span></div>
-                      <div class="flex justify-between"><span class="text-surface-500">Endurance</span><span class="font-medium">{topProduct.tbw.toLocaleString()} TBW</span></div>
-                      <div class="flex justify-between"><span class="text-surface-500">Warranty</span><span class="font-medium">{topProduct.warranty_years} years</span></div>
-                      <div class="flex justify-between"><span class="text-surface-500">Form Factor</span><span class="font-medium">{topProduct.form_factor}</span></div>
+                    <div class="space-y-1 text-sm text-surface-700">
+                      <div class="flex justify-between"><span class="text-surface-700">Capacity</span><span class="font-medium">{fmtCapacity(topProduct.capacity_gb)}</span></div>
+                      <div class="flex justify-between"><span class="text-surface-700">Interface</span><span class="font-medium">{topProduct.interface}</span></div>
+                      <div class="flex justify-between"><span class="text-surface-700">Endurance</span><span class="font-medium">{topProduct.tbw.toLocaleString()} TBW</span></div>
+                      <div class="flex justify-between"><span class="text-surface-700">Warranty</span><span class="font-medium">{topProduct.warranty_years} years</span></div>
+                      <div class="flex justify-between"><span class="text-surface-700">Form Factor</span><span class="font-medium">{topProduct.form_factor}</span></div>
                     </div>
                   </div>
                 </div>
 
-                <p class="mt-3 text-sm text-surface-500 leading-relaxed italic border-t border-surface-100 pt-3">{topProduct.description}</p>
+                <p class="mt-3 text-sm text-surface-700 leading-relaxed italic border-t border-surface-100 pt-3">{topProduct.description}</p>
               </div>
             </div>
           </section>
@@ -506,16 +506,16 @@ function barColor(index: number): string {
         })()}
 
         <div class="flex items-center flex-wrap gap-2 mb-6">
-          <span class="text-sm text-surface-500">Filter by category:</span>
+          <span class="text-sm text-surface-700">Filter by category:</span>
           {categories.map((cat) => (
             <a
               href={`/compare?category=${cat.slug}`}
               class={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
                 categorySlug === cat.slug
                   ? "text-white"
-                  : "border-surface-200 text-surface-600 hover:bg-surface-50"
+                  : "border-surface-200 text-surface-700 hover:bg-surface-50"
               }`}
-              style={categorySlug === cat.slug ? { backgroundColor: tenant.primaryColor, borderColor: tenant.primaryColor } : {}}
+              style={categorySlug === cat.slug ? { backgroundColor: tenant.primaryColorDark, borderColor: tenant.primaryColorDark } : {}}
             >
               {cat.name}
             </a>
@@ -523,14 +523,14 @@ function barColor(index: number): string {
           {categorySlug && (
             <a
               href="/compare"
-              class="px-3 py-1.5 text-xs font-medium rounded-lg border border-surface-200 text-surface-500 hover:bg-surface-50"
+              class="px-3 py-1.5 text-xs font-medium rounded-lg border border-surface-200 text-surface-700 hover:bg-surface-50"
             >
               All SSDs
             </a>
           )}
         </div>
 
-        <div class="mb-6 text-sm text-surface-500">
+        <div class="mb-6 text-sm text-surface-700">
           <span>Comparing {products.length} product{products.length !== 1 ? "s" : ""}</span>
         </div>
 
@@ -553,14 +553,14 @@ function barColor(index: number): string {
                     return (
                       <div class="rounded-xl border border-surface-200 p-5 flex flex-col">
                         <h3 class="text-base font-bold text-surface-900 mb-1">{product.brand_name} {product.name}</h3>
-                        <p class="text-xs text-surface-500 mb-3">Score: {product.overall_score.toFixed(1)}/10 | {fmtSpeed(product.read_speed_mbps)} read | {fmtCapacity(product.capacity_gb)} | {product.interface}</p>
+                        <p class="text-xs text-surface-700 mb-3">Score: {product.overall_score.toFixed(1)}/10 | {fmtSpeed(product.read_speed_mbps)} read | {fmtCapacity(product.capacity_gb)} | {product.interface}</p>
                         {pros.length > 0 && (
                           <div class="mb-3">
                             <p class="text-xs font-semibold text-surface-700 uppercase tracking-wider mb-1.5">Pros</p>
                             <ul class="space-y-1">
                               {pros.map((pro) => (
-                                <li class="flex items-start gap-1.5 text-xs text-surface-600">
-                                  <svg class="w-3.5 h-3.5 mt-0.5 shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <li class="flex items-start gap-1.5 text-xs text-surface-700">
+                                  <svg class="w-3.5 h-3.5 mt-0.5 shrink-0 text-emerald-800" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                   {pro}
                                 </li>
                               ))}
@@ -572,27 +572,27 @@ function barColor(index: number): string {
                             <p class="text-xs font-semibold text-surface-700 uppercase tracking-wider mb-1.5">Cons</p>
                             <ul class="space-y-1">
                               {cons.map((con) => (
-                                <li class="flex items-start gap-1.5 text-xs text-surface-600">
-                                  <svg class="w-3.5 h-3.5 mt-0.5 shrink-0 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                <li class="flex items-start gap-1.5 text-xs text-surface-700">
+                                  <svg class="w-3.5 h-3.5 mt-0.5 shrink-0 text-red-800" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                   {con}
                                 </li>
                               ))}
                             </ul>
                           </div>
                         )}
-                        <p class="text-xs text-surface-500 leading-relaxed">{product.description}</p>
+                        <p class="text-xs text-surface-700 leading-relaxed">{product.description}</p>
                         <div class="mt-auto pt-3">
                           {best ? (
                             <GeoAffiliateLink
                               url={best.affiliate_url || "#"}
                               retailer={best.retailer}
                               label={`See Price on ${best.retailer} →`}
-                              className="w-full justify-center py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white border-blue-600 hover:bg-blue-700 [&_svg]:text-white"
+                              className="w-full justify-center py-2 text-xs font-semibold rounded-lg bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
                             />
                           ) : null}
                           <a
                             href={`/products/${product.slug}`}
-                            class="block text-center text-xs font-medium text-blue-600 hover:text-blue-700 mt-2"
+                            class="block text-center text-xs font-medium text-blue-800 hover:text-blue-900 mt-2"
                           >
                             Full {product.brand_name} {product.name} review &rarr;
                           </a>
@@ -609,7 +609,7 @@ function barColor(index: number): string {
                 <div class="w-1 h-8 rounded-full" style={accentStyle}></div>
                 <div>
                   <h2 class="text-2xl font-bold text-surface-900">Lab Test Results</h2>
-                  <p class="text-sm text-surface-500 mt-0.5">Standardized benchmark suite — all drives tested on identical hardware</p>
+                  <p class="text-sm text-surface-700 mt-0.5">Standardized benchmark suite — all drives tested on identical hardware</p>
                 </div>
               </div>
 
@@ -620,10 +620,10 @@ function barColor(index: number): string {
                       <div class="flex items-center justify-between mb-3">
                         <h3 class="text-sm font-bold text-surface-800">
                           {row.label}
-                          <span class="text-xs font-normal text-surface-400 ml-1">({row.unit})</span>
+                          <span class="text-xs font-normal text-surface-700 ml-1">({row.unit})</span>
                         </h3>
                         <span class={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                          row.higher ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-700"
+                          row.higher ? "bg-emerald-50 text-emerald-800" : "bg-blue-50 text-blue-800"
                         }`}>
                           ↑ {row.higher ? "Higher is better" : "Lower is better"}
                         </span>
@@ -631,7 +631,7 @@ function barColor(index: number): string {
                       <div class="space-y-2">
                         {row.values.map((v, vi) => (
                           <div class="flex items-center gap-2 sm:gap-3">
-                            <span class="text-xs text-surface-500 w-20 sm:w-24 shrink-0 truncate leading-tight" title={`${v.product.brand_name} ${v.product.name}`}>
+                            <span class="text-xs text-surface-700 w-20 sm:w-24 shrink-0 truncate leading-tight" title={`${v.product.brand_name} ${v.product.name}`}>
                               {v.product.brand_name}
                             </span>
                             <div class="flex-1 flex items-center gap-2">
@@ -657,7 +657,7 @@ function barColor(index: number): string {
                 ))}
               </div>
 
-              <p class="text-xs text-surface-400 mt-4 italic leading-relaxed">
+              <p class="text-xs text-surface-700 mt-4 italic leading-relaxed">
                 Benchmarks conducted on our standardized testbed (AMD Ryzen 9 7950X, ASUS ROG Crosshair X670E Hero, 32 GB DDR5-6000, Windows 11 Pro 23H2) using CrystalDiskMark 8.0.5, ATTO Disk Benchmark 4.01, and custom Python scripts for sustained write and file copy tests. Sustained write measured after 15 min continuous I/O. Temperature recorded via SMART attributes during sustained write workload. Results may vary based on host hardware, ambient temperature, and firmware version.
               </p>
             </section>
@@ -668,7 +668,7 @@ function barColor(index: number): string {
                   <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
                   <h2 class="text-2xl font-bold text-surface-900">Gaming Analysis</h2>
                 </div>
-                <div class="text-surface-600 leading-relaxed space-y-3 [&_p]:mb-3">
+                <div class="text-surface-700 leading-relaxed space-y-3 [&_p]:mb-3">
                   {gamingAnalysis.split("\n\n").filter(Boolean).map((p) => (
                     <p set:html={p.trim()} />
                   ))}
@@ -681,7 +681,7 @@ function barColor(index: number): string {
                 <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
                 <h2 class="text-2xl font-bold text-surface-900">Heat & Thermal Management</h2>
               </div>
-              <p class="text-surface-600 leading-relaxed" set:html={heatAnalysis} />
+              <p class="text-surface-700 leading-relaxed" set:html={heatAnalysis} />
             </section>
 
             <section>
@@ -689,7 +689,7 @@ function barColor(index: number): string {
                 <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
                 <h2 class="text-2xl font-bold text-surface-900">USB Compatibility</h2>
               </div>
-              <p class="text-surface-600 leading-relaxed" set:html={usbCompat} />
+              <p class="text-surface-700 leading-relaxed" set:html={usbCompat} />
             </section>
 
             {tbAnalysis && (
@@ -698,7 +698,7 @@ function barColor(index: number): string {
                   <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
                   <h2 class="text-2xl font-bold text-surface-900">Thunderbolt & USB4 Compatibility</h2>
                 </div>
-                <div class="text-surface-600 leading-relaxed space-y-3 [&_p]:mb-3">
+                <div class="text-surface-700 leading-relaxed space-y-3 [&_p]:mb-3">
                   {tbAnalysis.split("\n\n").filter(Boolean).map((p) => (
                     <p set:html={p.trim()} />
                   ))}
@@ -716,11 +716,11 @@ function barColor(index: number): string {
                   <details class="group rounded-xl border border-surface-200 overflow-hidden">
                     <summary class="flex items-center justify-between px-5 py-4 text-sm font-semibold text-surface-900 cursor-pointer list-none hover:bg-surface-50 transition-colors">
                       {faq.question}
-                      <svg class="w-4 h-4 text-surface-400 shrink-0 ml-2 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg class="w-4 h-4 text-surface-700 shrink-0 ml-2 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                       </svg>
                     </summary>
-                    <div class="px-5 pb-4 text-sm text-surface-600 leading-relaxed border-t border-surface-100 pt-3" set:html={faq.answer} />
+                    <div class="px-5 pb-4 text-sm text-surface-700 leading-relaxed border-t border-surface-100 pt-3" set:html={faq.answer} />
                   </details>
                 ))}
               </div>
@@ -731,7 +731,7 @@ function barColor(index: number): string {
                 <div class="w-1.5 h-12 rounded-full shrink-0 mt-1" style={accentStyle}></div>
                 <div>
                   <h2 class="text-xl font-bold text-surface-900 mb-2">Final Recommendation</h2>
-                  <div class="text-surface-600 leading-relaxed space-y-3 [&_p]:mb-3">
+                  <div class="text-surface-700 leading-relaxed space-y-3 [&_p]:mb-3">
                     {finalRec?.split("\n\n").filter(Boolean).map((p) => (
                       <p set:html={p.trim()} />
                     ))}
@@ -745,7 +745,7 @@ function barColor(index: number): string {
                           url={best.affiliate_url || "#"}
                           retailer={best.retailer}
                           label={`Check Price on ${best.retailer}`}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white border-blue-600 hover:bg-blue-700 [&_svg]:text-white"
+                          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
                         />
                       ) : null;
                     })()}
