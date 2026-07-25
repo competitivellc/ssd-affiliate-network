@@ -461,7 +461,7 @@ function barColor(index: number): string {
                       <GeoAffiliateLink
                         url={topBest.affiliate_url || "#"}
                         retailer={topBest.retailer}
-                        label={`Buy at ${formatPrice(topBest.price_cents)}`}
+                        label={`See Price on ${topBest.retailer} →`}
                         className="w-full sm:w-auto justify-center py-2.5 px-5 text-sm font-bold rounded-lg bg-blue-600 text-white border-blue-600 hover:bg-blue-700 [&_svg]:text-white shadow-sm"
                       />
                     ) : null}
@@ -580,7 +580,7 @@ function barColor(index: number): string {
                             <GeoAffiliateLink
                               url={best.affiliate_url || "#"}
                               retailer={best.retailer}
-                              label={`${formatPrice(best.price_cents)} at ${best.retailer}`}
+                              label={`See Price on ${best.retailer} →`}
                               className="w-full justify-center py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white border-blue-600 hover:bg-blue-700 [&_svg]:text-white"
                             />
                           ) : null}

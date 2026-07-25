@@ -88,7 +88,7 @@ const isTopPick = rank === 1;
       <GeoAffiliateLink
         url={lowestPrice.affiliate_url || "#"}
         retailer={lowestPrice.retailer}
-        label="Click for Best Price"
+        label={`See Price on ${lowestPrice.retailer} →`}
         className="w-full justify-center py-2 text-sm font-semibold bg-blue-600 text-white border-blue-600 hover:bg-blue-700 [&_svg]:text-white"
       />
     )}

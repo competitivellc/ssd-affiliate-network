@@ -325,7 +325,7 @@ const calloutText: Record<string, string> = {
             <GeoAffiliateLink
               url={sortedPrices[0].affiliate_url || "#"}
               retailer={sortedPrices[0].retailer}
-              label="Click for Best Price"
+              label={`See Price on ${sortedPrices[0].retailer} →`}
               className="w-full justify-center py-3 text-sm font-semibold bg-blue-600 text-white border-blue-600 hover:bg-blue-700 [&_svg]:text-white"
             />
           )}

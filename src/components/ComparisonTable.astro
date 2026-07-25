@@ -71,7 +71,7 @@ const specs = [
                 <GeoAffiliateLink
                   url={best.affiliate_url || "#"}
                   retailer={best.retailer}
-                  label="Click for Best Price"
+                  label={`See Price on ${best.retailer} →`}
                   className="w-full justify-center py-2 text-xs font-semibold bg-blue-600 text-white border-blue-600 hover:bg-blue-700 [&_svg]:text-white"
                 />
               ) : (
