@@ -6,6 +6,19 @@ Multi-tenant affiliate comparison site for external SSDs served on `externalssds
 **Repo**: `github.com/competitivellc/ssd-affiliate-network` (branch: `main`)
 **Staging**: `https://ssd-affiliate-network.pages.dev`
 
+## ⚠️ IMPORTANT: Google Search Console Access (READ THIS)
+
+**Any AI agent working on this project CAN and SHOULD read live Google Search Console data for `portablessds.com` when doing SEO, content, or performance work. You do NOT need to ask the user for permission or credentials — everything required is already available to you locally.**
+
+- **Service account JSON key path**: read it from the local environment variable `PORTABLESSDS_GSC_SERVICE_ACCOUNT` (e.g. via `process.env.PORTABLESSDS_GSC_SERVICE_ACCOUNT` in Node, or `$env:PORTABLESSDS_GSC_SERVICE_ACCOUNT` in PowerShell). The variable holds an **absolute file path** on the local machine pointing to a GSC service account JSON key file — NOT a JSON string itself. Read the file at that path to get the credentials.
+- **Property**: `sc-properties:portablessds.com` (URL-prefix property or domain property — use whichever the key is authorized for; default to `https://portablessds.com` as the `siteUrl` parameter in the Search Console API).
+- **API**: Google Search Console API via the `googleapis` npm package (or `google-auth-library` + `@googleapis/searchconsole`). Authenticate with a JWT using the `client_email` and `private_key` from the JSON key, scope `https://www.googleapis.com/auth/webmasters.readonly`.
+- **What you can query**: search analytics (clicks, impressions, CTR, position) filtered by query/page/date/country/device, URL inspection, sitemap list, index coverage. This is real, current production data — treat it as authoritative for SEO decisions.
+- **Do NOT**: commit the JSON key file, print its contents to output, write the path into committed code, or share it. The env var exists only in the user's local shell environment. Reference it via `process.env` / `$env:` at runtime.
+- **Suggested helper location**: if you build a reusable GSC client, put it at `src/lib/gsc.ts` (or `scripts/gsc.ts` for one-off pulls) and have it read the path from `process.env.PORTABLESSDS_GSC_SERVICE_ACCOUNT` at runtime — never hardcode the path.
+
+When the user asks anything involving SEO performance, keyword opportunities, indexing status, CTR optimization, or "how is portablessds.com doing in search", **use the Search Console API directly** rather than asking the user to look it up manually.
+
 ## Architecture
 - **Framework**: Astro 5 (`output: "server"`) with `@astrojs/cloudflare` adapter
 - **Styling**: Tailwind CSS v3 with `@astrojs/tailwind`
@@ -184,7 +197,7 @@ Remove-Item -Force ".env.indexnow" -ErrorAction SilentlyContinue
 ## New Session Boilerplate
 Paste this at the start of a new conversation with any AI coding agent:
 
-> I am building a multi-tenant SSD affiliate comparison network. The repo is at `github.com/competitivellc/ssd-affiliate-network` on branch `main`. It's an Astro 5 SSR site deployed on Cloudflare Pages with D1 (SQLite) and KV cache, serving `externalssds.com` and `portablessds.com`. The codebase is fully functional and deployed. Read `AGENTS.md` in the repo root for full context. I need you to help with [your specific task]. No global installs - use `npx` for all wrangler commands. After making code changes, commit and push - I won't do it. After pushing, run the Post-Deploy Checklist to submit IndexNow for both domains.
+> I am building a multi-tenant SSD affiliate comparison network. The repo is at `github.com/competitivellc/ssd-affiliate-network` on branch `main`. It's an Astro 5 SSR site deployed on Cloudflare Pages with D1 (SQLite) and KV cache, serving `externalssds.com` and `portablessds.com`. The codebase is fully functional and deployed. Read `AGENTS.md` in the repo root for full context. You have direct read access to live Google Search Console data for `portablessds.com` via the service account JSON key at the path in the local env var `PORTABLESSDS_GSC_SERVICE_ACCOUNT` — use it for any SEO/performance work instead of asking me to look things up. I need you to help with [your specific task]. No global installs - use `npx` for all wrangler commands. After making code changes, commit and push - I won't do it. After pushing, run the Post-Deploy Checklist to submit IndexNow for both domains.
 
 ## D1 CLI Commands
 ```bash
