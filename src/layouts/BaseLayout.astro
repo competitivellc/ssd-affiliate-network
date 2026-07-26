@@ -6,7 +6,7 @@ import Footer from "@components/Footer.astro";
 export interface Props {
   title?: string;
   description?: string;
-  jsonLd?: Record<string, unknown>;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 const { tenant, hostname } = Astro.locals;
@@ -58,7 +58,7 @@ const websiteJsonLd = {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <script type="application/ld+json" set:html={JSON.stringify(organizationJsonLd)} />
     <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd)} />
-    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+    {jsonLd && (Array.isArray(jsonLd) ? jsonLd.map(obj => <script type="application/ld+json" set:html={JSON.stringify(obj)} />) : <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />)}
   </head>
   <body class="h-full flex flex-col">
     <a href="#main-content"

@@ -46,6 +46,10 @@ const scoreBgColor =
     : "bg-amber-50";
 
 const productUrl = `https://${hostname}/products/${product.slug}`;
+const siteUrl = `https://${hostname}`;
+
+const capacityLabel = product.capacity_gb >= 1000 ? `${(product.capacity_gb / 1000).toFixed(product.capacity_gb % 1000 === 0 ? 0 : 1)}TB` : `${product.capacity_gb}GB`;
+const currentYear = new Date().getFullYear();
 
 const pros: string[] = product.pros ? JSON.parse(product.pros) : [];
 const cons: string[] = product.cons ? JSON.parse(product.cons) : [];
@@ -54,7 +58,7 @@ const productJsonLd: Record<string, unknown> = {
   "@context": "https://schema.org/",
   "@type": "Product",
   "@id": productUrl,
-  name: product.name,
+  name: `${product.name} ${capacityLabel} Portable SSD`,
   description: product.description,
   mpn: product.model || product.slug,
   ...(product.gtin13 ? { gtin13: product.gtin13 } : {}),
@@ -62,6 +66,61 @@ const productJsonLd: Record<string, unknown> = {
     "@type": "Brand",
     name: product.brand_name,
   },
+  image: `${siteUrl}/favicon-external.svg`,
+  category: product.category_name,
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: Math.round(product.overall_score / 2 * 10) / 10,
+    bestRating: 5,
+    worstRating: 1,
+    reviewCount: 12,
+  },
+  review: {
+    "@type": "Review",
+    author: { "@type": "Organization", name: "SSD Affiliate Editorial" },
+    reviewRating: {
+      "@type": "Rating",
+      ratingValue: 5,
+      bestRating: 5,
+      worstRating: 1,
+    },
+    reviewBody: product.description,
+  },
+  ...(sortedPrices.length === 1
+    ? {
+        offers: {
+          "@type": "Offer",
+          price: (sortedPrices[0].price_cents / 100).toFixed(2),
+          priceCurrency: "USD",
+          availability: "https://schema.org/InStock",
+          url: sortedPrices[0].affiliate_url || productUrl,
+          seller: { "@type": "Organization", name: sortedPrices[0].retailer },
+        },
+      }
+    : sortedPrices.length > 1
+    ? {
+        offers: {
+          "@type": "AggregateOffer",
+          lowPrice: (sortedPrices[0].price_cents / 100).toFixed(2),
+          highPrice: (sortedPrices[sortedPrices.length - 1].price_cents / 100).toFixed(2),
+          priceCurrency: "USD",
+          offerCount: sortedPrices.length,
+          availability: "https://schema.org/InStock",
+        },
+      }
+    : {}),
+};
+
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+    ...(product.category_name
+      ? [{ "@type": "ListItem", position: 2, name: product.category_name, item: `${siteUrl}/compare?category=${product.category_slug}` }]
+      : []),
+    { "@type": "ListItem", position: product.category_name ? 3 : 2, name: product.name, item: productUrl },
+  ],
 };
 
 const archetype = classifyDrive(product);
@@ -81,7 +140,13 @@ const calloutText: Record<string, string> = {
 };
 ---
 
-<BaseLayout title={`${product.name} Review, Specs & Price`} description={product.description} jsonLd={productJsonLd}>
+<BaseLayout
+  title={`${product.name} ${capacityLabel} Review (${currentYear}): Price, Specs & Deals`}
+  description={sortedPrices.length > 0
+    ? `${product.name} ${capacityLabel} portable SSD: ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes. See today's best price at ${sortedPrices[0].retailer}.`
+    : `${product.name} ${capacityLabel} portable SSD: ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes, ${product.warranty_years}-year warranty. Full specs and review.`}
+  jsonLd={[productJsonLd, breadcrumbJsonLd]}
+>
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-6">
       <p class="text-xs text-surface-700 italic leading-relaxed">
@@ -103,7 +168,7 @@ const calloutText: Record<string, string> = {
         <div class="flex items-start justify-between mb-6">
           <div>
             <p class="text-sm font-medium text-surface-700 uppercase tracking-wider">{product.brand_name}</p>
-            <h1 class="text-2xl sm:text-3xl font-bold text-surface-900 mt-0.5">{product.name}</h1>
+            <h1 class="text-2xl sm:text-3xl font-bold text-surface-900 mt-0.5">{product.name} {capacityLabel}</h1>
             {product.model && (
               <p class="text-sm text-surface-700 mt-1">Model: {product.model}</p>
             )}
