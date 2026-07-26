@@ -4,7 +4,7 @@ import Breadcrumb from "@components/Breadcrumb.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
 import ProductGrid from "@components/ProductGrid.astro";
 import { getProductsByCategory, getProductPrices, getCategoriesBySite } from "@lib/db";
-import { formatPrice, getLowestPrice } from "@lib/pricing";
+import { getLowestPrice } from "@lib/pricing";
 import type { Product, Price } from "@lib/db";
 
 const { DB, tenant, hostname } = Astro.locals;
@@ -64,7 +64,7 @@ const faqItems = [
   },
   {
     question: `How much do ${categoryName.toLowerCase()} external SSDs cost?`,
-    answer: `Prices for ${categoryName.toLowerCase()} external SSDs range from ${formatPrice(Math.min(...products.map((p) => { const bp = getLowestPrice(pricesByProduct[p.id] || []); return bp ? bp.price_cents : Infinity; })))} to ${formatPrice(Math.max(...products.map((p) => { const bp = getLowestPrice(pricesByProduct[p.id] || []); return bp ? bp.price_cents : 0; })))}. Prices vary by capacity and retailer.`,
+    answer: `Prices for ${categoryName.toLowerCase()} external SSDs vary by capacity and retailer. Check each listing for current pricing.`,
   },
   {
     question: `What ${categoryName.toLowerCase()} external SSD has the fastest speeds?`,
@@ -147,7 +147,7 @@ const faqJsonLd = {
                     <div class="shrink-0 text-right">
                       {bestPrice ? (
                         <>
-                          <p class="text-lg font-bold text-surface-900">{formatPrice(bestPrice.price_cents)}</p>
+                          <p class="text-lg font-semibold text-blue-800">See Price</p>
                           <p class="text-xs text-surface-700">at {bestPrice.retailer}</p>
                           <GeoAffiliateLink
                             url={bestPrice.affiliate_url || "#"}

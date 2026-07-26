@@ -4,7 +4,6 @@ import Breadcrumb from "@components/Breadcrumb.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
 import ProductGrid from "@components/ProductGrid.astro";
 import { getProductBySlug, getProductPrices, getRelatedProducts } from "@lib/db";
-import { formatPrice } from "@lib/pricing";
 
 const { DB, tenant, hostname } = Astro.locals;
 const { slug, retailer } = Astro.params;
@@ -72,8 +71,6 @@ const productJsonLd: Record<string, unknown> = {
   offers: {
     "@type": "Offer",
     url: productUrl,
-    priceCurrency: retailerPrice.currency,
-    price: (retailerPrice.price_cents / 100).toFixed(2),
     availability: retailerPrice.in_stock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
     seller: {
       "@type": "Organization",
@@ -84,8 +81,8 @@ const productJsonLd: Record<string, unknown> = {
 ---
 
 <BaseLayout
-  title={`${product.name} at ${retailerName} - ${formatPrice(retailerPrice.price_cents)}`}
-  description={`Buy ${product.name} at ${retailerName} for ${formatPrice(retailerPrice.price_cents)}. ${product.capacity_gb >= 1000 ? `${(product.capacity_gb / 1000).toFixed(0)}TB` : `${product.capacity_gb}GB`} ${product.interface} external SSD with ${product.read_speed_mbps} MB/s read speeds.`}
+  title={`${product.name} at ${retailerName} - Check Price`}
+  description={`${product.name} available at ${retailerName}. Compare prices across retailers. ${product.capacity_gb >= 1000 ? `${(product.capacity_gb / 1000).toFixed(0)}TB` : `${product.capacity_gb}GB`} ${product.interface} external SSD with ${product.read_speed_mbps} MB/s read speeds.`}
   jsonLd={productJsonLd}
 >
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
@@ -159,7 +156,7 @@ const productJsonLd: Record<string, unknown> = {
           <h2 class="text-xl font-semibold text-surface-900 mb-3">Why Buy {product.name} at {retailerName}?</h2>
           <div class="space-y-4 text-surface-700 leading-relaxed">
             <p>
-              The {product.name} is available at {retailerName} for {formatPrice(retailerPrice.price_cents)}.
+              The {product.name} is available at {retailerName}. Check current pricing for the latest offers.
               This {product.capacity_gb >= 1000 ? `${(product.capacity_gb / 1000).toFixed(0)}TB` : `${product.capacity_gb}GB`} external SSD
               features {product.interface} connectivity with sequential read speeds up to {product.read_speed_mbps.toLocaleString()} MB/s
               and write speeds up to {product.write_speed_mbps.toLocaleString()} MB/s.
@@ -202,7 +199,7 @@ const productJsonLd: Record<string, unknown> = {
                     <p class="text-sm text-surface-700">{price.in_stock ? "In Stock" : "Out of Stock"}</p>
                   </div>
                   <div class="text-right">
-                    <p class="text-lg font-bold text-surface-900">{formatPrice(price.price_cents)}</p>
+                    <p class="text-lg font-semibold text-blue-800">Check Price</p>
                     {price.retailer !== retailerName && price.in_stock && (
                       <GeoAffiliateLink
                         url={price.affiliate_url || "#"}
@@ -238,8 +235,8 @@ const productJsonLd: Record<string, unknown> = {
         <div class="sticky top-8 space-y-4">
           <div class="rounded-xl border border-surface-300 p-5">
             <div class="text-center mb-4">
-              <p class="text-sm text-surface-700">Current Price at {retailerName}</p>
-              <p class="text-3xl font-bold text-surface-900">{formatPrice(retailerPrice.price_cents)}</p>
+              <p class="text-sm text-surface-700">Available at {retailerName}</p>
+              <p class="text-3xl font-bold text-surface-900">See Price</p>
               <p class={`text-sm mt-1 ${retailerPrice.in_stock ? "text-emerald-700" : "text-red-700"}`}>
                 {retailerPrice.in_stock ? "In Stock" : "Out of Stock"}
               </p>
@@ -247,7 +244,7 @@ const productJsonLd: Record<string, unknown> = {
             <GeoAffiliateLink
               url={retailerPrice.affiliate_url || "#"}
               retailer={retailerName}
-              label={`Buy on ${retailerName} →`}
+              label={`Check Price on ${retailerName} →`}
               className="w-full justify-center py-3 text-sm font-semibold bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
             />
             <p class="text-xs text-surface-700 text-center mt-3">
@@ -287,7 +284,7 @@ const productJsonLd: Record<string, unknown> = {
                   <span class={price.retailer === retailerName ? "font-medium text-blue-800" : "text-surface-700"}>
                     {price.retailer}
                   </span>
-                  <span class="font-medium text-surface-900">{formatPrice(price.price_cents)}</span>
+                  <span class="font-medium text-surface-900">Check Price</span>
                 </div>
               ))}
             </div>

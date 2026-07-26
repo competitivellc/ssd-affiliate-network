@@ -384,19 +384,19 @@ export function generateValueEditorial(
     "Check warranty terms — some budget drives skimp on coverage while premium models offer 5-year protection",
     "Read speeds matter less for bulk storage; write speed is more important for frequent backups and large file transfers",
     "Consider future-proofing: a slightly pricier Gen 2x2 or Thunderbolt drive may serve you longer than a Gen 2 model",
-    "Factor in the cable and accessories included — some drives ship with USB-C to C and C to A cables, saving you $15-20",
+    "Factor in the cable and accessories included — some drives ship with USB-C to C and C to A cables, saving you the cost of separate purchases",
     "Look at the TBW endurance rating: a cheaper drive with low endurance may cost more in the long run if you write heavily",
     "Check if the drive supports hardware encryption — important for portable drives used with sensitive data",
     "Don't overlook physical size: a compact drive costs more per GB but fits in a coin pocket, which matters for travel",
     "Review return policies — some retailers charge restocking fees on opened electronics that can wipe out your savings",
-    "Account for hidden costs: a drive that needs a separate USB hub or cable adds $20-30 to the total outlay",
+    "Account for hidden costs: a drive that needs a separate USB hub or cable adds to the total outlay",
     "Consider bundles — sometimes a 2-pack or drive + dock combo delivers better per-unit pricing",
     "Budget drives often use DRAM-less controllers. For typical file transfers this is fine, but heavy random I/O benefits from DRAM",
-    "Price-match across Amazon, B&H Photo, and Newegg before buying — the same drive can differ by $10-30 between retailers",
-    "Prioritize NVMe over SATA-based externals: the price difference is often under $20 but NVMe delivers 2-5x faster transfers for large files",
+    "Price-match across Amazon, B&H Photo, and Newegg before buying — the same drive can differ significantly between retailers",
+    "Prioritize NVMe over SATA-based externals: NVMe delivers 2-5x faster transfers for large files",
     "Check the enclosure material — anodized aluminum dissipates heat better than plastic, which helps maintain sustained write speeds during large backups",
     "Hardware encryption (AES 256-bit) adds security without slowing the drive — software encryption can reduce throughput by 20-30%",
-    "TBW lifespan rating matters for value: a drive rated for 600 TBW at $100 costs $0.17 per TB written vs. $0.33 for a 300 TBW drive at the same price",
+    "TBW lifespan rating matters for value: a higher-endurance drive often costs more upfront but may deliver better cost-per-terabyte-written over its lifetime",
   ];
 
   const tipCount = 3 + Math.floor(Math.random() * 3);
@@ -405,10 +405,10 @@ export function generateValueEditorial(
 
   const summary = pick([
     top
-      ? `The cheapest ${hubName.toLowerCase()} starts at $${cheapestPrice.toFixed(2)} with the ${linkProduct(top)}. We have ranked ${products.length} drives by price to help you find maximum storage for minimum spend.`
-      : `The cheapest ${hubName.toLowerCase()} starts at $${cheapestPrice.toFixed(2)}. We have ranked ${products.length} drives by price to help you find maximum storage for minimum spend.`,
-    `Looking for a deal on ${hubName.toLowerCase()}? Prices start at $${cheapestPrice.toFixed(2)} across ${products.length} models we compared.`,
-    `We priced ${products.length} ${hubName.toLowerCase()} drives side by side. The most affordable option lands at $${cheapestPrice.toFixed(2)}, and the full range spans up to $${mostExpensive.toFixed(2)}.`,
+      ? `The most affordable ${hubName.toLowerCase()} starts with the ${linkProduct(top)}. We have ranked ${products.length} drives by value to help you find the best balance of storage and performance.`
+      : `The most affordable ${hubName.toLowerCase()} option is among ${products.length} drives we compared. We have ranked them by value to help you find maximum storage for minimum spend.`,
+    `Looking for a ${hubName.toLowerCase()}? We compared ${products.length} models across speed, capacity, and build quality to help you find the right drive.`,
+    `We ranked ${products.length} ${hubName.toLowerCase()} drives side by side. The most affordable option is among them, with options spanning from budget to premium.`,
   ]);
 
   return {
@@ -420,12 +420,12 @@ export function generateValueEditorial(
         content: (() => {
           const pool = [
             top
-              ? `For ${fmtCap(top.capacity_gb)} external SSDs, the price range spans from $${mostExpensive.toFixed(2)} down to $${cheapestPrice.toFixed(2)} for the ${linkProduct(top)}. While the cheapest option saves you money up front, consider the overall value: a slightly more expensive drive may offer faster speeds, better build quality, or a longer warranty. (${linkProduct(top)} cost per GB: $${topCpg?.toFixed(2) ?? "?"}/GB)`
-              : `For ${fmtCap(top?.capacity_gb ?? 0)} external SSDs, the price range spans from $${mostExpensive.toFixed(2)} down to $${cheapestPrice.toFixed(2)}. While the cheapest option saves you money up front, consider the overall value: a slightly more expensive drive may offer faster speeds, better build quality, or a longer warranty.`,
-            `Prices for ${fmtCap(top?.capacity_gb ?? 0)} drives in this category range from $${cheapestPrice.toFixed(2)} to $${mostExpensive.toFixed(2)}. The ${cpgPhrase} varies significantly — sometimes spending 20% more nets you double the endurance or a faster interface.${topCpg !== null ? ` (${linkProduct(top!)} cost per GB: $${topCpg.toFixed(2)}/GB)` : ""}`,
-            `The value spread across ${products.length} drives runs from $${cheapestPrice.toFixed(2)} to $${mostExpensive.toFixed(2)}. Rather than picking the absolute cheapest, compare ${cpgPhrase} across the lineup — the sweet spot is often one tier above the entry model.${topCpg !== null ? ` (${linkProduct(top!)} cost per GB: $${topCpg.toFixed(2)}/GB)` : ""}`,
+              ? `For ${fmtCap(top.capacity_gb)} external SSDs, there is a wide range of options from budget to premium. While the most affordable option saves you money up front, consider the overall value: a slightly more expensive drive may offer faster speeds, better build quality, or a longer warranty. The ${linkProduct(top)} stands out for balancing all three.`
+              : `For ${fmtCap(top?.capacity_gb ?? 0)} external SSDs, there is a wide range of options from budget to premium. While the most affordable option saves you money up front, consider the overall value: a slightly more expensive drive may offer faster speeds, better build quality, or a longer warranty.`,
+            `When comparing ${fmtCap(top?.capacity_gb ?? 0)} drives, the ${cpgPhrase} varies significantly — sometimes spending a bit more nets you double the endurance or a faster interface. Focus on the features that matter most to your workflow.`,
+            `The value spread across ${products.length} drives is significant. Rather than picking the absolute cheapest, compare ${cpgPhrase} across the lineup — the sweet spot is often one tier above the entry model.`,
             top
-              ? `NVMe-based drives in this ${fmtCap(top.capacity_gb)} category command a premium over SATA-based alternatives, but the price premium usually pays off in real-world throughput. ${linkProduct(top)} balances NVMe performance with a competitive $${cheapestPrice.toFixed(2)} starting price. Factor in enclosure build quality (aluminum vs. plastic) and AES 256-bit hardware encryption support when comparing value across the lineup. (${linkProduct(top)} cost per GB: $${topCpg?.toFixed(2) ?? "?"}/GB)`
+              ? `NVMe-based drives in this ${fmtCap(top.capacity_gb)} category command a premium over SATA-based alternatives, but the performance advantage usually pays off in real-world throughput. The ${linkProduct(top)} stands out for balancing NVMe performance with competitive value. Factor in enclosure build quality (aluminum vs. plastic) and AES 256-bit hardware encryption support when comparing across the lineup.`
               : null,
           ].filter(Boolean);
           return pick(pool);
@@ -439,9 +439,9 @@ export function generateValueEditorial(
       {
         type: "callout",
         content: pick([
-          "Prices shown are the lowest available across Amazon, B&H Photo, and Newegg. Click through for real-time pricing and availability.",
-          "We aggregate prices from multiple retailers to show you the best deal. Retailer stock levels change — check the listing for current availability.",
-          "All prices reflect the lowest current listing as of our last sync. Affiliate links may earn us a commission at no extra cost to you.",
+          "We aggregate prices from multiple retailers to help you compare. Click through for real-time pricing and availability.",
+          "We compare prices from multiple retailers to help you find the right drive. Retailer stock levels change — check the listing for current availability.",
+          "Prices shown reflect our most recent data pull. Affiliate links may earn us a commission at no extra cost to you.",
         ]),
       },
     ],

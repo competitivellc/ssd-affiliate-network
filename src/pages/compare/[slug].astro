@@ -3,7 +3,7 @@ import BaseLayout from "@layouts/BaseLayout.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
 import { getAllProducts, getProductPrices } from "@lib/db";
-import { formatPrice, getLowestPrice } from "@lib/pricing";
+import { getLowestPrice } from "@lib/pricing";
 import type { Product, Price } from "@lib/db";
 
 const { DB, tenant, hostname } = Astro.locals;
@@ -66,10 +66,10 @@ const faqItems = [
     question: `Which has better value, ${productA.name} or ${productB.name}?`,
     answer: bestPriceA && bestPriceB
       ? bestPriceA.price_cents < bestPriceB.price_cents
-        ? `The ${productA.name} offers better value at ${formatPrice(bestPriceA.price_cents)} compared to ${formatPrice(bestPriceB.price_cents)} for the ${productB.name}. You save ${formatPrice(bestPriceB.price_cents - bestPriceA.price_cents)} with the ${productA.name}.`
+        ? `The ${productA.name} offers better value — check current pricing at our linked retailers to compare the latest prices.`
         : bestPriceB.price_cents < bestPriceA.price_cents
-          ? `The ${productB.name} offers better value at ${formatPrice(bestPriceB.price_cents)} compared to ${formatPrice(bestPriceA.price_cents)} for the ${productA.name}. You save ${formatPrice(bestPriceA.price_cents - bestPriceB.price_cents)} with the ${productB.name}.`
-          : `Both drives are priced similarly. Consider features and performance to determine value.`
+          ? `The ${productB.name} offers better value — check current pricing at our linked retailers to compare the latest prices.`
+          : `Both drives are similarly priced. Consider features and performance to determine value.`
       : "Check current prices at our linked retailers for the latest value comparison.",
   },
 ];
@@ -101,7 +101,6 @@ function getSpecComparison() {
     { label: "Endurance (TBW)", a: `${productA.tbw.toLocaleString()} TB`, b: `${productB.tbw.toLocaleString()} TB`, winner: productA.tbw > productB.tbw ? "a" : productB.tbw > productA.tbw ? "b" : "tie" },
     { label: "Warranty", a: `${productA.warranty_years} Years`, b: `${productB.warranty_years} Years`, winner: productA.warranty_years > productB.warranty_years ? "a" : productB.warranty_years > productA.warranty_years ? "b" : "tie" },
     { label: "Score", a: `${productA.overall_score.toFixed(1)}/10`, b: `${productB.overall_score.toFixed(1)}/10`, winner: productA.overall_score > productB.overall_score ? "a" : productB.overall_score > productA.overall_score ? "b" : "tie" },
-    { label: "Price", a: bestPriceA ? formatPrice(bestPriceA.price_cents) : "N/A", b: bestPriceB ? formatPrice(bestPriceB.price_cents) : "N/A", winner: bestPriceA && bestPriceB ? (bestPriceA.price_cents < bestPriceB.price_cents ? "a" : bestPriceB.price_cents < bestPriceA.price_cents ? "b" : "tie") : "tie" },
   ];
   return specs;
 }
@@ -184,13 +183,13 @@ const loser = winner?.id === productA.id ? productB : productA;
             {bestPrice && (
               <div class="flex items-center justify-between pt-4 border-t border-surface-200">
                 <div>
-                  <p class="text-lg font-bold text-surface-900">{formatPrice(bestPrice.price_cents)}</p>
+                  <p class="text-lg font-semibold text-blue-800">See Price</p>
                   <p class="text-xs text-surface-700">at {bestPrice.retailer}</p>
                 </div>
                 <GeoAffiliateLink
                   url={bestPrice.affiliate_url || "#"}
                   retailer={bestPrice.retailer}
-                  label="View Deal →"
+                  label="Check Price →"
                   className="text-sm font-semibold"
                 />
               </div>

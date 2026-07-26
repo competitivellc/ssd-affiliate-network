@@ -5,7 +5,7 @@ import ProductGrid from "@components/ProductGrid.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
 import { getAllProducts, getProductsByCategory, getProductPrices, getCategoriesBySite } from "@lib/db";
-import { getLowestPrice, formatPrice } from "@lib/pricing";
+import { getLowestPrice } from "@lib/pricing";
 import type { Product, Price } from "@lib/db";
 
 const { DB, tenant, hostname } = Astro.locals;
@@ -323,7 +323,7 @@ function getFinalRecommendation(prods: Product[], catName: string | null): strin
   const cat = catName ? stripSsdSuffix(catName).toLowerCase() : "external";
 
   const last = prods.length > 1 ? prods[prods.length - 1] : null;
-  return `After evaluating ${prods.length} ${cat} SSDs side by side, our top recommendation is ${prodLink(top)}. It earned ${top.overall_score.toFixed(1)}/10 with ${fmtSpeed(top.read_speed_mbps)} reads, ${currentGbs(top.write_speed_mbps)} writes, and ${top.capacity_gb >= 1000 ? `${(top.capacity_gb / 1000).toFixed(0)}TB` : `${top.capacity_gb}GB`} of capacity${top.warranty_years >= 5 ? " backed by a " + top.warranty_years + "-year warranty" : ""}. ${bestPrice ? `At ${formatPrice(bestPrice.price_cents)} from ${bestPrice.retailer}, it delivers the best overall value for ${cat} use.` : ""}
+  return `After evaluating ${prods.length} ${cat} SSDs side by side, our top recommendation is ${prodLink(top)}. It earned ${top.overall_score.toFixed(1)}/10 with ${fmtSpeed(top.read_speed_mbps)} reads, ${currentGbs(top.write_speed_mbps)} writes, and ${top.capacity_gb >= 1000 ? `${(top.capacity_gb / 1000).toFixed(0)}TB` : `${top.capacity_gb}GB`} of capacity${top.warranty_years >= 5 ? " backed by a " + top.warranty_years + "-year warranty" : ""}. ${bestPrice ? `Check current pricing at ${bestPrice.retailer} for the latest value on this drive.` : ""}
 
 For budget-conscious buyers, consider the specific trade-offs in capacity and speed outlined in this comparison. ${last ? `${prodLink(last)} offers solid performance at a lower price point if raw speed is not the primary concern, and it is worth reading our full breakdown of both drives before deciding.` : ""}
 

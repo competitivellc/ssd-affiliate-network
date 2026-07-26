@@ -37,8 +37,6 @@ export const GET: APIRoute = async ({ locals, request }) => {
         },
         prices: prices.map((p) => ({
           retailer: p.retailer,
-          price_cents: p.price_cents,
-          currency: p.currency,
           affiliate_url: p.affiliate_url,
           in_stock: p.in_stock === 1,
           updated: p.fetched_at,

@@ -87,8 +87,6 @@ const productJsonLd: Record<string, unknown> = {
     ? {
         offers: {
           "@type": "Offer",
-          price: (sortedPrices[0].price_cents / 100).toFixed(2),
-          priceCurrency: "USD",
           availability: "https://schema.org/InStock",
           url: sortedPrices[0].affiliate_url || productUrl,
           seller: { "@type": "Organization", name: sortedPrices[0].retailer },
@@ -98,9 +96,6 @@ const productJsonLd: Record<string, unknown> = {
     ? {
         offers: {
           "@type": "AggregateOffer",
-          lowPrice: (sortedPrices[0].price_cents / 100).toFixed(2),
-          highPrice: (sortedPrices[sortedPrices.length - 1].price_cents / 100).toFixed(2),
-          priceCurrency: "USD",
           offerCount: sortedPrices.length,
           availability: "https://schema.org/InStock",
         },
@@ -260,13 +255,13 @@ const calloutText: Record<string, string> = {
           <section class="mb-8 rounded-xl border border-surface-300 p-5">
             <h2 class="text-xl font-semibold text-surface-900 mb-3">Price & Where to Buy</h2>
             <div class="flex items-baseline gap-3 mb-4">
-              <span class="text-3xl font-bold text-surface-900">${(sortedPrices[0].price_cents / 100).toFixed(2)}</span>
+              <span class="text-lg font-semibold text-blue-800">See Price</span>
               <span class="text-sm text-surface-700">at {sortedPrices[0].retailer}</span>
             </div>
             <GeoAffiliateLink
               url={sortedPrices[0].affiliate_url || "#"}
               retailer={sortedPrices[0].retailer}
-              label={`Buy ${product.name} ${capacityLabel} on ${sortedPrices[0].retailer} →`}
+              label={`Check Price on ${sortedPrices[0].retailer} →`}
               className="mb-4 text-sm"
             />
             {sortedPrices.length > 1 && (
@@ -277,7 +272,7 @@ const calloutText: Record<string, string> = {
                     <GeoAffiliateLink
                       url={price.affiliate_url || "#"}
                       retailer={price.retailer}
-                      label={`${price.retailer}: $${(price.price_cents / 100).toFixed(2)}`}
+                      label={`${price.retailer} →`}
                       className="text-sm"
                     />
                   ))}
@@ -472,7 +467,7 @@ const calloutText: Record<string, string> = {
                     class="flex items-center justify-between text-sm hover:bg-surface-50 p-2 rounded-lg transition-colors"
                   >
                     <span class="text-surface-700">{price.retailer}</span>
-                    <span class="font-medium text-surface-900">${(price.price_cents / 100).toFixed(2)}</span>
+                    <span class="font-medium text-surface-900">Check Price →</span>
                   </a>
                 ))}
               </div>

@@ -4,7 +4,7 @@ import Breadcrumb from "@components/Breadcrumb.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
 import ProductGrid from "@components/ProductGrid.astro";
 import { getTopRatedProducts, getProductPrices, getCategoriesBySite } from "@lib/db";
-import { formatPrice, getLowestPrice } from "@lib/pricing";
+import { getLowestPrice } from "@lib/pricing";
 import type { Product, Price } from "@lib/db";
 
 const { DB, tenant, hostname } = Astro.locals;
@@ -165,7 +165,7 @@ const editorial = getEditorialContent(slug!, displayProducts);
                           <GeoAffiliateLink
                             url={bestPrice.affiliate_url || "#"}
                             retailer={bestPrice.retailer}
-                            label={`${formatPrice(bestPrice.price_cents)} on ${bestPrice.retailer} →`}
+                            label={`See Price on ${bestPrice.retailer} →`}
                             className="text-sm font-semibold"
                           />
                         )}
@@ -230,7 +230,7 @@ const editorial = getEditorialContent(slug!, displayProducts);
                   <th class="text-left py-3 px-4 font-semibold text-surface-900">Score</th>
                   <th class="text-left py-3 px-4 font-semibold text-surface-900">Read Speed</th>
                   <th class="text-left py-3 px-4 font-semibold text-surface-900">Capacity</th>
-                  <th class="text-left py-3 px-4 font-semibold text-surface-900">Price</th>
+                  <th class="text-left py-3 px-4 font-semibold text-surface-900">Best Price</th>
                 </tr>
               </thead>
               <tbody>
@@ -247,7 +247,7 @@ const editorial = getEditorialContent(slug!, displayProducts);
                       <td class="py-3 px-4 font-medium">{product.overall_score.toFixed(1)}/10</td>
                       <td class="py-3 px-4">{(product.read_speed_mbps / 1000).toFixed(1)} GB/s</td>
                       <td class="py-3 px-4">{product.capacity_gb >= 1000 ? `${(product.capacity_gb / 1000).toFixed(0)}TB` : `${product.capacity_gb}GB`}</td>
-                      <td class="py-3 px-4">{bestPrice ? formatPrice(bestPrice.price_cents) : "N/A"}</td>
+                      <td class="py-3 px-4">{bestPrice ? <a href={`/products/${product.slug}`} class="text-blue-800 hover:text-blue-900 font-medium">See Price →</a> : "N/A"}</td>
                     </tr>
                   );
                 })}

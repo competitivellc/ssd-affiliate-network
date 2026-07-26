@@ -11,7 +11,7 @@ import {
   getHubsByType,
 } from "@lib/db";
 import type { Hub, Product, FilterCriteria, Price } from "@lib/db";
-import { formatPrice, getLowestPrice } from "@lib/pricing";
+import { getLowestPrice } from "@lib/pricing";
 import { getHubEditorial } from "@lib/hubs";
 import type { HubEditorial } from "@lib/hubs";
 
@@ -232,7 +232,7 @@ const hubJsonLd = {
                   <tr class="bg-surface-50">
                     <th class="text-left px-4 py-2.5 font-medium text-surface-700">Drive</th>
                     <th class="text-left px-4 py-2.5 font-medium text-surface-700">Capacity</th>
-                    <th class="text-left px-4 py-2.5 font-medium text-surface-700">Lowest Price</th>
+                    <th class="text-left px-4 py-2.5 font-medium text-surface-700">Best Price</th>
                     <th class="text-left px-4 py-2.5 font-medium text-surface-700">Retailer</th>
                   </tr>
                 </thead>
@@ -248,15 +248,15 @@ const hubJsonLd = {
                             ? `${(p.capacity_gb / 1000).toFixed(0)}TB`
                             : `${p.capacity_gb}GB`}
                         </td>
-                        <td class="px-4 py-2.5 font-mono font-medium text-surface-900">
-                          {lowest ? formatPrice(lowest.price_cents, "USD") : "—"}
+                        <td class="px-4 py-2.5 font-medium text-surface-900">
+                          {lowest ? "Check Price" : "—"}
                         </td>
                         <td class="px-4 py-2.5">
                           {lowest?.affiliate_url ? (
                             <GeoAffiliateLink
                               url={lowest.affiliate_url}
                               retailer={lowest.retailer}
-                              label={`Buy at ${lowest.retailer}`}
+                              label={`Check Price at ${lowest.retailer}`}
                               className="inline-flex items-center gap-1 text-sm font-medium text-blue-800 hover:text-blue-900 no-underline"
                             />
                           ) : (
