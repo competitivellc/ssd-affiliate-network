@@ -8,16 +8,34 @@ Multi-tenant affiliate comparison site for external SSDs served on `externalssds
 
 ## ⚠️ IMPORTANT: Google Search Console Access (READ THIS)
 
-**Any AI agent working on this project CAN and SHOULD read live Google Search Console data for `portablessds.com` when doing SEO, content, or performance work. You do NOT need to ask the user for permission or credentials — everything required is already available to you locally.**
+**🚨 CRITICAL FOR ALL AI AGENTS — DO NOT SKIP 🚨**
+
+**Any AI agent working on this project CAN and SHOULD read live Google Search Console data for BOTH `externalssds.com` AND `portablessds.com` when doing SEO, content, or performance work. You do NOT need to ask the user for permission or credentials — everything required is already available to you locally.**
+
+This is non-negotiable: you have direct read access to live Google Search Console data for both tenants. **Always use it** rather than asking the user to look things up, guess about keyword performance, or speculate about indexing status. Treat GSC data as authoritative for any SEO decision.
+
+---
+
+### `externalssds.com` GSC Access
+
+- **Service account JSON key path**: read it from the local environment variable `EXTERNALSSDS_GSC_SERVICE_ACCOUNT` (e.g. via `process.env.EXTERNALSSDS_GSC_SERVICE_ACCOUNT` in Node, or `$env:EXTERNALSSDS_GSC_SERVICE_ACCOUNT` in PowerShell). The variable holds an **absolute file path** on the local machine pointing to a GSC service account JSON key file — NOT a JSON string itself. Read the file at that path to get the credentials.
+- **Property**: `sc-properties:externalssds.com` (default `siteUrl`: `https://externalssds.com`).
+
+### `portablessds.com` GSC Access
 
 - **Service account JSON key path**: read it from the local environment variable `PORTABLESSDS_GSC_SERVICE_ACCOUNT` (e.g. via `process.env.PORTABLESSDS_GSC_SERVICE_ACCOUNT` in Node, or `$env:PORTABLESSDS_GSC_SERVICE_ACCOUNT` in PowerShell). The variable holds an **absolute file path** on the local machine pointing to a GSC service account JSON key file — NOT a JSON string itself. Read the file at that path to get the credentials.
-- **Property**: `sc-properties:portablessds.com` (URL-prefix property or domain property — use whichever the key is authorized for; default to `https://portablessds.com` as the `siteUrl` parameter in the Search Console API).
-- **API**: Google Search Console API via the `googleapis` npm package (or `google-auth-library` + `@googleapis/searchconsole`). Authenticate with a JWT using the `client_email` and `private_key` from the JSON key, scope `https://www.googleapis.com/auth/webmasters.readonly`.
-- **What you can query**: search analytics (clicks, impressions, CTR, position) filtered by query/page/date/country/device, URL inspection, sitemap list, index coverage. This is real, current production data — treat it as authoritative for SEO decisions.
-- **Do NOT**: commit the JSON key file, print its contents to output, write the path into committed code, or share it. The env var exists only in the user's local shell environment. Reference it via `process.env` / `$env:` at runtime.
-- **Suggested helper location**: if you build a reusable GSC client, put it at `src/lib/gsc.ts` (or `scripts/gsc.ts` for one-off pulls) and have it read the path from `process.env.PORTABLESSDS_GSC_SERVICE_ACCOUNT` at runtime — never hardcode the path.
+- **Property**: `sc-properties:portablessds.com` (default `siteUrl`: `https://portablessds.com`).
 
-When the user asks anything involving SEO performance, keyword opportunities, indexing status, CTR optimization, or "how is portablessds.com doing in search", **use the Search Console API directly** rather than asking the user to look it up manually.
+### How To Read GSC Data
+
+- **API**: Google Search Console API via the `googleapis` npm package (or `google-auth-library` + `@googleapis/searchconsole`). Authenticate with a JWT per-domain using the `client_email` and `private_key` from that domain's JSON key, scope `https://www.googleapis.com/auth/webmasters.readonly`. The two domains use SEPARATE service account JSON files and SEPARATE env vars — do not mix them.
+- **What you can query**: search analytics (clicks, impressions, CTR, position) filtered by query/page/date/country/device, URL inspection, sitemap list, index coverage. This is real, current production data — treat it as authoritative for SEO decisions.
+- **Do NOT**: commit any JSON key file, print its contents to output, write any path into committed code, or share it. The env vars exist only in the user's local shell environment. Reference them via `process.env` / `$env:` at runtime.
+- **Suggested helper location**: if you build a reusable GSC client, put it at `src/lib/gsc.ts` (or `scripts/gsc.ts` for one-off pulls). The client should accept a domain (`'externalssds.com'` or `'portablessds.com'`) and pick the matching env var — never hardcode any path.
+
+### When To Use GSC (Mandatory for Both Domains)
+
+When the user asks anything involving SEO performance, keyword opportunities, indexing status, CTR optimization, ranking movements, top pages, low-CTR queries, or "how is [domain] doing in search", **use the Search Console API directly** rather than asking the user to look it up manually. This applies to **both** `externalssds.com` **and** `portablessds.com` — pick the right env var for whichever domain the user asked about (or query both if the request is generic).
 
 ## Architecture
 - **Framework**: Astro 5 (`output: "server"`) with `@astrojs/cloudflare` adapter
