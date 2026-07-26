@@ -303,6 +303,23 @@ const calloutText: Record<string, string> = {
             />
           )}
 
+          {sortedPrices.length > 1 && (
+            <div class="rounded-xl border border-surface-300 p-5">
+              <h3 class="text-sm font-semibold text-surface-700 mb-3">Prices at Other Retailers</h3>
+              <div class="space-y-2">
+                {sortedPrices.map((price) => (
+                  <a
+                    href={`/products/${product.slug}/${price.retailer === "B&H Photo" ? "bh-photo" : price.retailer.toLowerCase()}`}
+                    class="flex items-center justify-between text-sm hover:bg-surface-50 p-2 rounded-lg transition-colors"
+                  >
+                    <span class="text-surface-700">{price.retailer}</span>
+                    <span class="font-medium text-surface-900">${(price.price_cents / 100).toFixed(2)}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div class="rounded-xl border border-surface-300 p-5">
             <h3 class="text-sm font-semibold text-surface-700 mb-3">Quick Specs</h3>
             <div class="space-y-3">
@@ -326,6 +343,40 @@ const calloutText: Record<string, string> = {
               </div>
             </div>
           </div>
+
+          <div class="rounded-xl border border-surface-300 p-5">
+            <h3 class="text-sm font-semibold text-surface-700 mb-3">Browse by Category</h3>
+            <div class="space-y-2">
+              {product.category_slug && (
+                <a
+                  href={`/category/${product.category_slug}`}
+                  class="block px-3 py-2 text-sm rounded-lg text-surface-700 hover:bg-surface-50 transition-colors"
+                >
+                  {product.category_name}
+                </a>
+              )}
+              {product.category_slug && (
+                <a
+                  href={`/best/${product.category_slug}`}
+                  class="block px-3 py-2 text-sm rounded-lg text-surface-700 hover:bg-surface-50 transition-colors"
+                >
+                  Best {product.category_name?.replace(/\s+SSDs?$/i, "")} SSDs
+                </a>
+              )}
+            </div>
+          </div>
+
+          {product.brand_slug && (
+            <div class="rounded-xl border border-surface-300 p-5">
+              <h3 class="text-sm font-semibold text-surface-700 mb-3">More from {product.brand_name}</h3>
+              <a
+                href={`/brands/${product.brand_slug}`}
+                class="block px-3 py-2 text-sm rounded-lg text-surface-700 hover:bg-surface-50 transition-colors"
+              >
+                All {product.brand_name} SSDs
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </div>

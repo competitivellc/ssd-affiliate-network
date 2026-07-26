@@ -1,0 +1,299 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import Breadcrumb from "@components/Breadcrumb.astro";
+import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
+import ProductGrid from "@components/ProductGrid.astro";
+import { getProductBySlug, getProductPrices, getRelatedProducts } from "@lib/db";
+import { formatPrice } from "@lib/pricing";
+
+const { DB, tenant, hostname } = Astro.locals;
+const { slug, retailer } = Astro.params;
+const db = DB!;
+
+const validRetailers = ["amazon", "bh-photo", "newegg"];
+const retailerSlug = retailer?.toLowerCase();
+if (!validRetailers.includes(retailerSlug!)) {
+  return Astro.redirect("/404");
+}
+
+const retailerName = retailerSlug === "amazon" ? "Amazon" : retailerSlug === "bh-photo" ? "B&H Photo" : "Newegg";
+
+const product = await getProductBySlug(db, tenant.id, slug!);
+if (!product) {
+  return Astro.redirect("/404");
+}
+
+const prices = await getProductPrices(db, product.id);
+const retailerPrice = prices.find((p) => p.retailer === retailerName);
+if (!retailerPrice) {
+  return Astro.redirect("/404");
+}
+
+const allPricesSorted = [...prices].sort((a, b) => a.price_cents - b.price_cents);
+const relatedProducts = product.category_id
+  ? await getRelatedProducts(db, tenant.id, product.category_id, product.id)
+  : [];
+
+const productUrl = `https://${hostname}/products/${product.slug}/${retailerSlug}`;
+const canonicalUrl = `https://${hostname}/products/${product.slug}`;
+
+const retailerInfo: Record<string, { shipping: string; returns: string; perks: string[] }> = {
+  amazon: {
+    shipping: "Free shipping on orders over $25 for most items. Prime members get free 2-day shipping.",
+    returns: "30-day return policy. Most items can be returned within 30 days of delivery for a full refund.",
+    perks: ["Prime eligible", "Subscribe & Save discounts", "Amazon Pay later options", "Same-day delivery in select areas"],
+  },
+  "bh-photo": {
+    shipping: "Free standard shipping on most orders. Expedited shipping available at checkout.",
+    returns: "30-day return policy with no restocking fees. Items must be in original packaging.",
+    perks: ["No sales tax in most states", "Expert product support", "Price match guarantee", "Educational discounts available"],
+  },
+  newegg: {
+    shipping: "Free shipping on qualifying orders. Newegg Premier members get free expedited shipping.",
+    returns: "30-day return policy. Items must be in original condition with all accessories.",
+    perks: ["Newegg Premier benefits", "Shell Shocker deals", "Combo discounts", "Marketplace seller options"],
+  },
+};
+
+const info = retailerInfo[retailerSlug!];
+
+const productJsonLd: Record<string, unknown> = {
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "@id": canonicalUrl,
+  name: product.name,
+  description: product.description,
+  mpn: product.model || product.slug,
+  ...(product.gtin13 ? { gtin13: product.gtin13 } : {}),
+  brand: {
+    "@type": "Brand",
+    name: product.brand_name,
+  },
+  offers: {
+    "@type": "Offer",
+    url: productUrl,
+    priceCurrency: retailerPrice.currency,
+    price: (retailerPrice.price_cents / 100).toFixed(2),
+    availability: retailerPrice.in_stock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    seller: {
+      "@type": "Organization",
+      name: retailerName,
+    },
+  },
+};
+---
+
+<BaseLayout
+  title={`${product.name} at ${retailerName} - ${formatPrice(retailerPrice.price_cents)}`}
+  description={`Buy ${product.name} at ${retailerName} for ${formatPrice(retailerPrice.price_cents)}. ${product.capacity_gb >= 1000 ? `${(product.capacity_gb / 1000).toFixed(0)}TB` : `${product.capacity_gb}GB`} ${product.interface} external SSD with ${product.read_speed_mbps} MB/s read speeds.`}
+  jsonLd={productJsonLd}
+>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-6">
+      <p class="text-xs text-surface-700 italic leading-relaxed">
+        Disclosure: We may earn a commission from qualifying purchases made through links on this page. Prices and availability are subject to change. We are reader-supported and independent — our rankings are based on an objective scoring rubric, not sponsorship.
+      </p>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-8">
+      <div class="lg:col-span-2">
+        <Breadcrumb
+          items={[
+            { label: "Home", href: "/" },
+            ...(product.category_slug
+              ? [{ label: product.category_name, href: `/compare?category=${product.category_slug}` }]
+              : []),
+            { label: product.name, href: `/products/${product.slug}` },
+            { label: retailerName },
+          ]}
+        />
+
+        <div class="flex items-start justify-between mb-6">
+          <div>
+            <p class="text-sm font-medium text-surface-700 uppercase tracking-wider">{product.brand_name}</p>
+            <h1 class="text-2xl sm:text-3xl font-bold text-surface-900 mt-0.5">
+              {product.name} at {retailerName}
+            </h1>
+            {product.model && (
+              <p class="text-sm text-surface-700 mt-1">Model: {product.model}</p>
+            )}
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-surface-300 overflow-hidden mb-8">
+          <table class="compare-grid">
+            <tbody>
+              <tr>
+                <td class="font-medium text-surface-700 bg-surface-50/50 w-40">Capacity</td>
+                <td class="text-surface-900 font-medium">{product.capacity_gb >= 1000 ? `${(product.capacity_gb / 1000).toFixed(0)}TB` : `${product.capacity_gb}GB`}</td>
+              </tr>
+              <tr>
+                <td class="font-medium text-surface-700 bg-surface-50/50">Interface</td>
+                <td class="text-surface-900">{product.interface}</td>
+              </tr>
+              <tr>
+                <td class="font-medium text-surface-700 bg-surface-50/50">Form Factor</td>
+                <td class="text-surface-900">{product.form_factor}</td>
+              </tr>
+              <tr>
+                <td class="font-medium text-surface-700 bg-surface-50/50">Read Speed</td>
+                <td class="text-surface-900 font-mono font-medium">{product.read_speed_mbps.toLocaleString()} MB/s</td>
+              </tr>
+              <tr>
+                <td class="font-medium text-surface-700 bg-surface-50/50">Write Speed</td>
+                <td class="text-surface-900 font-mono font-medium">{product.write_speed_mbps.toLocaleString()} MB/s</td>
+              </tr>
+              <tr>
+                <td class="font-medium text-surface-700 bg-surface-50/50">Endurance (TBW)</td>
+                <td class="text-surface-900">{product.tbw.toLocaleString()} TB</td>
+              </tr>
+              <tr>
+                <td class="font-medium text-surface-700 bg-surface-50/50">Warranty</td>
+                <td class="text-surface-900">{product.warranty_years} Years</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold text-surface-900 mb-3">Why Buy {product.name} at {retailerName}?</h2>
+          <div class="space-y-4 text-surface-700 leading-relaxed">
+            <p>
+              The {product.name} is available at {retailerName} for {formatPrice(retailerPrice.price_cents)}.
+              This {product.capacity_gb >= 1000 ? `${(product.capacity_gb / 1000).toFixed(0)}TB` : `${product.capacity_gb}GB`} external SSD
+              features {product.interface} connectivity with sequential read speeds up to {product.read_speed_mbps.toLocaleString()} MB/s
+              and write speeds up to {product.write_speed_mbps.toLocaleString()} MB/s.
+            </p>
+
+            <div class="rounded-lg border border-surface-200 bg-surface-50 p-4">
+              <h3 class="text-sm font-semibold text-surface-800 mb-2">Shipping & Returns at {retailerName}</h3>
+              <p class="text-sm text-surface-700 mb-2">{info.shipping}</p>
+              <p class="text-sm text-surface-700">{info.returns}</p>
+            </div>
+
+            <div class="rounded-lg border border-surface-200 bg-surface-50 p-4">
+              <h3 class="text-sm font-semibold text-surface-800 mb-2">{retailerName} Perks</h3>
+              <ul class="space-y-1">
+                {info.perks.map((perk) => (
+                  <li class="flex items-start gap-2 text-sm text-surface-700">
+                    <svg aria-hidden="true" class="w-4 h-4 mt-0.5 shrink-0 text-surface-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                    {perk}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {product.description && (
+              <p>{product.description}</p>
+            )}
+          </div>
+        </section>
+
+        {allPricesSorted.length > 1 && (
+          <section class="mb-8">
+            <h2 class="text-xl font-semibold text-surface-900 mb-3">Compare Prices at Other Retailers</h2>
+            <div class="space-y-3">
+              {allPricesSorted.map((price) => (
+                <div class={`flex items-center justify-between rounded-lg border p-4 ${price.retailer === retailerName ? "border-blue-300 bg-blue-50" : "border-surface-200"}`}>
+                  <div>
+                    <p class="font-medium text-surface-900">{price.retailer}</p>
+                    <p class="text-sm text-surface-700">{price.in_stock ? "In Stock" : "Out of Stock"}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-lg font-bold text-surface-900">{formatPrice(price.price_cents)}</p>
+                    {price.retailer !== retailerName && price.in_stock && (
+                      <GeoAffiliateLink
+                        url={price.affiliate_url || "#"}
+                        retailer={price.retailer}
+                        label="View Deal →"
+                        className="text-xs"
+                      />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {relatedProducts.length > 0 && (
+          <section class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-semibold text-surface-900">Related {product.category_name} SSDs</h2>
+              <a
+                href={`/compare?category=${product.category_slug}`}
+                class="text-sm font-medium text-blue-800 hover:text-blue-900"
+              >
+                Compare all &rarr;
+              </a>
+            </div>
+            <ProductGrid products={relatedProducts} />
+          </section>
+        )}
+      </div>
+
+      <div class="lg:col-span-1">
+        <div class="sticky top-8 space-y-4">
+          <div class="rounded-xl border border-surface-300 p-5">
+            <div class="text-center mb-4">
+              <p class="text-sm text-surface-700">Current Price at {retailerName}</p>
+              <p class="text-3xl font-bold text-surface-900">{formatPrice(retailerPrice.price_cents)}</p>
+              <p class={`text-sm mt-1 ${retailerPrice.in_stock ? "text-emerald-700" : "text-red-700"}`}>
+                {retailerPrice.in_stock ? "In Stock" : "Out of Stock"}
+              </p>
+            </div>
+            <GeoAffiliateLink
+              url={retailerPrice.affiliate_url || "#"}
+              retailer={retailerName}
+              label={`Buy on ${retailerName} →`}
+              className="w-full justify-center py-3 text-sm font-semibold bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
+            />
+            <p class="text-xs text-surface-700 text-center mt-3">
+              Price last updated: {new Date(retailerPrice.fetched_at).toLocaleDateString()}
+            </p>
+          </div>
+
+          <div class="rounded-xl border border-surface-300 p-5">
+            <h3 class="text-sm font-semibold text-surface-700 mb-3">Quick Specs</h3>
+            <div class="space-y-3">
+              <div>
+                <div class="flex justify-between text-xs text-surface-700 mb-1">
+                  <span>Read Speed</span>
+                  <span class="font-mono font-medium text-surface-700">{product.read_speed_mbps} MB/s</span>
+                </div>
+                <div class="spec-bar">
+                  <div class="spec-bar-fill bg-blue-700" style={{ width: `${Math.min(100, (product.read_speed_mbps / 3000) * 100)}%` }}></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs text-surface-700 mb-1">
+                  <span>Write Speed</span>
+                  <span class="font-mono font-medium text-surface-700">{product.write_speed_mbps} MB/s</span>
+                </div>
+                <div class="spec-bar">
+                  <div class="spec-bar-fill bg-emerald-700" style={{ width: `${Math.min(100, (product.write_speed_mbps / 3000) * 100)}%` }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-surface-300 p-5">
+            <h3 class="text-sm font-semibold text-surface-700 mb-3">All Prices for {product.name}</h3>
+            <div class="space-y-2">
+              {allPricesSorted.map((price) => (
+                <div class="flex items-center justify-between text-sm">
+                  <span class={price.retailer === retailerName ? "font-medium text-blue-800" : "text-surface-700"}>
+                    {price.retailer}
+                  </span>
+                  <span class="font-medium text-surface-900">{formatPrice(price.price_cents)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

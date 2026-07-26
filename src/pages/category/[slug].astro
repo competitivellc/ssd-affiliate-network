@@ -1,0 +1,279 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import Breadcrumb from "@components/Breadcrumb.astro";
+import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
+import ProductGrid from "@components/ProductGrid.astro";
+import { getProductsByCategory, getProductPrices, getCategoriesBySite } from "@lib/db";
+import { formatPrice, getLowestPrice } from "@lib/pricing";
+import type { Product, Price } from "@lib/db";
+
+const { DB, tenant, hostname } = Astro.locals;
+const { slug } = Astro.params;
+const db = DB!;
+
+const categories = await getCategoriesBySite(db, tenant.id);
+const category = categories.find((c) => c.slug === slug);
+if (!category) {
+  return Astro.redirect("/404");
+}
+
+const products = await getProductsByCategory(db, tenant.id, slug!);
+if (products.length === 0) {
+  return Astro.redirect("/404");
+}
+
+const pricesByProduct: Record<number, Price[]> = {};
+for (const p of products) {
+  pricesByProduct[p.id] = await getProductPrices(db, p.id);
+}
+
+const speeds = products.map((p) => p.read_speed_mbps);
+const minSpeed = Math.min(...speeds);
+const maxSpeed = Math.max(...speeds);
+const capacities = products.map((p) => p.capacity_gb);
+const minCap = Math.min(...capacities);
+const maxCap = Math.max(...capacities);
+const avgScore = products.reduce((sum, p) => sum + p.overall_score, 0) / products.length;
+
+const categoryName = category.name.replace(/\s+SSDs?$/i, "");
+const metaDesc = `Shop the best ${categoryName.toLowerCase()} external SSDs. Compare ${products.length} top-rated drives with specs, prices, and expert reviews. Free shipping on qualifying orders.`;
+
+const categoryJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: `${categoryName} External SSDs`,
+  description: metaDesc,
+  numberOfItems: products.length,
+  itemListElement: products.map((p, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    item: {
+      "@type": "Product",
+      name: p.name,
+      url: `https://${hostname}/products/${p.slug}`,
+      description: p.description,
+      brand: { "@type": "Brand", name: p.brand_name },
+    },
+  })),
+};
+
+const faqItems = [
+  {
+    question: `What are the best ${categoryName.toLowerCase()} external SSDs?`,
+    answer: `Based on our expert scoring, the top ${categoryName.toLowerCase()} external SSD is the ${products[0]?.name || "N/A"} with a score of ${products[0]?.overall_score.toFixed(1) || "N/A"}/10. It offers ${products[0] ? `${(products[0].read_speed_mbps / 1000).toFixed(1)} GB/s read speeds` : ""} and ${products[0] ? `${products[0].capacity_gb >= 1000 ? `${(products[0].capacity_gb / 1000).toFixed(0)}TB` : `${products[0].capacity_gb}GB`}` : ""} capacity.`,
+  },
+  {
+    question: `How much do ${categoryName.toLowerCase()} external SSDs cost?`,
+    answer: `Prices for ${categoryName.toLowerCase()} external SSDs range from ${formatPrice(Math.min(...products.map((p) => { const bp = getLowestPrice(pricesByProduct[p.id] || []); return bp ? bp.price_cents : Infinity; })))} to ${formatPrice(Math.max(...products.map((p) => { const bp = getLowestPrice(pricesByProduct[p.id] || []); return bp ? bp.price_cents : 0; })))}. Prices vary by capacity and retailer.`,
+  },
+  {
+    question: `What ${categoryName.toLowerCase()} external SSD has the fastest speeds?`,
+    answer: products.length > 0
+      ? `The fastest ${categoryName.toLowerCase()} external SSD in our comparison is the ${products.reduce((a, b) => a.read_speed_mbps > b.read_speed_mbps ? a : b).name} with ${Math.max(...speeds).toLocaleString()} MB/s read speeds.`
+      : "Speeds vary by model and interface.",
+  },
+  {
+    question: `Are ${categoryName.toLowerCase()} external SSDs good for gaming?`,
+    answer: `Yes, ${categoryName.toLowerCase()} external SSDs are excellent for gaming. They provide faster load times than HDDs and can store multiple large game libraries. Look for drives with at least 1000 MB/s read speeds for optimal console gaming performance.`,
+  },
+];
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqItems.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: { "@type": "Answer", text: item.answer },
+  })),
+};
+---
+
+<BaseLayout title={`${categoryName} External SSDs - Best Picks & Comparison`} description={metaDesc} jsonLd={categoryJsonLd}>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <Breadcrumb items={[{ label: "Home", href: "/" }, { label: `${categoryName} SSDs` }]} />
+
+    <div class="mb-6">
+      <p class="text-xs text-surface-700 italic leading-relaxed">
+        Disclosure: We may earn a commission from qualifying purchases made through links on this page. Prices and availability are subject to change. We are reader-supported and independent — our rankings are based on an objective scoring rubric, not sponsorship.
+      </p>
+    </div>
+
+    <div class="mb-8">
+      <h1 class="text-3xl sm:text-4xl font-bold text-surface-900">
+        Best {categoryName} External SSDs in 2026
+      </h1>
+      <p class="mt-3 text-surface-700 max-w-3xl leading-relaxed">
+        Compare {products.length} top-rated {categoryName.toLowerCase()} external SSDs with prices, specs, and expert reviews.
+        Speeds range from {(minSpeed / 1000).toFixed(1)} GB/s to {(maxSpeed / 1000).toFixed(1)} GB/s,
+        with capacities from {minCap >= 1000 ? `${(minCap / 1000).toFixed(0)}TB` : `${minCap}GB`} to {maxCap >= 1000 ? `${(maxCap / 1000).toFixed(0)}TB` : `${maxCap}GB`}.
+        Our top pick earned {products[0]?.overall_score.toFixed(1) || "N/A"}/10 for its balance of speed, build quality, and value.
+      </p>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-8">
+      <div class="lg:col-span-2">
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold text-surface-900 mb-4">All {categoryName} External SSDs</h2>
+          <div class="space-y-4">
+            {products.map((product, index) => {
+              const prices = pricesByProduct[product.id] || [];
+              const bestPrice = getLowestPrice(prices);
+              return (
+                <div class="rounded-xl border border-surface-300 p-5 hover:border-surface-400 transition-colors">
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs font-medium text-surface-700">#{index + 1}</span>
+                        <p class="text-sm font-medium text-surface-700 uppercase tracking-wider">{product.brand_name}</p>
+                      </div>
+                      <a href={`/products/${product.slug}`} class="text-lg font-bold text-surface-900 hover:text-blue-800 no-underline">
+                        {product.name}
+                      </a>
+                      <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-surface-700">
+                        <span>{(product.read_speed_mbps / 1000).toFixed(1)} GB/s Read</span>
+                        <span>{(product.write_speed_mbps / 1000).toFixed(1)} GB/s Write</span>
+                        <span>{product.capacity_gb >= 1000 ? `${(product.capacity_gb / 1000).toFixed(0)}TB` : `${product.capacity_gb}GB`}</span>
+                        <span>{product.interface}</span>
+                      </div>
+                      <div class="flex items-center gap-2 mt-2">
+                        <span class="text-sm font-medium text-surface-900">{product.overall_score.toFixed(1)}/10</span>
+                        <div class="w-24 h-2 bg-surface-100 rounded-full overflow-hidden">
+                          <div class="h-full bg-blue-600 rounded-full" style={{ width: `${product.overall_score * 10}%` }}></div>
+                        </div>
+                      </div>
+                      <p class="text-sm text-surface-700 mt-2 line-clamp-2">{product.description}</p>
+                    </div>
+                    <div class="shrink-0 text-right">
+                      {bestPrice ? (
+                        <>
+                          <p class="text-lg font-bold text-surface-900">{formatPrice(bestPrice.price_cents)}</p>
+                          <p class="text-xs text-surface-700">at {bestPrice.retailer}</p>
+                          <GeoAffiliateLink
+                            url={bestPrice.affiliate_url || "#"}
+                            retailer={bestPrice.retailer}
+                            label="View Deal →"
+                            className="mt-2 inline-flex text-xs"
+                          />
+                        </>
+                      ) : (
+                        <p class="text-sm text-surface-700">Check price</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold text-surface-900 mb-4">Category Overview</h2>
+          <div class="rounded-xl border border-surface-300 p-6">
+            <div class="grid sm:grid-cols-2 gap-6">
+              <div>
+                <h3 class="text-sm font-semibold text-surface-700 mb-2">Speed Range</h3>
+                <p class="text-surface-700">
+                  Read speeds from {(minSpeed / 1000).toFixed(1)} GB/s to {(maxSpeed / 1000).toFixed(1)} GB/s.
+                  {maxSpeed >= 2000 ? "Includes Gen 2x2 and USB4 drives for maximum throughput." : "Standard USB 3.2 Gen 2 performance."}
+                </p>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-surface-700 mb-2">Capacity Options</h3>
+                <p class="text-surface-700">
+                  Available in {minCap >= 1000 ? `${(minCap / 1000).toFixed(0)}TB` : `${minCap}GB`} to {maxCap >= 1000 ? `${(maxCap / 1000).toFixed(0)}TB` : `${maxCap}GB`} capacities.
+                  {maxCap >= 2000 ? "High-capacity options for large media libraries." : "Perfect for everyday use and backups."}
+                </p>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-surface-700 mb-2">Average Score</h3>
+                <p class="text-surface-700">
+                  Average expert score: {avgScore.toFixed(1)}/10 across {products.length} drives.
+                  {avgScore >= 9 ? "Exceptional category overall." : "Solid performance across the board."}
+                </p>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-surface-700 mb-2">Best For</h3>
+                <p class="text-surface-700">
+                  {category.slug === "usb-c" && "Modern laptops, MacBooks, and USB-C devices. Universal compatibility."}
+                  {category.slug === "thunderbolt" && "Professional creative workflows, 4K/8K video editing, and Mac workstations."}
+                  {category.slug === "gaming" && "PS5, Xbox Series X|S, and PC gaming. Fast load times and game library management."}
+                  {category.slug === "ultra-portable" && "Everyday carry, mobile professionals, and pocket-sized storage."}
+                  {category.slug === "high-speed" && "Content creators, video editors, and power users needing maximum throughput."}
+                  {category.slug === "rugged" && "Travel, outdoor photography, field work, and adventure-ready storage."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold text-surface-900 mb-4">Frequently Asked Questions</h2>
+          <div class="space-y-3">
+            {faqItems.map((faq) => (
+              <details class="group rounded-xl border border-surface-300 overflow-hidden">
+                <summary class="flex items-center justify-between px-5 py-4 text-sm font-semibold text-surface-900 cursor-pointer list-none hover:bg-surface-50 transition-colors">
+                  {faq.question}
+                  <svg aria-hidden="true" class="w-4 h-4 text-surface-700 shrink-0 ml-2 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </summary>
+                <div class="px-5 pb-4 text-sm text-surface-700 leading-relaxed border-t border-surface-200 pt-3">
+                  {faq.answer}
+                </div>
+              </details>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div class="lg:col-span-1">
+        <div class="sticky top-8 space-y-4">
+          <div class="rounded-xl border border-surface-300 p-5">
+            <h3 class="text-sm font-semibold text-surface-700 mb-3">Quick Links</h3>
+            <div class="space-y-2">
+              {categories.map((cat) => (
+                <a
+                  href={`/category/${cat.slug}`}
+                  class={`block px-3 py-2 text-sm rounded-lg transition-colors ${
+                    cat.slug === slug
+                      ? "bg-blue-50 text-blue-800 font-medium"
+                      : "text-surface-700 hover:bg-surface-50"
+                  }`}
+                >
+                  {cat.name}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-surface-300 p-5">
+            <h3 class="text-sm font-semibold text-surface-700 mb-3">Compare All</h3>
+            <a
+              href={`/compare?category=${slug}`}
+              class="block w-full text-center py-2.5 text-sm font-semibold rounded-lg border border-surface-500 text-surface-800 hover:border-surface-700 hover:bg-surface-50"
+            >
+              Full Comparison Table
+            </a>
+          </div>
+
+          <div class="rounded-xl border border-surface-300 p-5">
+            <h3 class="text-sm font-semibold text-surface-700 mb-3">Top Pick</h3>
+            {products[0] && (
+              <div>
+                <p class="text-sm font-medium text-surface-900">{products[0].name}</p>
+                <p class="text-xs text-surface-700 mt-1">{products[0].overall_score.toFixed(1)}/10</p>
+                <a
+                  href={`/products/${products[0].slug}`}
+                  class="block text-center mt-2 py-2 text-xs font-semibold rounded-lg bg-blue-800 text-white hover:bg-blue-900"
+                >
+                  View Details
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

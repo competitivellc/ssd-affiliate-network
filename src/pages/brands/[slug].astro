@@ -1,0 +1,297 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import Breadcrumb from "@components/Breadcrumb.astro";
+import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
+import ProductGrid from "@components/ProductGrid.astro";
+import { getAllProducts, getProductPrices } from "@lib/db";
+import { formatPrice, getLowestPrice } from "@lib/pricing";
+import type { Product, Price } from "@lib/db";
+
+const { DB, tenant, hostname } = Astro.locals;
+const { slug } = Astro.params;
+const db = DB!;
+
+const allProducts = await getAllProducts(db, tenant.id);
+const brandProducts = allProducts.filter((p) => p.brand_slug === slug);
+if (brandProducts.length === 0) {
+  return Astro.redirect("/404");
+}
+
+const pricesByProduct: Record<number, Price[]> = {};
+for (const p of brandProducts) {
+  pricesByProduct[p.id] = await getProductPrices(db, p.id);
+}
+
+const speeds = brandProducts.map((p) => p.read_speed_mbps);
+const minSpeed = Math.min(...speeds);
+const maxSpeed = Math.max(...speeds);
+const capacities = brandProducts.map((p) => p.capacity_gb);
+const minCap = Math.min(...capacities);
+const maxCap = Math.max(...capacities);
+const avgScore = brandProducts.reduce((sum, p) => sum + p.overall_score, 0) / brandProducts.length;
+
+const brandName = brandProducts[0]?.brand_name || slug;
+const metaDesc = `Shop all ${brandName} external SSDs. Compare ${brandProducts.length} ${brandName} drives with specs, prices, and expert reviews. Free shipping on qualifying orders.`;
+
+const brandJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Brand",
+  name: brandName,
+  url: `https://${hostname}/brands/${slug}`,
+};
+
+const brandJsonLdList = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: `${brandName} External SSDs`,
+  description: metaDesc,
+  numberOfItems: brandProducts.length,
+  itemListElement: brandProducts.map((p, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    item: {
+      "@type": "Product",
+      name: p.name,
+      url: `https://${hostname}/products/${p.slug}`,
+      description: p.description,
+      brand: { "@type": "Brand", name: brandName },
+    },
+  })),
+};
+
+const brandDescriptions: Record<string, string> = {
+  samsung: "Samsung is the industry leader in NAND flash and SSD technology. With decades of experience in semiconductor manufacturing, Samsung delivers some of the most reliable and fastest external SSDs on the market. Their T7 and T9 series are consistently top-rated for performance and build quality.",
+  crucial: "Crucial, a Micron brand, is known for reliable, affordable storage solutions. Their external SSDs offer excellent value with strong performance, making them popular among budget-conscious buyers who still demand quality.",
+  wd: "Western Digital (WD) is a trusted name in data storage solutions. Their My Passport SSD series combines sleek design with hardware encryption and reliable performance for everyday use.",
+  sandisk: "SanDisk is a pioneer in flash memory technology. Their Extreme and Extreme Pro portable SSDs are favorites among photographers and outdoor enthusiasts for their rugged design and fast speeds.",
+  seagate: "Seagate is a leading data storage infrastructure provider. Their FireCuda external SSDs are purpose-built for gaming with RGB lighting and fast load times for console and PC.",
+  sabrent: "Sabrent offers high-performance storage solutions for enthusiasts. Their Rocket Nano series delivers USB4 speeds in ultra-compact form factors, pushing the limits of external SSD performance.",
+  "sk-hynix": "SK hynix is a major NAND flash and DRAM manufacturer. Their external SSDs leverage cutting-edge NAND technology for reliable, high-speed portable storage.",
+  kingston: "Kingston is the world's largest independent memory manufacturer. Their external SSDs offer a balance of performance, reliability, and value across a wide range of capacities.",
+  corsair: "Corsair delivers premium components for gamers and creators. Their EX series external SSDs combine attractive design with solid performance for gaming and content creation.",
+  adata: "ADATA is a Taiwanese memory and storage manufacturer offering affordable external SSDs with solid performance and features for everyday use.",
+};
+
+const brandDescription = brandDescriptions[slug!] || `${brandName} external SSDs offer reliable, high-performance portable storage for a variety of use cases.`;
+
+const faqItems = [
+  {
+    question: `What ${brandName} external SSDs do you recommend?`,
+    answer: brandProducts.length > 0
+      ? `Our top ${brandName} pick is the ${brandProducts[0].name} with a score of ${brandProducts[0].overall_score.toFixed(1)}/10. It offers ${(brandProducts[0].read_speed_mbps / 1000).toFixed(1)} GB/s read speeds and ${brandProducts[0].capacity_gb >= 1000 ? `${(brandProducts[0].capacity_gb / 1000).toFixed(0)}TB` : `${brandProducts[0].capacity_gb}GB`} capacity.`
+      : `We carry a range of ${brandName} external SSDs with different capacities and speed tiers.`,
+  },
+  {
+    question: `Are ${brandName} external SSDs reliable?`,
+    answer: `Yes, ${brandName} external SSDs are known for their reliability. Most ${brandName} drives come with ${brandProducts[0]?.warranty_years || 3}-year warranties, and they consistently rank well in our durability and performance testing.`,
+  },
+  {
+    question: `How much do ${brandName} external SSDs cost?`,
+    answer: `Prices for ${brandName} external SSDs range from ${formatPrice(Math.min(...brandProducts.map((p) => { const bp = getLowestPrice(pricesByProduct[p.id] || []); return bp ? bp.price_cents : Infinity; })))} to ${formatPrice(Math.max(...brandProducts.map((p) => { const bp = getLowestPrice(pricesByProduct[p.id] || []); return bp ? bp.price_cents : 0; })))}. Prices vary by capacity and retailer.`,
+  },
+];
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqItems.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: { "@type": "Answer", text: item.answer },
+  })),
+};
+---
+
+<BaseLayout title={`${brandName} External SSDs - All Models & Prices`} description={metaDesc} jsonLd={brandJsonLdList}>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <Breadcrumb items={[{ label: "Home", href: "/" }, { label: brandName }]} />
+
+    <div class="mb-6">
+      <p class="text-xs text-surface-700 italic leading-relaxed">
+        Disclosure: We may earn a commission from qualifying purchases made through links on this page. Prices and availability are subject to change. We are reader-supported and independent — our rankings are based on an objective scoring rubric, not sponsorship.
+      </p>
+    </div>
+
+    <div class="mb-8">
+      <h1 class="text-3xl sm:text-4xl font-bold text-surface-900">
+        {brandName} External SSDs
+      </h1>
+      <p class="mt-3 text-surface-700 max-w-3xl leading-relaxed">
+        {brandDescription}
+      </p>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-8">
+      <div class="lg:col-span-2">
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold text-surface-900 mb-4">All {brandName} External SSDs</h2>
+          <div class="space-y-4">
+            {brandProducts.map((product, index) => {
+              const prices = pricesByProduct[product.id] || [];
+              const bestPrice = getLowestPrice(prices);
+              return (
+                <div class="rounded-xl border border-surface-300 p-5 hover:border-surface-400 transition-colors">
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs font-medium text-surface-700">#{index + 1}</span>
+                      </div>
+                      <a href={`/products/${product.slug}`} class="text-lg font-bold text-surface-900 hover:text-blue-800 no-underline">
+                        {product.name}
+                      </a>
+                      <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-surface-700">
+                        <span>{(product.read_speed_mbps / 1000).toFixed(1)} GB/s Read</span>
+                        <span>{(product.write_speed_mbps / 1000).toFixed(1)} GB/s Write</span>
+                        <span>{product.capacity_gb >= 1000 ? `${(product.capacity_gb / 1000).toFixed(0)}TB` : `${product.capacity_gb}GB`}</span>
+                        <span>{product.interface}</span>
+                      </div>
+                      <div class="flex items-center gap-2 mt-2">
+                        <span class="text-sm font-medium text-surface-900">{product.overall_score.toFixed(1)}/10</span>
+                        <div class="w-24 h-2 bg-surface-100 rounded-full overflow-hidden">
+                          <div class="h-full bg-blue-600 rounded-full" style={{ width: `${product.overall_score * 10}%` }}></div>
+                        </div>
+                      </div>
+                      <p class="text-sm text-surface-700 mt-2 line-clamp-2">{product.description}</p>
+                    </div>
+                    <div class="shrink-0 text-right">
+                      {bestPrice ? (
+                        <>
+                          <p class="text-lg font-bold text-surface-900">{formatPrice(bestPrice.price_cents)}</p>
+                          <p class="text-xs text-surface-700">at {bestPrice.retailer}</p>
+                          <GeoAffiliateLink
+                            url={bestPrice.affiliate_url || "#"}
+                            retailer={bestPrice.retailer}
+                            label="View Deal →"
+                            className="mt-2 inline-flex text-xs"
+                          />
+                        </>
+                      ) : (
+                        <p class="text-sm text-surface-700">Check price</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold text-surface-900 mb-4">Brand Overview</h2>
+          <div class="rounded-xl border border-surface-300 p-6">
+            <div class="grid sm:grid-cols-2 gap-6">
+              <div>
+                <h3 class="text-sm font-semibold text-surface-700 mb-2">Product Range</h3>
+                <p class="text-surface-700">
+                  {brandProducts.length} {brandName} external SSD{brandProducts.length !== 1 ? "s" : ""} ranging from {minCap >= 1000 ? `${(minCap / 1000).toFixed(0)}TB` : `${minCap}GB`} to {maxCap >= 1000 ? `${(maxCap / 1000).toFixed(0)}TB` : `${maxCap}GB`} capacity.
+                </p>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-surface-700 mb-2">Speed Range</h3>
+                <p class="text-surface-700">
+                  Read speeds from {(minSpeed / 1000).toFixed(1)} GB/s to {(maxSpeed / 1000).toFixed(1)} GB/s.
+                  {maxSpeed >= 2000 ? "Includes high-performance Gen 2x2 and USB4 options." : "Standard USB 3.2 Gen 2 performance."}
+                </p>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-surface-700 mb-2">Average Score</h3>
+                <p class="text-surface-700">
+                  Average expert score: {avgScore.toFixed(1)}/10 across {brandProducts.length} drives.
+                  {avgScore >= 9 ? "Exceptional product quality overall." : "Solid performance across the lineup."}
+                </p>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-surface-700 mb-2">Warranty</h3>
+                <p class="text-surface-700">
+                  Most {brandName} external SSDs come with {brandProducts[0]?.warranty_years || 3}-year warranties.
+                  {brandProducts.some((p) => p.warranty_years >= 5) ? "Some models offer extended 5-year coverage." : ""}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold text-surface-900 mb-4">Frequently Asked Questions</h2>
+          <div class="space-y-3">
+            {faqItems.map((faq) => (
+              <details class="group rounded-xl border border-surface-300 overflow-hidden">
+                <summary class="flex items-center justify-between px-5 py-4 text-sm font-semibold text-surface-900 cursor-pointer list-none hover:bg-surface-50 transition-colors">
+                  {faq.question}
+                  <svg aria-hidden="true" class="w-4 h-4 text-surface-700 shrink-0 ml-2 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </summary>
+                <div class="px-5 pb-4 text-sm text-surface-700 leading-relaxed border-t border-surface-200 pt-3">
+                  {faq.answer}
+                </div>
+              </details>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div class="lg:col-span-1">
+        <div class="sticky top-8 space-y-4">
+          <div class="rounded-xl border border-surface-300 p-5">
+            <h3 class="text-sm font-semibold text-surface-700 mb-3">Top {brandName} Pick</h3>
+            {brandProducts[0] && (
+              <div>
+                <p class="text-sm font-medium text-surface-900">{brandProducts[0].name}</p>
+                <p class="text-xs text-surface-700 mt-1">{brandProducts[0].overall_score.toFixed(1)}/10</p>
+                <a
+                  href={`/products/${brandProducts[0].slug}`}
+                  class="block text-center mt-2 py-2 text-xs font-semibold rounded-lg bg-blue-800 text-white hover:bg-blue-900"
+                >
+                  View Details
+                </a>
+              </div>
+            )}
+          </div>
+
+          <div class="rounded-xl border border-surface-300 p-5">
+            <h3 class="text-sm font-semibold text-surface-700 mb-3">Compare All</h3>
+            <a
+              href="/compare"
+              class="block w-full text-center py-2.5 text-sm font-semibold rounded-lg border border-surface-500 text-surface-800 hover:border-surface-700 hover:bg-surface-50"
+            >
+              Full Comparison Table
+            </a>
+          </div>
+
+          <div class="rounded-xl border border-surface-300 p-5">
+            <h3 class="text-sm font-semibold text-surface-700 mb-3">Price Stats</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-surface-700">Lowest</span>
+                <span class="font-medium text-surface-900">{formatPrice(Math.min(...brandProducts.map((p) => { const bp = getLowestPrice(pricesByProduct[p.id] || []); return bp ? bp.price_cents : Infinity; })))}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-surface-700">Highest</span>
+                <span class="font-medium text-surface-900">{formatPrice(Math.max(...brandProducts.map((p) => { const bp = getLowestPrice(pricesByProduct[p.id] || []); return bp ? bp.price_cents : 0; })))}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-surface-300 p-5">
+            <h3 class="text-sm font-semibold text-surface-700 mb-3">Browse by Brand</h3>
+            <div class="space-y-2">
+              {[...new Set(allProducts.map((p) => p.brand_slug))].map((brandSlug) => (
+                <a
+                  href={`/brands/${brandSlug}`}
+                  class={`block px-3 py-2 text-sm rounded-lg transition-colors ${
+                    brandSlug === slug
+                      ? "bg-blue-50 text-blue-800 font-medium"
+                      : "text-surface-700 hover:bg-surface-50"
+                  }`}
+                >
+                  {allProducts.find((p) => p.brand_slug === brandSlug)?.brand_name}
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

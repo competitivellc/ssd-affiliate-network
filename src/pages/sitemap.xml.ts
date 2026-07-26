@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { getAllProducts, getLastUpdatedDate, getHubsBySite } from "@lib/db";
+import { getAllProducts, getLastUpdatedDate, getHubsBySite, getCategoriesBySite } from "@lib/db";
 
 const CACHE_TTL_MS = 86_400_000;
 
@@ -15,10 +15,11 @@ async function buildSitemapXml(
 ): Promise<string> {
   const baseUrl = `https://${hostname}`;
 
-  const [products, lastUpdated, hubs] = await Promise.all([
+  const [products, lastUpdated, hubs, categories] = await Promise.all([
     getAllProducts(DB, tenant.id),
     getLastUpdatedDate(DB, tenant.id),
     getHubsBySite(DB, tenant.id),
+    getCategoriesBySite(DB, tenant.id),
   ]);
 
   const lastmod = fmtDate(lastUpdated);
@@ -38,6 +39,16 @@ async function buildSitemapXml(
 
   for (const h of hubs) {
     entries.push(`  <url>\n    <loc>${baseUrl}/hubs/${h.slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`);
+  }
+
+  for (const cat of categories) {
+    entries.push(`  <url>\n    <loc>${baseUrl}/category/${cat.slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`);
+    entries.push(`  <url>\n    <loc>${baseUrl}/best/${cat.slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`);
+  }
+
+  const brandSlugs = [...new Set(products.map((p) => p.brand_slug).filter(Boolean))];
+  for (const brandSlug of brandSlugs) {
+    entries.push(`  <url>\n    <loc>${baseUrl}/brands/${brandSlug}</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`);
   }
 
   return `<?xml version="1.0" encoding="UTF-8"?>
