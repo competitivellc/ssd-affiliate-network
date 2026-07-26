@@ -7,10 +7,6 @@ import { getProductBySlug, getProductPrices, getProductsByBrand, getRelatedProdu
 import type { Hub } from "@lib/db";
 import { classifyDrive } from "@lib/editorial";
 
-export async function getStaticPaths() {
-  return [];
-}
-
 const { DB, tenant, hostname } = Astro.locals;
 const { slug } = Astro.params;
 const db = DB!;
@@ -50,6 +46,7 @@ const siteUrl = `https://${hostname}`;
 
 const capacityLabel = product.capacity_gb >= 1000 ? `${(product.capacity_gb / 1000).toFixed(product.capacity_gb % 1000 === 0 ? 0 : 1)}TB` : `${product.capacity_gb}GB`;
 const currentYear = new Date().getFullYear();
+const bandwidthLabel = product.read_speed_mbps >= 1000 ? `${(product.read_speed_mbps / 1000).toFixed(1)} GB/s` : `${product.read_speed_mbps} MB/s`;
 
 const pros: string[] = product.pros ? JSON.parse(product.pros) : [];
 const cons: string[] = product.cons ? JSON.parse(product.cons) : [];
@@ -123,6 +120,39 @@ const breadcrumbJsonLd = {
   ],
 };
 
+const faqEntries = [
+  {
+    q: `What are the read and write speeds of the ${product.name}?`,
+    a: `The ${product.name} ${capacityLabel} delivers sequential read speeds of ${product.read_speed_mbps.toLocaleString()} MB/s and write speeds of ${product.write_speed_mbps.toLocaleString()} MB/s over its ${product.interface} interface.`,
+  },
+  {
+    q: `What interface does the ${product.name} use?`,
+    a: `The ${product.name} uses a ${product.interface} interface with a theoretical maximum bandwidth of ${bandwidthLabel}.`,
+  },
+  {
+    q: `How much storage does the ${product.name} ${capacityLabel} hold?`,
+    a: `The ${product.name} provides ${capacityLabel} of usable storage, enough for approximately ${Math.floor(product.capacity_gb / 50)} hours of 4K video or ${Math.floor(product.capacity_gb / 4)} large game installs.`,
+  },
+  {
+    q: `What is the endurance rating of the ${product.name}?`,
+    a: `The ${product.name} is rated for ${product.tbw.toLocaleString()} TBW (terabytes written) endurance, backed by a ${product.warranty_years}-year limited warranty from ${product.brand_name}.`,
+  },
+  {
+    q: `Is the ${product.name} compatible with PlayStation 5 and Xbox?`,
+    a: `Yes, the ${product.name} works with PlayStation 5, Xbox Series X|S, and other consoles that support external USB storage. It can store and play games directly from the drive.`,
+  },
+];
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqEntries.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
 const archetype = classifyDrive(product);
 const calloutBg: Record<string, string> = {
   "elite-pro-creator": "bg-purple-50 border-purple-200",
@@ -145,7 +175,7 @@ const calloutText: Record<string, string> = {
   description={sortedPrices.length > 0
     ? `${product.name} ${capacityLabel} portable SSD: ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes. See today's best price at ${sortedPrices[0].retailer}.`
     : `${product.name} ${capacityLabel} portable SSD: ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes, ${product.warranty_years}-year warranty. Full specs and review.`}
-  jsonLd={[productJsonLd, breadcrumbJsonLd]}
+  jsonLd={[productJsonLd, breadcrumbJsonLd, faqJsonLd]}
 >
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-6">

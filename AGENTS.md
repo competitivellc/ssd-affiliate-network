@@ -185,6 +185,34 @@ Remove-Item -Force ".env.indexnow" -ErrorAction SilentlyContinue
 
 **CRITICAL**: Always use `externalssds.com` and `portablessds.com` as the sitemap URLs. Never substitute `ssd-affiliate-network.pages.dev` — that is a preview/staging domain and its sitemap is NOT correct for IndexNow submissions even though the canonical URLs happen to resolve correctly due to tenant config. Using it is incorrect and will be rejected.
 
+## GSC Re-Run Cadence (MANDATORY for SEO Work)
+
+A live GSC data-pull script exists at `scripts/gsc_pull_revenue.js`. It queries the Search Console API for both `externalssds.com` and `portablessds.com` across clicks, impressions, CTR, position, top pages, top queries, page→query mappings, and 7-day trends. Run it with:
+
+```bash
+node scripts/gsc_pull_revenue.js
+```
+
+**When a new AI agent makes SEO changes and deploys them, the changes need time to take effect in Google's index before their impact can be measured.** The agent MUST re-run `node scripts/gsc_pull_revenue.js` **7-14 days after the deploy date** to measure position/click deltas on the affected URLs and queries, then compare against the baseline captured at deploy time.
+
+The baseline from the most recent SEO work (deployed 2026-07-26) is:
+
+| Metric | externalssds.com | portablessds.com |
+|--------|------------------|------------------|
+| 90d clicks | 1 | 1 |
+| 90d impressions | 246 | 269 |
+| Avg position | 37.6 | 32.6 |
+
+Target URLs to track (each already indexed but stuck at pos 25-50):
+- `*/products/samsung-t7-shield*` — currently 129i / 0c / pos 37.7
+- `*/products/sandisk-extreme-pro-portable` — currently 83i / 0c / pos 38.7
+- `*/products/samsung-t9` — currently 43i / 0c / pos 52.3
+- `*/products/samsung-t7-shield-portable` — currently 34i / 0c / pos 27.3
+
+Target queries: `samsung t7 shield 4tb portable ssd amazon.com price` (pos 7.6), `1 tb portable ssd price` (pos 27.5), `portable ssd comparison` (pos 14.3).
+
+**Any future AI agent doing SEO work on this repo MUST, at the start of its session, re-run `node scripts/gsc_pull_revenue.js` to get a fresh baseline, and note the current date as the deploy-baseline for the next agent. Update the baseline table above with fresh numbers when you do.**
+
 ## What's Done
 - [x] Full project scaffold, Astro + Cloudflare adapter + Tailwind
 - [x] D1 schema + seed data deployed to remote
@@ -204,6 +232,9 @@ Remove-Item -Force ".env.indexnow" -ErrorAction SilentlyContinue
 - [x] IndexNow batch submission library with retry/exponential backoff
 - [x] Admin submission API endpoint (Bearer auth)
 - [x] Post-deploy submission script (npm run indexnow:submit)
+- [x] Product page SEO: commercial query-anchored titles, AggregateRating/Offer/Review/BreadcrumbList JSON-LD, FAQ schema, "Price & Where to Buy" section, competitor spec comparison table, Most Popular homepage section for internal link equity
+- [x] GSC live data pull script (scripts/gsc_pull_revenue.js) — queries both domains for clicks/impressions/CTR/position/top pages/top queries
+- [x] Fix: removed `export async function getStaticPaths()` from `src/pages/products/[slug].astro` — the Astro compiler was emitting a duplicate `export` inside the component function body, causing esbuild to fail with "Unexpected export" once the frontmatter grew past a threshold. SSR pages don't need `getStaticPaths()` anyway (it's ignored with a warning).
 
 ## What's Pending
 - [ ] Cron price-sync worker not deployed (needs API keys → `npx wrangler deploy worker/price-sync.ts --name ssd-price-sync`)
