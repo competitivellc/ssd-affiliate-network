@@ -1,0 +1,62 @@
+---
+---
+<div
+  id="cookie-consent-banner"
+  class="fixed bottom-0 left-0 right-0 z-50 bg-surface-900 text-white shadow-lg border-t border-surface-700 p-4 sm:p-6"
+  role="region"
+  aria-label="Cookie consent"
+  hidden
+>
+  <div class="mx-auto max-w-7xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div class="flex-1">
+      <p class="text-sm leading-relaxed">
+        <strong>We use cookies.</strong> We use essential cookies to make this site work. With your consent, we also use analytics cookies to improve your experience. You can read more in our <a href="/privacy" class="underline hover:text-blue-300">Privacy Policy</a>.
+      </p>
+    </div>
+    <div class="flex gap-2 shrink-0">
+      <button
+        type="button"
+        id="cookie-consent-reject"
+        class="px-3 py-2 text-sm font-medium rounded-lg border border-surface-500 text-white hover:bg-surface-800 transition-colors"
+      >
+        Reject
+      </button>
+      <button
+        type="button"
+        id="cookie-consent-accept"
+        class="px-3 py-2 text-sm font-semibold rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors"
+      >
+        Accept
+      </button>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  (function () {
+    var banner = document.getElementById('cookie-consent-banner');
+    var acceptBtn = document.getElementById('cookie-consent-accept');
+    var rejectBtn = document.getElementById('cookie-consent-reject');
+    if (!banner) return;
+
+    var STORAGE_KEY = 'cookie-consent';
+    var stored = null;
+    try {
+      stored = localStorage.getItem(STORAGE_KEY);
+    } catch (e) {}
+
+    if (!stored) {
+      banner.hidden = false;
+    }
+
+    function dismiss(value) {
+      try {
+        localStorage.setItem(STORAGE_KEY, value);
+      } catch (e) {}
+      banner.hidden = true;
+    }
+
+    if (acceptBtn) acceptBtn.addEventListener('click', function () { dismiss('accepted'); });
+    if (rejectBtn) rejectBtn.addEventListener('click', function () { dismiss('rejected'); });
+  })();
+</script>
