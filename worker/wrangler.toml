@@ -1,0 +1,34 @@
+# Worker-specific wrangler config. Deploy via:
+#   npx wrangler deploy --config worker/wrangler.toml
+#
+# Keep cron schedule to daily (06:00 UTC) per AGENTS.md. Pol IP §2(c)(i)
+# line 543: site displays prices with a date/time stamp because refresh
+# cadence is less than hourly. The cron schedule is the contract.
+
+name = "ssd-price-sync"
+main = "price-sync.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Cron trigger — daily 06:00 UTC.
+[triggers]
+crons = ["0 6 * * *"]
+
+# D1 — same database as the main Pages project.
+[[d1_databases]]
+binding = "DB"
+database_name = "ssd-affiliate-db"
+database_id = "c3915552-b3e5-4f59-a9f2-736070adba03"
+
+# KV — same PRICE_CACHE namespace. Worker writes; Pages reads.
+[[kv_namespaces]]
+binding = "PRICE_CACHE"
+id = "68b4b1e79ec8441f86764b16f5b5957a"
+
+# Optional KV namespace for cross-run alert propagation. If absent, the
+# worker falls back to PRICE_CACHE. To set this up:
+#   npx wrangler kv namespace create LINK_AUDIT
+# And then add the resulting ID below.
+# [[kv_namespaces]]
+# binding = "LINK_AUDIT"
+# id = "<LINK_AUDIT_KV_NAMESPACE_ID>"
