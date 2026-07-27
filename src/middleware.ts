@@ -1,6 +1,6 @@
 import { defineMiddleware } from "astro/middleware";
 import { getTenant } from "@config/tenants";
-import { getCountryCode } from "@lib/affiliate";
+import { getCountryCode, getMarketplace } from "@lib/affiliate";
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const hostname = context.request.headers.get("host") || "externalssds.com";
@@ -32,7 +32,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   context.locals.tenant = tenant;
-  context.locals.countryCode = getCountryCode(context.request);
+  const countryCode = getCountryCode(context.request);
+  context.locals.countryCode = countryCode;
+  context.locals.marketplace = getMarketplace(countryCode);
   context.locals.hostname = tenant.canonicalDomain;
 
   const runtime = context.locals.runtime;

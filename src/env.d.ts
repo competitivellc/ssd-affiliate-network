@@ -8,6 +8,7 @@ declare namespace App {
   interface Locals {
     tenant: TenantConfig;
     countryCode: string;
+    marketplace: string;
     hostname: string;
     DB: import("@cloudflare/workers-types").D1Database;
     PRICE_CACHE: import("@cloudflare/workers-types").KVNamespace;

@@ -1,0 +1,38 @@
+---
+// Satisfies Amazon Program Policies (April 14, 2026) IP §2(c)(i) line 543:
+// "You will include a date/time stamp adjacent to your display of pricing or
+// availability information on your application if you obtain Product
+// Advertising Content ... or if you call ... PA API or refresh the Product
+// Advertising Content displayed on your application less frequently than
+// hourly."
+//
+// Our worker syncs daily (< hourly), so every price display MUST carry this
+// stamp. The second sentence is the verbatim disclaimer required by IP §2(c)
+// last paragraph (line 549).
+
+export interface Props {
+  /**
+   * ISO date string from prices.fetched_at — the moment the displayed price
+   * was last fetched from PA-API / the vendor. Localized at render time.
+   */
+  fetchedAt: string;
+  /** Optional className for theme overrides. Inline-neutral by default. */
+  className?: string;
+}
+
+const { fetchedAt, className = "" } = Astro.props;
+const date = new Date(fetchedAt);
+const formatted = date.toLocaleString(undefined, {
+  dateStyle: "medium",
+  timeStyle: "short",
+});
+---
+
+<p
+  data-price-stamp={fetchedAt}
+  class={`text-xs text-surface-500 italic leading-snug ${className}`}
+>
+  Price as of {formatted}. Prices and availability are subject to change. Any
+  price and availability information displayed on Amazon at the time of purchase
+  will apply to the purchase of this product.
+</p>

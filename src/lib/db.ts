@@ -31,15 +31,29 @@ export interface Product {
   _lowestPrice?: number;
 }
 
+export type PriceCondition = "new" | "used" | "refurbished";
+export type UrlSource = "paapi" | "seed" | "manual" | "vendor";
+
 export interface Price {
   id: number;
   product_id: number;
   retailer: string;
+  marketplace?: string;
+  condition?: PriceCondition;
   price_cents: number;
   currency: string;
   affiliate_url: string | null;
+  url_source?: UrlSource;
   in_stock: number;
   fetched_at: string;
+}
+
+export interface GetProductPricesFreshQuery {
+  marketplace?: string;
+  inStockOnly?: boolean;
+  maxAgeHours?: number;
+  conditions?: PriceCondition[];
+  retailer?: string;
 }
 
 export interface Category {
@@ -123,14 +137,48 @@ export async function getProductPrices(
   db: D1Database,
   productId: number
 ): Promise<Price[]> {
+  // Deprecated: returns the latest snapshot row per retailer for the default
+  // marketplace, regardless of freshness. Use getProductPricesFresh() for any
+  // render path that displays a buy button or price.
   const { results } = await db
     .prepare(
       `SELECT * FROM prices
-       WHERE product_id = ?
+       WHERE product_id = ? AND marketplace = 'US'
        ORDER BY price_cents ASC`
     )
     .bind(productId)
     .all<Price>();
+  return results;
+}
+
+export async function getProductPricesFresh(
+  db: D1Database,
+  productId: number,
+  query: GetProductPricesFreshQuery = {}
+): Promise<Price[]> {
+  // One row per (retailer, condition) at the most recent fetched_at, filtered
+  // to the visitor's marketplace and within the freshness TTL (default 24h,
+  // matching Amazon Pol IP §2(c)(h) line 541).
+  const marketplace = query.marketplace || "US";
+  const maxAgeHours = query.maxAgeHours ?? 24;
+  const conditions = query.conditions || ["new", "used"];
+  const inStockOnly = query.inStockOnly ?? true;
+  const placeholders = conditions.map(() => "?").join(",");
+
+  let sql = `SELECT * FROM prices
+             WHERE product_id = ?
+               AND marketplace = ?
+               AND fetched_at >= datetime('now', ?)
+               AND condition IN (${placeholders})`;
+  const params: unknown[] = [productId, marketplace, `-${maxAgeHours} hours`, ...conditions];
+  if (inStockOnly) sql += ` AND in_stock = 1`;
+  if (query.retailer) {
+    sql += ` AND retailer = ?`;
+    params.push(query.retailer);
+  }
+  sql += ` ORDER BY price_cents ASC`;
+
+  const { results } = await db.prepare(sql).bind(...params).all<Price>();
   return results;
 }
 
@@ -188,29 +236,75 @@ export async function getAffiliateTag(
   db: D1Database,
   siteId: string,
   retailer: string,
-  countryCode: string
-): Promise<string | null> {
+  countryCode: string,
+  marketplace?: string
+): Promise<{ tag: string; linkCode: string | null; linkId: string | null } | null> {
+  const mp = marketplace || countryCode;
   const { results } = await db
     .prepare(
-      `SELECT affiliate_tag FROM affiliate_configs
-       WHERE site_id = ? AND retailer = ? AND country_code = ?
+      `SELECT affiliate_tag AS tag, link_code AS linkCode, link_id AS linkId FROM affiliate_configs
+       WHERE site_id = ? AND retailer = ? AND marketplace = ? AND country_code = ?
        LIMIT 1`
     )
-    .bind(siteId, retailer, countryCode)
-    .all<{ affiliate_tag: string }>();
+    .bind(siteId, retailer, mp, countryCode)
+    .all<{ tag: string; linkCode: string | null; linkId: string | null }>();
 
-  if (results[0]) return results[0].affiliate_tag;
+  if (results[0]) return results[0];
 
   const { results: fallback } = await db
     .prepare(
-      `SELECT affiliate_tag FROM affiliate_configs
-       WHERE site_id = ? AND retailer = ? AND country_code = '*'
+      `SELECT affiliate_tag AS tag, link_code AS linkCode, link_id AS linkId FROM affiliate_configs
+       WHERE site_id = ? AND retailer = ? AND marketplace = ? AND country_code = '*'
+       LIMIT 1`
+    )
+    .bind(siteId, retailer, mp)
+    .all<{ tag: string; linkCode: string | null; linkId: string | null }>();
+
+  if (fallback[0]) return fallback[0];
+
+  // Global fallback (marketplace='*', country='*') — last resort.
+  const { results: globalFallback } = await db
+    .prepare(
+      `SELECT affiliate_tag AS tag, link_code AS linkCode, link_id AS linkId FROM affiliate_configs
+       WHERE site_id = ? AND retailer = ? AND marketplace = '*' AND country_code = '*'
        LIMIT 1`
     )
     .bind(siteId, retailer)
-    .all<{ affiliate_tag: string }>();
+    .all<{ tag: string; linkCode: string | null; linkId: string | null }>();
 
-  return fallback[0]?.affiliate_tag || null;
+  return globalFallback[0] || null;
+}
+
+export async function getAffiliateTagsBatch(
+  db: D1Database,
+  siteId: string,
+  retailers: string[],
+  countryCode: string,
+  marketplace?: string
+): Promise<Map<string, { tag: string; linkCode: string | null; linkId: string | null } | null>> {
+  // One query resolves tags for every retailer on a page, killing the N+1 the
+  // old getAffiliateTag-per-GeoAffiliateLink pattern created on listing pages.
+  const mp = marketplace || countryCode;
+  const placeholders = retailers.map(() => "?").join(",");
+  const { results } = await db
+    .prepare(
+      `SELECT retailer, affiliate_tag AS tag, link_code AS linkCode, link_id AS linkId,
+              country_code, marketplace
+       FROM affiliate_configs
+       WHERE site_id = ? AND retailer IN (${placeholders})`
+    )
+    .bind(siteId, ...retailers)
+    .all<{ retailer: string; tag: string; linkCode: string | null; linkId: string | null; country_code: string; marketplace: string }>();
+
+  const out = new Map<string, { tag: string; linkCode: string | null; linkId: string | null } | null>();
+  for (const r of retailers) {
+    const exact = results.find((x) => x.retailer === r && x.marketplace === mp && x.country_code === countryCode);
+    const mpFallback = results.find((x) => x.retailer === r && x.marketplace === mp && x.country_code === "*");
+    const globalFallback = results.find((x) => x.retailer === r && x.marketplace === "*" && x.country_code === "*");
+    const chosen = exact || mpFallback || globalFallback || null;
+    out.set(r, chosen ? { tag: chosen.tag, linkCode: chosen.linkCode, linkId: chosen.linkId } : null);
+  }
+  return out;
 }
 
 export async function getTopRatedProducts(

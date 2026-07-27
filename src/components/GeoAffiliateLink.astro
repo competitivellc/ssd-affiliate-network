@@ -1,18 +1,47 @@
 ---
-import { rewriteAffiliateUrl } from "@lib/affiliate";
-import { getAffiliateTag } from "@lib/db";
+import { buildAffiliateUrl } from "@lib/affiliate";
+import type { UrlSource } from "@lib/db";
 
 export interface Props {
   url: string;
   retailer: string;
   label: string;
   className?: string;
+  /**
+   * Source of the URL. PA-API URLs are passed through verbatim per
+   * Amazon Pol §6(a) line 363 — never altered, never re-tagged.
+   */
+  urlSource?: UrlSource;
+  /**
+   * Opt-in for cart-extend linkCode=ll1 (Pol §1(c)(i) line 128).
+   * Use on primary high-intent CTAs (product page buy button, ProductCard
+   * "See Price" button). Leave undefined for secondary "other retailers" rows.
+   */
+  useCartExtend?: boolean;
 }
 
-const { url, retailer, label, className = "" } = Astro.props;
-const { DB, countryCode, tenant } = Astro.locals;
-const tag = await getAffiliateTag(DB as any, tenant.id, retailer, countryCode);
-const finalUrl = tag ? rewriteAffiliateUrl(url, tag, retailer) : url;
+const { url, retailer, label, className = "", urlSource, useCartExtend } = Astro.props;
+const { DB, tenant, countryCode, marketplace } = Astro.locals;
+
+let finalUrl: string | null = null;
+if (url && url !== "#") {
+  finalUrl = await buildAffiliateUrl(url, {
+    db: DB as any,
+    siteId: tenant.id,
+    retailer,
+    country: countryCode,
+    marketplace,
+    urlSource,
+    useCartExtend,
+  });
+}
+
+// Pol §2(b) "no misleading claims" + Plan D2: never render <a href="#">.
+// If the URL failed rewrite (no tag, malformed, etc.), returning nothing
+// is better than rendering a non-functional button.
+if (!finalUrl) {
+  return null;
+}
 ---
 
 <a
