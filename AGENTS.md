@@ -37,6 +37,95 @@ This is non-negotiable: you have direct read access to live Google Search Consol
 
 When the user asks anything involving SEO performance, keyword opportunities, indexing status, CTR optimization, ranking movements, top pages, low-CTR queries, or "how is [domain] doing in search", **use the Search Console API directly** rather than asking the user to look it up manually. This applies to **both** `externalssds.com` **and** `portablessds.com` — pick the right env var for whichever domain the user asked about (or query both if the request is generic).
 
+## ⚠️ CRITICAL: Amazon Associates Compliance (ALL AI AGENTS MUST READ)
+
+**🚨 ANY AI AGENT TOUCHING THIS PROJECT MUST READ AND FOLLOW THIS SECTION. VIOLATIONS CAN CAUSE IMMEDIATE ACCOUNT TERMINATION WITH NO WARNING. 🚨**
+
+These sites (`externalssds.com` and `portablessds.com`) earn revenue through the **Amazon Associates Program**. Amazon does NOT warn before terminating accounts — any violation is treated as a "material breach" and triggers immediate closure + forfeiture of all earned commissions. Every AI agent working on this codebase MUST ensure all code and content remains compliant with the [Amazon Associates Operating Agreement](https://affiliate-program.amazon.com/help/operating/agreement) and [Program Policies](https://affiliate-program.amazon.com/help/operating/policies) (last updated April 14, 2026).
+
+### Mandatory Disclosure (DO NOT REMOVE OR MODIFY)
+
+Every page that contains affiliate links MUST display the following exact Amazon-required disclosure text. It must appear **clearly and conspicuously** — not hidden in small print, not buried in a footer-only, not behind a "show more" toggle. The current implementation places it in the Footer component AND inline on each page template. **Do not remove either placement.**
+
+**Required verbatim text**: `As an Amazon Associate I earn from qualifying purchases.`
+
+Current disclosure locations (if Amazon changes its required wording, update ALL of these):
+- `src/components/Footer.astro` — site-wide footer disclosure (line ~86)
+- Every page template (`index.astro`, `products/[slug].astro`, `compare.astro`, `hubs/[slug].astro`, `best/[slug].astro`, `brands/[slug].astro`, `category/[slug].astro`, `compare/[slug].astro`, `products/[slug]/[retailer].astro`) — inline disclosure block
+
+### Content Rules (AI-Generated Content Must Comply)
+
+1. **Original content required**: Amazon's April 2026 update added a definition requiring original content to contain "commentary, analysis, or transformation for additional value." AI-generated product descriptions, pros/cons, and hub editorial MUST include genuine analysis — never just copy or rephrase Amazon's product listing text. Every product page and hub page must have substantial original editorial content.
+
+2. **No misleading claims**: Never write exaggerated, inaccurate, or deceptive claims about products. No guaranteed performance claims. No fake urgency ("buy now before it's gone!"). No misleading price information.
+
+3. **No customer reviews/ratings from Amazon**: Do NOT scrape, display, or reference Amazon customer reviews or star ratings on the site unless obtained through the PA API / Creators API and in compliance with those APIs' terms. The site's own editorial ratings (our `overall_score`) are fine.
+
+4. **Remove expired promotions**: If any page references a limited-time Amazon promotion (e.g., "15% off"), that content must be removed as soon as the promotion ends. Do not hardcode promotional references.
+
+### Link Rules
+
+1. **Special Links must use Associates ID**: All Amazon affiliate links must contain the correct Associates tag (format: `XXXXX-##`). The `GeoAffiliateLink.astro` component handles this via `affiliate_configs` table. Never hardcode Amazon URLs without the tag.
+
+2. **No cloaking or redirecting**: Links must not obscure the Amazon URL. No hidden iframes, no JS-based redirects that hide the destination. Links should clearly go to Amazon.
+
+3. **No pop-ups/pop-unders**: Special Links must not open in pop-up or pop-under windows (except narrow product-related promotions).
+
+4. **No incentivized clicks**: Never offer rewards, rebates, points, or any incentive for clicking affiliate links. No "loyalty programs" tied to Amazon links.
+
+5. **No software/browser extensions**: Never create browser extensions, toolbars, or client-side apps that inject Amazon affiliate links.
+
+6. **Links must be on YOUR site**: Amazon links must be accessed directly from the site pages. No posting them on Amazon itself, no posting them on social media in ways that violate the agreement.
+
+### Price Display Rules
+
+1. **No price tracking/alerting**: Amazon's Program Policies explicitly state: "your Site must not have price tracking and/or price alerting functionality." The current price history chart shows historical pricing for informational purposes — this is different from a price alerting feature. **Do NOT add features like**: price drop alerts, email notifications when prices change, user-configurable price thresholds, or any mechanism that tracks prices over time and notifies users. If in doubt, ask before implementing any price-related feature.
+
+2. **Price accuracy**: If you display prices, they must be accurate and sourced from Amazon's API (PA API/Creators API) or served via Amazon's own link tools. Never hardcode or guess prices. The site currently syncs prices via `worker/price-sync.ts` from PA API — this is compliant as long as prices are refreshed reasonably often.
+
+3. **If showing price comparisons** with non-Amazon retailers: you must display both the lowest "new" price and, if available, the lowest "used" price on the Amazon listing.
+
+### Paid Advertising Restrictions
+
+1. **No paid ads linking to Amazon**: Amazon's April 2026 update expanded disqualified purchases to include products purchased by customers referred through **any** paid or boosted advertisement linking to Amazon, with limited exceptions. Do NOT run Google Ads, Facebook ads, or any paid traffic campaigns that link directly to Amazon product pages.
+
+2. **No bidding on Amazon keywords**: Never bid on keywords containing "amazon", "kindle", or any Amazon trademark in paid search advertising.
+
+3. **Organic search is fine**: Publishing content that ranks organically in Google and links to Amazon is the core business model — this is fully allowed.
+
+### Prohibited Activities (DO NOT IMPLEMENT)
+
+- Do NOT allow users to purchase products through your own affiliate links (self-referral is banned)
+- Do NOT create fake or misleading content about Amazon or its policies
+- Do NOT intercept, record, or redirect user form submissions to Amazon
+- Do NOT modify Amazon page behavior (buttons, links, features)
+- Do NOT use Amazon's customer reviews or ratings without PA API compliance
+- Do NOT sell, resell, or redistribute Amazon product data/API content
+- Do NOT use Amazon trademarks in domain names, subdomains, or social media handles
+- Do NOT attempt to circumvent the commission tracking system
+- Do NOT artificially generate clicks or sessions
+- Do NOT frame Amazon pages within the site
+
+### FTC Disclosure (Separate from Amazon)
+
+In addition to Amazon's required disclosure, the FTC requires clear disclosure of material connections. The current "As an Amazon Associate I earn from qualifying purchases" text satisfies both Amazon and FTC requirements. If you add any other affiliate programs (B&H, Newegg, etc.), their disclosures must also be included.
+
+### Compliance Checklist for AI Agents
+
+Before committing ANY change, verify:
+- [ ] Disclosure text is present and visible on any new/modified page
+- [ ] No Amazon customer reviews/ratings are displayed without PA API compliance
+- [ ] No price alerting/tracking features are added
+- [ ] No paid advertising campaigns link to Amazon
+- [ ] Product descriptions contain original editorial commentary (not just rephrased Amazon text)
+- [ ] No Amazon trademarks are used in domains, handles, or identifiers
+- [ ] Links are not cloaked, hidden, or opened in pop-ups
+- [ ] No incentives are offered for clicking affiliate links
+
+**Reference**: [Amazon Associates Operating Agreement](https://affiliate-program.amazon.com/help/operating/agreement) | [Program Policies](https://affiliate-program.amazon.com/help/operating/policies) | [April 2026 Changes](https://affiliate-program.amazon.com/help/operating/compare)
+
+---
+
 ## Architecture
 - **Framework**: Astro 5 (`output: "server"`) with `@astrojs/cloudflare` adapter
 - **Styling**: Tailwind CSS v3 with `@astrojs/tailwind`
@@ -246,7 +335,7 @@ Target queries: `samsung t7 shield 4tb portable ssd amazon.com price` (pos 7.6),
 ## New Session Boilerplate
 Paste this at the start of a new conversation with any AI coding agent:
 
-> I am building a multi-tenant SSD affiliate comparison network. The repo is at `github.com/competitivellc/ssd-affiliate-network` on branch `main`. It's an Astro 5 SSR site deployed on Cloudflare Pages with D1 (SQLite) and KV cache, serving `externalssds.com` and `portablessds.com`. The codebase is fully functional and deployed. Read `AGENTS.md` in the repo root for full context. You have direct read access to live Google Search Console data for `portablessds.com` via the service account JSON key at the path in the local env var `PORTABLESSDS_GSC_SERVICE_ACCOUNT` — use it for any SEO/performance work instead of asking me to look things up. I need you to help with [your specific task]. No global installs - use `npx` for all wrangler commands. After making code changes, commit and push - I won't do it. After pushing, run the Post-Deploy Checklist to submit IndexNow for both domains.
+> I am building a multi-tenant SSD affiliate comparison network. The repo is at `github.com/competitivellc/ssd-affiliate-network` on branch `main`. It's an Astro 5 SSR site deployed on Cloudflare Pages with D1 (SQLite) and KV cache, serving `externalssds.com` and `portablessds.com`. The codebase is fully functional and deployed. Read `AGENTS.md` in the repo root for full context. **CRITICAL: This project earns revenue via Amazon Associates — any violation = immediate account termination with no warning. You MUST read and comply with the "Amazon Associates Compliance" section of AGENTS.md before writing ANY code or content.** You have direct read access to live Google Search Console data for `portablessds.com` via the service account JSON key at the path in the local env var `PORTABLESSDS_GSC_SERVICE_ACCOUNT` — use it for any SEO/performance work instead of asking me to look things up. I need you to help with [your specific task]. No global installs - use `npx` for all wrangler commands. After making code changes, commit and push - I won't do it. After pushing, run the Post-Deploy Checklist to submit IndexNow for both domains.
 
 ## D1 CLI Commands
 ```bash
