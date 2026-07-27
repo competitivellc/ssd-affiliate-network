@@ -142,13 +142,13 @@ INSERT OR IGNORE INTO hubs (site_id, hub_type, slug, name, description, meta_des
 
 -- Affiliate configs (geo-targeted)
 INSERT OR IGNORE INTO affiliate_configs (site_id, retailer, country_code, affiliate_tag) VALUES
-  ('externalssds', 'Amazon', 'US', 'ssdext-20'),
-  ('externalssds', 'Amazon', 'GB', 'ssdext-21'),
-  ('externalssds', 'Amazon', 'DE', 'ssdext-22'),
-  ('externalssds', 'Amazon', 'CA', 'ssdext-23'),
-  ('externalssds', 'Amazon', '*', 'ssdext-20'),
-  ('portablessds', 'Amazon', 'US', 'ssdport-20'),
-  ('portablessds', 'Amazon', 'GB', 'ssdport-21'),
-  ('portablessds', 'Amazon', 'DE', 'ssdport-22'),
-  ('portablessds', 'Amazon', 'CA', 'ssdport-23'),
-  ('portablessds', 'Amazon', '*', 'ssdport-20');
+  ('externalssds', 'Amazon', 'US', 'ssdnetwork07-20'),
+  ('externalssds', 'Amazon', 'GB', 'ssdnetwork07-20'),
+  ('externalssds', 'Amazon', 'DE', 'ssdnetwork07-20'),
+  ('externalssds', 'Amazon', 'CA', 'ssdnetwork07-20'),
+  ('externalssds', 'Amazon', '*', 'ssdnetwork07-20'),
+  ('portablessds', 'Amazon', 'US', 'ssdnetwork07-20'),
+  ('portablessds', 'Amazon', 'GB', 'ssdnetwork07-20'),
+  ('portablessds', 'Amazon', 'DE', 'ssdnetwork07-20'),
+  ('portablessds', 'Amazon', 'CA', 'ssdnetwork07-20'),
+  ('portablessds', 'Amazon', '*', 'ssdnetwork07-20');
