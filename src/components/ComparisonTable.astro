@@ -69,9 +69,11 @@ const specs = [
             <td>
               {best ? (
                 <GeoAffiliateLink
-                  url={best.affiliate_url || "#"}
+                  url={best.affiliate_url || ""}
                   retailer={best.retailer}
                   label={`See Price on ${best.retailer} →`}
+                  urlSource={best.url_source}
+                  useCartExtend
                   className="w-full justify-center py-2 text-xs font-semibold bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
                 />
               ) : (

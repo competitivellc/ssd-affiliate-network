@@ -2,12 +2,13 @@
 import BaseLayout from "@layouts/BaseLayout.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
+import PriceStamp from "@components/PriceStamp.astro";
 import ProductGrid from "@components/ProductGrid.astro";
-import { getAllProducts, getProductPrices } from "@lib/db";
+import { getAllProducts, getProductPricesFresh } from "@lib/db";
 import { getLowestPrice } from "@lib/pricing";
 import type { Product, Price } from "@lib/db";
 
-const { DB, tenant, hostname } = Astro.locals;
+const { DB, tenant, hostname, marketplace } = Astro.locals;
 const { slug } = Astro.params;
 const db = DB!;
 
@@ -19,7 +20,7 @@ if (brandProducts.length === 0) {
 
 const pricesByProduct: Record<number, Price[]> = {};
 for (const p of brandProducts) {
-  pricesByProduct[p.id] = await getProductPrices(db, p.id);
+  pricesByProduct[p.id] = await getProductPricesFresh(db, p.id, { marketplace, inStockOnly: true });
 }
 
 const speeds = brandProducts.map((p) => p.read_speed_mbps);
@@ -159,14 +160,17 @@ const faqJsonLd = {
                           <p class="text-lg font-semibold text-blue-800">See Price</p>
                           <p class="text-xs text-surface-700">at {bestPrice.retailer}</p>
                           <GeoAffiliateLink
-                            url={bestPrice.affiliate_url || "#"}
+                            url={bestPrice.affiliate_url || ""}
                             retailer={bestPrice.retailer}
                             label="View Deal →"
+                            urlSource={bestPrice.url_source}
+                            useCartExtend
                             className="mt-2 inline-flex text-xs"
                           />
+                          <PriceStamp fetchedAt={bestPrice.fetched_at} className="mt-2" />
                         </>
                       ) : (
-                        <p class="text-sm text-surface-700">Check price</p>
+                        <p class="text-sm text-surface-700">Pricing temporarily unavailable</p>
                       )}
                     </div>
                   </div>

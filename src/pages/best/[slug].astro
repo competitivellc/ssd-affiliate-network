@@ -2,12 +2,13 @@
 import BaseLayout from "@layouts/BaseLayout.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
+import PriceStamp from "@components/PriceStamp.astro";
 import ProductGrid from "@components/ProductGrid.astro";
-import { getTopRatedProducts, getProductPrices, getCategoriesBySite } from "@lib/db";
+import { getTopRatedProducts, getProductPricesFresh, getCategoriesBySite } from "@lib/db";
 import { getLowestPrice } from "@lib/pricing";
 import type { Product, Price } from "@lib/db";
 
-const { DB, tenant, hostname } = Astro.locals;
+const { DB, tenant, hostname, marketplace } = Astro.locals;
 const { slug } = Astro.params;
 const db = DB!;
 
@@ -23,7 +24,7 @@ const displayProducts = categoryProducts.length > 0 ? categoryProducts.slice(0, 
 
 const pricesByProduct: Record<number, Price[]> = {};
 for (const p of displayProducts) {
-  pricesByProduct[p.id] = await getProductPrices(db, p.id);
+  pricesByProduct[p.id] = await getProductPricesFresh(db, p.id, { marketplace, inStockOnly: true });
 }
 
 const speeds = displayProducts.map((p) => p.read_speed_mbps);
@@ -48,10 +49,12 @@ const bestJsonLd = {
       url: `https://${hostname}/products/${p.slug}`,
       description: p.description,
       brand: { "@type": "Brand", name: p.brand_name },
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: p.overall_score,
-        bestRating: 10,
+      // Pol §5(t): customer reviews/star ratings prohibited unless via PA API
+      // or Creators API. Surface our editorial score as a single Review.
+      review: {
+        "@type": "Review",
+        author: { "@type": "Organization", name: tenant.name },
+        reviewRating: { "@type": "Rating", ratingValue: p.overall_score, bestRating: 10, worstRating: 0 },
       },
     },
   })),
@@ -162,12 +165,17 @@ const editorial = getEditorialContent(slug!, displayProducts);
                       <p class="text-sm text-surface-700 mt-2">{product.description}</p>
                       <div class="flex items-center gap-4 mt-3">
                         {bestPrice && (
-                          <GeoAffiliateLink
-                            url={bestPrice.affiliate_url || "#"}
-                            retailer={bestPrice.retailer}
-                            label={`See Price on ${bestPrice.retailer} →`}
-                            className="text-sm font-semibold"
-                          />
+                          <>
+                            <GeoAffiliateLink
+                              url={bestPrice.affiliate_url || ""}
+                              retailer={bestPrice.retailer}
+                              label={`See Price on ${bestPrice.retailer} →`}
+                              urlSource={bestPrice.url_source}
+                              useCartExtend
+                              className="text-sm font-semibold"
+                            />
+                            <PriceStamp fetchedAt={bestPrice.fetched_at} className="text-xs" />
+                          </>
                         )}
                         <a href={`/products/${product.slug}`} class="text-sm text-blue-800 hover:text-blue-900">
                           Full Review →

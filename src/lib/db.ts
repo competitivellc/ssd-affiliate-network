@@ -133,6 +133,14 @@ export async function getProductBySlug(
   return results[0] || null;
 }
 
+/**
+ * @deprecated Use `getProductPricesFresh()` for any render path that displays
+ * a price or buy button. This legacy function returns the latest snapshot
+ * row per retailer for the US marketplace without freshness, in-stock, or
+ * condition filters; do NOT call from new code.
+ *
+ * Retained only as a soft fallback during the Phase D rollout.
+ */
 export async function getProductPrices(
   db: D1Database,
   productId: number

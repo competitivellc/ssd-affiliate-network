@@ -2,12 +2,14 @@
 import BaseLayout from "@layouts/BaseLayout.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
+import PriceStamp from "@components/PriceStamp.astro";
 import ProductGrid from "@components/ProductGrid.astro";
-import { getProductBySlug, getProductPrices, getProductsByBrand, getRelatedProducts, getHubsForProduct } from "@lib/db";
+import { getProductBySlug, getProductPricesFresh, getProductsByBrand, getRelatedProducts, getHubsForProduct } from "@lib/db";
 import type { Hub } from "@lib/db";
 import { classifyDrive } from "@lib/editorial";
+import { getLowestPrice } from "@lib/pricing";
 
-const { DB, tenant, hostname } = Astro.locals;
+const { DB, tenant, hostname, marketplace } = Astro.locals;
 const { slug } = Astro.params;
 const db = DB!;
 
@@ -16,8 +18,17 @@ if (!product) {
   return Astro.redirect("/404");
 }
 
-const prices = await getProductPrices(db, product.id);
-const sortedPrices = [...prices].sort((a, b) => a.price_cents - b.price_cents);
+// Freshness-filtered, marketplace-matched, in-stock-only prices.
+// Pol IP §2(b): prices only displayed if reasonably current + accurate.
+// Pol IP §2(c)(h) line 541: 24h cache clock enforced.
+const livePrices = await getProductPricesFresh(db, product.id, { marketplace, inStockOnly: true });
+const bestPrice = getLowestPrice(livePrices as any);
+// Lowest Amazon new + used for comparison-pricing block (Pol §2(b) line 331).
+const amazonNew = livePrices.find((p) => p.retailer === "Amazon" && (p.condition || "new") === "new");
+const amazonUsed = livePrices.find((p) => p.retailer === "Amazon" && p.condition === "used");
+const otherRetailers = livePrices.filter(
+  (p) => p.retailer !== "Amazon" || (p.condition && p.condition !== "new")
+).filter((p) => p !== amazonUsed);
 
 const brandProducts = product.brand_id
   ? await getProductsByBrand(db, tenant.id, product.brand_id, product.id)
@@ -65,30 +76,39 @@ const productJsonLd: Record<string, unknown> = {
   },
   image: `${siteUrl}/favicon-external.svg`,
   category: product.category_name,
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: Math.round(product.overall_score / 2 * 10) / 10,
-    bestRating: 5,
-    worstRating: 1,
+  // Editorial authored review (not aggregate); Pol §5(t) line 393 prohibits
+  // displaying customer reviews/star ratings unless sourced via PA API or
+  // Creators API. Our overall_score is editorial, exposed as a single Review.
+  "review": {
+    "@type": "Review",
+    author: { "@type": "Organization", name: tenant.name },
+    reviewRating: {
+      "@type": "Rating",
+      ratingValue: Math.round(product.overall_score / 2 * 10) / 10,
+      bestRating: 5,
+      worstRating: 1,
+    },
   },
-  ...(sortedPrices.length === 1
+  ...(bestPrice
     ? {
         offers: {
           "@type": "Offer",
           availability: "https://schema.org/InStock",
-          url: sortedPrices[0].affiliate_url || productUrl,
-          seller: { "@type": "Organization", name: sortedPrices[0].retailer },
+          // Pol §5(v) line 405 — do not cloak the destination URL. Schema.org
+          // Offer.url should point to the page on YOUR site containing the
+          // offer (which has the actual affiliate link), not the affiliate URL.
+          url: productUrl,
+          priceCurrency: bestPrice.currency,
+          seller: { "@type": "Organization", name: bestPrice.retailer },
         },
       }
-    : sortedPrices.length > 1
-    ? {
+    : {
         offers: {
-          "@type": "AggregateOffer",
-          offerCount: sortedPrices.length,
-          availability: "https://schema.org/InStock",
+          "@type": "Offer",
+          availability: "https://schema.org/OutOfStock",
+          url: productUrl,
         },
-      }
-    : {}),
+      }),
 };
 
 const breadcrumbJsonLd = {
@@ -155,8 +175,8 @@ const calloutText: Record<string, string> = {
 
 <BaseLayout
   title={`${product.name} ${capacityLabel} Review (${currentYear}): Price, Specs & Deals`}
-  description={sortedPrices.length > 0
-    ? `${product.name} ${capacityLabel} portable SSD: ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes. See today's best price at ${sortedPrices[0].retailer}.`
+  description={bestPrice
+    ? `${product.name} ${capacityLabel} portable SSD: ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes. See current in-stock price at ${bestPrice.retailer}.`
     : `${product.name} ${capacityLabel} portable SSD: ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes, ${product.warranty_years}-year warranty. Full specs and review.`}
   jsonLd={[productJsonLd, breadcrumbJsonLd, faqJsonLd]}
 >
@@ -239,35 +259,56 @@ const calloutText: Record<string, string> = {
           </section>
         )}
 
-        {sortedPrices.length > 0 && (
+        {bestPrice ? (
           <section class="mb-8 rounded-xl border border-surface-300 p-5">
             <h2 class="text-xl font-semibold text-surface-900 mb-3">Price & Where to Buy</h2>
             <div class="flex items-baseline gap-3 mb-4">
               <span class="text-lg font-semibold text-blue-800">See Price</span>
-              <span class="text-sm text-surface-700">at {sortedPrices[0].retailer}</span>
+              <span class="text-sm text-surface-700">at {bestPrice.retailer}</span>
             </div>
             <GeoAffiliateLink
-              url={sortedPrices[0].affiliate_url || "#"}
-              retailer={sortedPrices[0].retailer}
-              label={`Check Price on ${sortedPrices[0].retailer} →`}
+              url={bestPrice.affiliate_url || ""}
+              retailer={bestPrice.retailer}
+              label={`Check Price on ${bestPrice.retailer} →`}
+              urlSource={bestPrice.url_source}
+              useCartExtend
               className="mb-4 text-sm"
             />
-            {sortedPrices.length > 1 && (
+            {(amazonUsed || otherRetailers.length > 0) && (
               <div class="mt-4 pt-4 border-t border-surface-200">
-                <p class="text-xs font-semibold text-surface-700 uppercase tracking-wider mb-2">Other retailers</p>
+                <p class="text-xs font-semibold text-surface-700 uppercase tracking-wider mb-2">All retailers</p>
                 <div class="space-y-1.5">
-                  {sortedPrices.slice(1).map((price) => (
+                  {amazonUsed && (
                     <GeoAffiliateLink
-                      url={price.affiliate_url || "#"}
+                      url={amazonUsed.affiliate_url || ""}
+                      retailer={amazonUsed.retailer}
+                      label={`Amazon (used) →`}
+                      urlSource={amazonUsed.url_source}
+                      className="text-sm"
+                    />
+                  )}
+                  {otherRetailers.map((price) => (
+                    <GeoAffiliateLink
+                      url={price.affiliate_url || ""}
                       retailer={price.retailer}
-                      label={`${price.retailer} →`}
+                      label={`${price.retailer}${price.condition === "used" ? " (used)" : ""} →`}
+                      urlSource={price.url_source}
                       className="text-sm"
                     />
                   ))}
                 </div>
               </div>
             )}
-            <p class="text-xs text-surface-700 mt-4 italic">Prices updated daily. We may earn a commission from qualifying purchases.</p>
+            <PriceStamp fetchedAt={bestPrice.fetched_at} className="mt-4" />
+          </section>
+        ) : (
+          <section class="mb-8 rounded-xl border border-surface-300 p-5">
+            <h2 class="text-xl font-semibold text-surface-900 mb-3">Pricing temporarily unavailable</h2>
+            <p class="text-sm text-surface-700">
+              We could not retrieve a current in-stock price for {product.name} within the last 24 hours.
+              Please check back later or see the product details below — full specs and our review remain
+              available.
+            </p>
           </section>
         )}
 
@@ -436,25 +477,30 @@ const calloutText: Record<string, string> = {
 
       <div class="lg:col-span-1">
         <div class="sticky top-8 space-y-4">
-          {sortedPrices[0] && (
-            <GeoAffiliateLink
-              url={sortedPrices[0].affiliate_url || "#"}
-              retailer={sortedPrices[0].retailer}
-              label={`See Price on ${sortedPrices[0].retailer} →`}
-              className="w-full justify-center py-3 text-sm font-semibold bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
-            />
-          )}
+          {bestPrice ? (
+            <>
+              <GeoAffiliateLink
+                url={bestPrice.affiliate_url || ""}
+                retailer={bestPrice.retailer}
+                label={`See Price on ${bestPrice.retailer} →`}
+                urlSource={bestPrice.url_source}
+                useCartExtend
+                className="w-full justify-center py-3 text-sm font-semibold bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
+              />
+              <PriceStamp fetchedAt={bestPrice.fetched_at} className="mt-2" />
+            </>
+          ) : null}
 
-          {sortedPrices.length > 1 && (
+          {livePrices.length > 1 && (
             <div class="rounded-xl border border-surface-300 p-5">
               <h3 class="text-sm font-semibold text-surface-700 mb-3">Prices at Other Retailers</h3>
               <div class="space-y-2">
-                {sortedPrices.map((price) => (
+                {livePrices.map((price) => (
                   <a
                     href={`/products/${product.slug}/${price.retailer === "B&H Photo" ? "bh-photo" : price.retailer.toLowerCase()}`}
                     class="flex items-center justify-between text-sm hover:bg-surface-50 p-2 rounded-lg transition-colors"
                   >
-                    <span class="text-surface-700">{price.retailer}</span>
+                    <span class="text-surface-700">{price.retailer}{price.condition === "used" ? " (used)" : ""}</span>
                     <span class="font-medium text-surface-900">Check Price →</span>
                   </a>
                 ))}

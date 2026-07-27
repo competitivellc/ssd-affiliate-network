@@ -1,13 +1,15 @@
 ---
-import type { Product } from "@lib/db";
+import type { Product, Price } from "@lib/db";
 import ProductCard from "./ProductCard.astro";
 
 export interface Props {
   products: Product[];
   showRank?: boolean;
+  /** Optional pre-fetched prices to eliminate the per-card N+1 query. */
+  pricesByProduct?: Record<number, Price[]>;
 }
 
-const { products, showRank } = Astro.props;
+const { products, showRank, pricesByProduct } = Astro.props;
 const valid = products.filter(
   (p) => p && p.name && p.slug && p.capacity_gb != null && p.interface
 );
@@ -16,7 +18,7 @@ const valid = products.filter(
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
   {
     valid.map((product, i) => (
-      <ProductCard product={product} rank={showRank ? i + 1 : undefined} />
+      <ProductCard product={product} rank={showRank ? i + 1 : undefined} prices={pricesByProduct?.[product.id]} />
     ))
   }
 </div>

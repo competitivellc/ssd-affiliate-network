@@ -1,8 +1,19 @@
-import type { APIRoute } from "astro";
-import { getProductBySlug, getProductPrices } from "@lib/db";
+import type { APIRoute } from "@astro";
+import { getProductBySlug, getProductPricesFresh } from "@lib/db";
+
+// Pol §6(b) line 365: "You will not sell, resell, redistribute, sublicense, or
+// transfer any Program Content or any application that uses, incorporates, or
+// displays any Program Content." Exposing raw affiliate_url over a public
+// unauthenticated endpoint would let third parties scrape Amazon Special
+// Links that contain our Associate tag (Program Content), violating this.
+//
+// This endpoint returns metadata about pricing only — retailer name, condition,
+// in-stock state, freshness — never the affiliate_url itself. The visible
+// product page renders the actual GeoAffiliateLink for the visitor; the API
+// is intended for internal/stateful widgets, not for redistribution.
 
 export const GET: APIRoute = async ({ locals, request }) => {
-  const { DB, tenant } = locals;
+  const { DB, tenant, marketplace } = locals;
   const url = new URL(request.url);
   const slug = url.searchParams.get("slug");
   const retailer = url.searchParams.get("retailer");
@@ -23,7 +34,11 @@ export const GET: APIRoute = async ({ locals, request }) => {
       });
     }
 
-    let prices = await getProductPrices(DB, product.id);
+    let prices = await getProductPricesFresh(DB, product.id, {
+      marketplace,
+      inStockOnly: false,
+      maxAgeHours: 24,
+    });
     if (retailer) {
       prices = prices.filter((p) => p.retailer === retailer);
     }
@@ -37,9 +52,11 @@ export const GET: APIRoute = async ({ locals, request }) => {
         },
         prices: prices.map((p) => ({
           retailer: p.retailer,
-          affiliate_url: p.affiliate_url,
+          condition: p.condition || "new",
           in_stock: p.in_stock === 1,
           updated: p.fetched_at,
+          // No affiliate_url exposed. Callers must load the product HTML page
+          // to render a properly-tagged Special Link via GeoAffiliateLink.
         })),
       }),
       {

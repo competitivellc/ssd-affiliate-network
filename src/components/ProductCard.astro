@@ -1,18 +1,20 @@
 ---
 import type { Product, Price } from "@lib/db";
 import { getLowestPrice } from "@lib/pricing";
-import { getProductPrices } from "@lib/db";
+import { getProductPricesFresh } from "@lib/db";
 import GeoAffiliateLink from "./GeoAffiliateLink.astro";
 
 export interface Props {
   product: Product;
   rank?: number;
+  /** Pre-resolved prices map eliminates the N+1 query on listing pages. */
+  prices?: Price[];
 }
 
-const { product, rank } = Astro.props;
-const { DB } = Astro.locals;
-const prices: Price[] = await getProductPrices(DB as any, product.id);
-const lowestPrice = getLowestPrice(prices as any);
+const { product, rank, prices } = Astro.props;
+const { DB, marketplace } = Astro.locals;
+const priceList: Price[] = prices ?? await getProductPricesFresh(DB as any, product.id, { marketplace, inStockOnly: true });
+const lowestPrice = getLowestPrice(priceList as any);
 const scoreColor =
   product.overall_score >= 9
     ? "text-emerald-800 bg-emerald-50"
@@ -86,9 +88,11 @@ const isTopPick = rank === 1;
   <div class="pt-2.5 border-t border-surface-100 space-y-1.5 mt-auto relative z-20">
     {lowestPrice && (
       <GeoAffiliateLink
-        url={lowestPrice.affiliate_url || "#"}
+        url={lowestPrice.affiliate_url || ""}
         retailer={lowestPrice.retailer}
         label={`See Price on ${lowestPrice.retailer} →`}
+        urlSource={lowestPrice.url_source}
+        useCartExtend
         className="w-full justify-center py-2 text-sm font-semibold bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
       />
     )}

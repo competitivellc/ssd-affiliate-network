@@ -3,10 +3,11 @@ import BaseLayout from "@layouts/BaseLayout.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
 import ProductGrid from "@components/ProductGrid.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
+import PriceStamp from "@components/PriceStamp.astro";
 import {
   getHubBySlug,
   getHubProducts,
-  getProductPrices,
+  getProductPricesFresh,
   getRelatedHubs,
   getHubsByType,
 } from "@lib/db";
@@ -19,7 +20,7 @@ export async function getStaticPaths() {
   return [];
 }
 
-const { DB, tenant, hostname } = Astro.locals;
+const { DB, tenant, hostname, marketplace } = Astro.locals;
 const { slug } = Astro.params;
 const db = DB!;
 
@@ -39,7 +40,7 @@ if (hub.hub_type === "value") {
     sort: undefined,
   });
   const pricePromises = all.map(async (p) => {
-    const prices = await getProductPrices(db, p.id);
+    const prices = await getProductPricesFresh(db, p.id, { marketplace, inStockOnly: true });
     productPrices[p.id] = prices;
     return { ...p, _lowestPrice: prices.length > 0 ? Math.min(...prices.map((pr) => pr.price_cents)) : Infinity };
   });
@@ -49,7 +50,7 @@ if (hub.hub_type === "value") {
 } else {
   products = await getHubProducts(db, tenant.id, filterCriteria);
   const pricePromises = products.map(async (p) => {
-    productPrices[p.id] = await getProductPrices(db, p.id);
+    productPrices[p.id] = await getProductPricesFresh(db, p.id, { marketplace, inStockOnly: true });
   });
   await Promise.all(pricePromises);
 }
@@ -144,7 +145,7 @@ const hubJsonLd = {
             <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
             <h2 class="text-xl font-bold text-surface-900">{hub.hub_type === "value" ? "Ranked by Price" : "Ranked by Score"}</h2>
           </div>
-          <ProductGrid products={products} showRank />
+          <ProductGrid products={products} showRank pricesByProduct={productPrices} />
         </section>
 
         {editorial && editorial.summary && (
@@ -257,10 +258,12 @@ const hubJsonLd = {
                               url={lowest.affiliate_url}
                               retailer={lowest.retailer}
                               label={`Check Price at ${lowest.retailer}`}
+                              urlSource={lowest.url_source}
+                              useCartExtend
                               className="inline-flex items-center gap-1 text-sm font-medium text-blue-800 hover:text-blue-900 no-underline"
                             />
                           ) : (
-                            <span class="text-surface-700">—</span>
+                            <span class="text-surface-700">Pricing unavailable</span>
                           )}
                         </td>
                       </tr>

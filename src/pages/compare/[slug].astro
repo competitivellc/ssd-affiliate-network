@@ -2,11 +2,12 @@
 import BaseLayout from "@layouts/BaseLayout.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
-import { getAllProducts, getProductPrices } from "@lib/db";
+import PriceStamp from "@components/PriceStamp.astro";
+import { getAllProducts, getProductPricesFresh } from "@lib/db";
 import { getLowestPrice } from "@lib/pricing";
 import type { Product, Price } from "@lib/db";
 
-const { DB, tenant, hostname } = Astro.locals;
+const { DB, tenant, hostname, marketplace } = Astro.locals;
 const { slug } = Astro.params;
 const db = DB!;
 
@@ -25,10 +26,12 @@ if (!productA || !productB) {
   return Astro.redirect("/404");
 }
 
-const pricesA = await getProductPrices(db, productA.id);
-const pricesB = await getProductPrices(db, productB.id);
-const bestPriceA = getLowestPrice(pricesA);
-const bestPriceB = getLowestPrice(pricesB);
+const [pricesA, pricesB] = await Promise.all([
+  getProductPricesFresh(db, productA.id, { marketplace, inStockOnly: true }),
+  getProductPricesFresh(db, productB.id, { marketplace, inStockOnly: true }),
+]);
+const bestPriceA = getLowestPrice(pricesA as any);
+const bestPriceB = getLowestPrice(pricesB as any);
 
 const productJsonLd = {
   "@context": "https://schema.org",
@@ -185,11 +188,14 @@ const loser = winner?.id === productA.id ? productB : productA;
                 <div>
                   <p class="text-lg font-semibold text-blue-800">See Price</p>
                   <p class="text-xs text-surface-700">at {bestPrice.retailer}</p>
+                  <PriceStamp fetchedAt={bestPrice.fetched_at} className="mt-1" />
                 </div>
                 <GeoAffiliateLink
-                  url={bestPrice.affiliate_url || "#"}
+                  url={bestPrice.affiliate_url || ""}
                   retailer={bestPrice.retailer}
                   label="Check Price →"
+                  urlSource={bestPrice.url_source}
+                  useCartExtend
                   className="text-sm font-semibold"
                 />
               </div>

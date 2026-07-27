@@ -2,6 +2,7 @@
 import BaseLayout from "@layouts/BaseLayout.astro";
 import HeroSection from "@components/HeroSection.astro";
 import ProductGrid from "@components/ProductGrid.astro";
+import AffiliateDisclosure from "@components/AffiliateDisclosure.astro";
 import { getTopRatedProducts, getAllProducts, getCategoriesBySite, getLastUpdatedDate, getHubsBySite } from "@lib/db";
 import type { Product, Hub } from "@lib/db";
 
@@ -74,6 +75,7 @@ const topPicks = tenant.id === "portablessds"
           <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
           <h2 class="text-2xl font-bold text-surface-900">Best {tenant.name}</h2>
         </div>
+        <AffiliateDisclosure className="mb-4" />
         <ProductGrid products={topRated} showRank />
       </section>
     )}
@@ -140,6 +142,7 @@ const topPicks = tenant.id === "portablessds"
           <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
           <h2 class="text-2xl font-bold text-surface-900">All {tenant.name} — {allProducts.length} Drives</h2>
         </div>
+        <AffiliateDisclosure className="mb-4" />
         <ProductGrid products={allProducts} />
         <div class="mt-4 text-sm text-surface-700 text-center">
           See individual reviews:

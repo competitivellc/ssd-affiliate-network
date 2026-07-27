@@ -1,0 +1,25 @@
+---
+// Satisfies Amazon Associates Operating Agreement §5: "You must clearly and
+// prominently state ... 'As an Amazon Associate I earn from qualifying
+// purchases.'"
+//
+// Amazon's policy requires the disclosure either in close proximity to the
+// affiliate link or via a clearly-visible page-level notice. A single block
+// above each product grid / comparison table containing GeoAffiliateLink is
+// the recommended placement (per Amazon Program FAQ guidance).
+//
+// Use this once per section that displays affiliate links.
+export interface Props {
+  className?: string;
+}
+  const { className = "" } = Astro.props;
+---
+
+<p class={`text-xs text-surface-700 italic leading-relaxed ${className}`}>
+  As an Amazon Associate I earn from qualifying purchases. We may earn a
+  commission from qualifying purchases made through links on this page. Prices
+  and availability are subject to change. We are reader-supported and
+  independent — our rankings are based on an objective scoring rubric, not
+  sponsorship.
+</p>
+
