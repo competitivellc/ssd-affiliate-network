@@ -70,18 +70,6 @@ const productJsonLd: Record<string, unknown> = {
     ratingValue: Math.round(product.overall_score / 2 * 10) / 10,
     bestRating: 5,
     worstRating: 1,
-    reviewCount: 12,
-  },
-  review: {
-    "@type": "Review",
-    author: { "@type": "Organization", name: "SSD Affiliate Editorial" },
-    reviewRating: {
-      "@type": "Rating",
-      ratingValue: 5,
-      bestRating: 5,
-      worstRating: 1,
-    },
-    reviewBody: product.description,
   },
   ...(sortedPrices.length === 1
     ? {
