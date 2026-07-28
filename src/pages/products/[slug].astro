@@ -30,6 +30,17 @@ const otherRetailers = livePrices.filter(
   (p) => p.retailer !== "Amazon" || (p.condition && p.condition !== "new")
 ).filter((p) => p !== amazonUsed);
 
+// Stale-but-known price — used ONLY for the affiliate link target (no
+// price text shown). Pol §2(b) restricts price *display* accuracy;
+// affiliate links themselves may still be rendered. The visitor lands
+// on Amazon's own page where Amazon displays the current price.
+const stalePrices = !bestPrice
+  ? await getProductPricesFresh(db, product.id, { marketplace, inStockOnly: true, maxAgeHours: 24 * 365 })
+  : [];
+const fallbackLinkPrice = stalePrices.find((p) => p.retailer === "Amazon" && (p.condition || "new") === "new")
+  || stalePrices[0]
+  || null;
+
 const brandProducts = product.brand_id
   ? await getProductsByBrand(db, tenant.id, product.brand_id, product.id)
   : [];
@@ -303,11 +314,24 @@ const calloutText: Record<string, string> = {
           </section>
         ) : (
           <section class="mb-8 rounded-xl border border-surface-300 p-5">
-            <h2 class="text-xl font-semibold text-surface-900 mb-3">Pricing temporarily unavailable</h2>
-            <p class="text-sm text-surface-700">
-              We could not retrieve a current in-stock price for {product.name} within the last 24 hours.
-              Please check back later or see the product details below — full specs and our review remain
-              available.
+            <h2 class="text-xl font-semibold text-surface-900 mb-3">Where to Buy</h2>
+            <p class="text-sm text-surface-700 mb-3">
+              We could not retrieve a current in-stock price within the last 24 hours, so no price is
+              displayed here. Click through to {fallbackLinkPrice ? fallbackLinkPrice.retailer : "the retailer"}
+              to see today's price on their site.
+            </p>
+            {fallbackLinkPrice?.affiliate_url && (
+              <GeoAffiliateLink
+                url={fallbackLinkPrice.affiliate_url}
+                retailer={fallbackLinkPrice.retailer}
+                label={`Check Price on ${fallbackLinkPrice.retailer} →`}
+                urlSource={fallbackLinkPrice.url_source}
+                useCartExtend
+                className="text-sm"
+              />
+            )}
+            <p class="text-xs text-surface-700 mt-4 italic">
+              We earn a commission from qualifying purchases made through these links.
             </p>
           </section>
         )}
@@ -477,17 +501,20 @@ const calloutText: Record<string, string> = {
 
       <div class="lg:col-span-1">
         <div class="sticky top-8 space-y-4">
-          {bestPrice ? (
+          {(bestPrice || fallbackLinkPrice) ? (
             <>
               <GeoAffiliateLink
-                url={bestPrice.affiliate_url || ""}
-                retailer={bestPrice.retailer}
-                label={`See Price on ${bestPrice.retailer} →`}
-                urlSource={bestPrice.url_source}
+                url={(bestPrice || fallbackLinkPrice)!.affiliate_url || ""}
+                retailer={(bestPrice || fallbackLinkPrice)!.retailer}
+                label={`See Price on ${(bestPrice || fallbackLinkPrice)!.retailer} →`}
+                urlSource={(bestPrice || fallbackLinkPrice)!.url_source}
                 useCartExtend
                 className="w-full justify-center py-3 text-sm font-semibold bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
               />
-              <PriceStamp fetchedAt={bestPrice.fetched_at} className="mt-2" />
+              {bestPrice && <PriceStamp fetchedAt={bestPrice.fetched_at} className="mt-2" />}
+              {!bestPrice && fallbackLinkPrice && (
+                <p class="text-xs text-surface-500 italic mt-2">Pricing temporarily unavailable — click to view on {fallbackLinkPrice.retailer}</p>
+              )}
             </>
           ) : null}
 

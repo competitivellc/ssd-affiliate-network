@@ -1,0 +1,87 @@
+---
+// AffiliateButton — renders the buy-now link for a product, with three modes:
+//
+//   1. freshPrice present  → "See Price on <retailer> →" + PriceStamp (live)
+//   2. fallbackPrice only  → "See Price on <retailer> →" + "Pricing temporarily
+//                             unavailable" note (no price text shown, but the
+//                             affiliate link is rendered with the visitor's
+//                             marketplace-correct tag — Pol §2(b) restricts
+//                             price DISPLAY accuracy, not link presence)
+//   3. neither             → renders nothing (visitor should land on the page
+//                             only when we genuinely have no Special Link to
+//                             surface)
+//
+// Pol §2(b): prices only displayed if served by Amazon or via PA/Creators
+// API. The link itself may be present on any page; the price text is what
+// requires accurate provenance.
+//
+// This component previously lived as inline JSX in many render sites; it
+// was extracted to ensure consistent behaviour across homepage, product
+// detail, per-retailer, compare, category, best, brand, and hub pages.
+
+import PriceStamp from "./PriceStamp.astro";
+import GeoAffiliateLink from "./GeoAffiliateLink.astro";
+import type { Price } from "@lib/db";
+
+export interface Props {
+  freshPrice?: Price | null;
+  fallbackPrice?: Price | null;
+  /** Visual size variant — primary CTA vs secondary link. */
+  variant?: "primary" | "secondary" | "compact";
+  /** Render "Other retailers" list under this button. */
+  others?: Price[];
+}
+
+const {
+  freshPrice,
+  fallbackPrice,
+  variant = "primary",
+  others = [],
+} = Astro.props;
+
+// Pick the price we render. Fresh wins; fallback (stale-but-known link) is
+// the fallback. The CTA text uses the retailer name only.
+const linkPrice = freshPrice || fallbackPrice;
+
+const buttonClass =
+  variant === "primary"
+    ? "w-full justify-center py-3 text-sm font-semibold bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
+    : variant === "compact"
+      ? "inline-flex items-center gap-1 text-xs"
+      : "text-sm";
+---
+
+{linkPrice ? (
+  <div class={variant === "primary" ? "space-y-2" : ""}>
+    <GeoAffiliateLink
+      url={linkPrice.affiliate_url || ""}
+      retailer={linkPrice.retailer}
+      label={`See Price on ${linkPrice.retailer} →`}
+      urlSource={linkPrice.url_source}
+      useCartExtend={variant === "primary"}
+      className={buttonClass}
+    />
+    {freshPrice && variant === "primary" && (
+      <PriceStamp fetchedAt={freshPrice.fetched_at} className="text-xs text-center" />
+    )}
+    {!freshPrice && fallbackPrice && (
+      <p class="text-xs text-surface-500 italic text-center mt-2">
+        Pricing temporarily unavailable — click to view on {fallbackPrice.retailer}
+      </p>
+    )}
+    {others.length > 0 && (
+      <div class="pt-3 mt-3 border-t border-surface-200 space-y-1.5">
+        <p class="text-xs font-semibold text-surface-700 uppercase tracking-wider mb-2">Other retailers</p>
+        {others.map((p) => (
+          <GeoAffiliateLink
+            url={p.affiliate_url || ""}
+            retailer={p.retailer}
+            label={`${p.retailer}${p.condition === "used" ? " (used)" : ""} →`}
+            urlSource={p.url_source}
+            className="text-sm"
+          />
+        ))}
+      </div>
+    )}
+  </div>
+) : null}

@@ -2,7 +2,7 @@
 import type { Product, Price } from "@lib/db";
 import { getLowestPrice } from "@lib/pricing";
 import { getProductPricesFresh } from "@lib/db";
-import GeoAffiliateLink from "./GeoAffiliateLink.astro";
+import AffiliateButton from "./AffiliateButton.astro";
 
 export interface Props {
   product: Product;
@@ -14,7 +14,8 @@ export interface Props {
 const { product, rank, prices } = Astro.props;
 const { DB, marketplace } = Astro.locals;
 const priceList: Price[] = prices ?? await getProductPricesFresh(DB as any, product.id, { marketplace, inStockOnly: true });
-const lowestPrice = getLowestPrice(priceList as any);
+const freshPrice = getLowestPrice(priceList as any);
+
 const scoreColor =
   product.overall_score >= 9
     ? "text-emerald-800 bg-emerald-50"
@@ -86,16 +87,7 @@ const isTopPick = rank === 1;
   </div>
 
   <div class="pt-2.5 border-t border-surface-100 space-y-1.5 mt-auto relative z-20">
-    {lowestPrice && (
-      <GeoAffiliateLink
-        url={lowestPrice.affiliate_url || ""}
-        retailer={lowestPrice.retailer}
-        label={`See Price on ${lowestPrice.retailer} →`}
-        urlSource={lowestPrice.url_source}
-        useCartExtend
-        className="w-full justify-center py-2 text-sm font-semibold bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
-      />
-    )}
+    <AffiliateButton freshPrice={freshPrice} variant="primary" />
     <span class="block text-center text-xs font-medium text-blue-800 pointer-events-none">
       View Full Specs &rarr;
     </span>
