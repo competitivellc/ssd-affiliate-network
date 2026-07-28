@@ -1,4 +1,4 @@
-import type { APIRoute } from "@astro";
+import type { APIRoute } from "astro";
 import { getProductBySlug, getProductPricesFresh } from "@lib/db";
 
 // Pol §6(b) line 365: "You will not sell, resell, redistribute, sublicense, or

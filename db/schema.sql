@@ -1,5 +1,6 @@
 -- Multi-tenant affiliate network schema
 -- Cloudflare D1 (SQLite-compatible)
+-- Reflects final state after migrations 0001–0004.
 
 CREATE TABLE IF NOT EXISTS sites (
   id TEXT PRIMARY KEY,
@@ -59,35 +60,47 @@ CREATE TABLE IF NOT EXISTS products (
   UNIQUE(site_id, slug)
 );
 
+-- Snapshot table: one row per (product_id, retailer, marketplace, condition).
+-- Updated by price-sync worker; historical time series lives in price_history.
 CREATE TABLE IF NOT EXISTS prices (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   product_id INTEGER NOT NULL REFERENCES products(id),
   retailer TEXT NOT NULL CHECK(retailer IN ('Amazon','B&H Photo','Newegg')),
+  marketplace TEXT NOT NULL DEFAULT 'US',
+  condition TEXT NOT NULL DEFAULT 'new' CHECK(condition IN ('new','used','refurbished')),
   price_cents INTEGER NOT NULL,
   currency TEXT DEFAULT 'USD',
   affiliate_url TEXT,
+  url_source TEXT NOT NULL DEFAULT 'manual' CHECK(url_source IN ('paapi','seed','manual','vendor')),
   in_stock INTEGER DEFAULT 1,
-  fetched_at TEXT DEFAULT (datetime('now')),
-  UNIQUE(product_id, retailer, fetched_at)
+  fetched_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(product_id, retailer, marketplace, condition)
 );
 
 CREATE TABLE IF NOT EXISTS price_history (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   product_id INTEGER NOT NULL REFERENCES products(id),
   retailer TEXT NOT NULL,
+  marketplace TEXT NOT NULL DEFAULT 'US',
+  condition TEXT NOT NULL DEFAULT 'new',
   price_cents INTEGER NOT NULL,
   currency TEXT DEFAULT 'USD',
   recorded_at TEXT DEFAULT (datetime('now'))
 );
 
+-- One tag per (site, retailer, marketplace, country_code).
+-- getAffiliateTag() and getAffiliateTagsBatch() rely on this lookup contract.
 CREATE TABLE IF NOT EXISTS affiliate_configs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   site_id TEXT NOT NULL REFERENCES sites(id),
   retailer TEXT NOT NULL,
   country_code TEXT NOT NULL DEFAULT '*',
   affiliate_tag TEXT NOT NULL,
+  marketplace TEXT DEFAULT 'US',
+  link_code TEXT,
+  link_id TEXT,
   created_at TEXT DEFAULT (datetime('now')),
-  UNIQUE(site_id, retailer, country_code)
+  UNIQUE(site_id, retailer, marketplace, country_code)
 );
 
 CREATE TABLE IF NOT EXISTS hubs (
@@ -108,9 +121,26 @@ CREATE TABLE IF NOT EXISTS hubs (
   UNIQUE(site_id, slug)
 );
 
+CREATE TABLE IF NOT EXISTS link_audit_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  checked_at TEXT NOT NULL DEFAULT (datetime('now')),
+  url TEXT NOT NULL,
+  site_id TEXT NOT NULL,
+  product_id INTEGER,
+  retailer TEXT,
+  marketplace TEXT,
+  condition TEXT,
+  passed INTEGER NOT NULL,
+  failure_reason TEXT
+);
+
 CREATE INDEX IF NOT EXISTS idx_products_site_category ON products(site_id, category_id);
 CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
-CREATE INDEX IF NOT EXISTS idx_prices_product ON prices(product_id);
+CREATE INDEX IF NOT EXISTS idx_prices_pmc ON prices(product_id, marketplace, condition);
+CREATE INDEX IF NOT EXISTS idx_prices_retailer ON prices(retailer);
+CREATE INDEX IF NOT EXISTS idx_prices_fresh ON prices(product_id, marketplace, fetched_at);
 CREATE INDEX IF NOT EXISTS idx_price_history_product ON price_history(product_id, recorded_at);
-CREATE INDEX IF NOT EXISTS idx_affiliate_lookup ON affiliate_configs(site_id, retailer, country_code);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_affiliate_lookup ON affiliate_configs(site_id, retailer, marketplace, country_code);
 CREATE INDEX IF NOT EXISTS idx_hubs_site_active ON hubs(site_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_audit_checked ON link_audit_log(checked_at);
+CREATE INDEX IF NOT EXISTS idx_audit_pass ON link_audit_log(passed, checked_at);
