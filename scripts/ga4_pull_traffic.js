@@ -50,7 +50,7 @@ async function run() {
     const keyPath = process.env[d.env];
     if (!keyPath) { console.log(`NO KEY for ${d.name}`); continue; }
     const jwt = auth(keyPath);
-    let propertyId = process.env[d.propEnv];
+    let propertyId = (process.env[d.propEnv] || '').replace(/^properties\//, '').trim();
     if (!propertyId) {
       const adm = google.analyticsadmin({ version: 'v1beta', auth: jwt });
       propertyId = await discoverPropertyId(adm, d.name);

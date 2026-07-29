@@ -41,13 +41,14 @@ if (categorySlug && !category) {
 
 const cleanCat = categoryName ? stripSsdSuffix(categoryName) : null;
 
+const tenantNoun = tenant.id === "portablessds" ? "Portable" : "External";
 const compareTitle = cleanCat
-  ? `${cleanCat} SSDs Compared - Side-by-Side Specs, Speed & Price Guide`
-  : "External SSDs Compared - Side-by-Side Specs, Speed & Price Guide";
+  ? `${cleanCat} ${tenantNoun} SSDs Compared (${new Date().getFullYear()}) — Specs, Speed & Price Side-by-Side`
+  : `${tenantNoun} SSDs Compared (${new Date().getFullYear()}) — Specs, Speed & Price Side-by-Side`;
 
 const metaDesc = cleanCat
-  ? `Compare the best ${cleanCat.toLowerCase()} SSDs side-by-side. Expert analysis of read/write speeds, capacity, interface compatibility, and real-world performance benchmarks.`
-  : "Side-by-side SSD comparison with full specification breakdown, performance analysis, and buying recommendations.";
+  ? `Side-by-side ${cleanCat.toLowerCase()} ${tenantNoun.toLowerCase()} SSD comparison: read/write speeds, capacity, USB interface, real-world benchmarks, and current best price for every model.`
+  : `Side-by-side ${tenantNoun.toLowerCase()} SSD comparison (${new Date().getFullYear()}): full specs, read/write speeds, USB interface, real-world benchmarks, and current best price.`;
 
 const accentStyle = { backgroundColor: tenant.primaryColorDark };
 const breadcrumbItems = [

@@ -63,6 +63,16 @@ const scoreBgColor =
     ? "bg-blue-50"
     : "bg-amber-50";
 
+const tenantNoun = tenant.id === "portablessds" ? "Portable" : "External";
+
+const productPageTitle = bestPrice
+  ? `${product.name} ${capacityLabel} ${tenantNoun} SSD Price & Review (${currentYear}) — ${product.read_speed_mbps.toLocaleString()} MB/s`
+  : `${product.name} ${capacityLabel} ${tenantNoun} SSD Review (${currentYear}) — ${product.read_speed_mbps.toLocaleString()} MB/s Reads`;
+
+const productPageDesc = bestPrice
+  ? `${product.name} ${capacityLabel} ${tenantNoun.toLowerCase()} SSD review & current best price at ${bestPrice.retailer}: ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes, ${product.interface || "USB"} interface, real-world benchmarks, specs, and where to buy.`
+  : `${product.name} ${capacityLabel} ${tenantNoun.toLowerCase()} SSD review (${currentYear}): ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes, ${product.interface || "USB"} interface, real-world benchmarks, full specs, and where to buy.`;
+
 const productUrl = `https://${hostname}/products/${product.slug}`;
 const siteUrl = `https://${hostname}`;
 
@@ -228,10 +238,8 @@ const calloutText: Record<string, string> = {
 ---
 
 <BaseLayout
-  title={`${product.name} ${capacityLabel} Portable SSD Review (${currentYear}) — Specs, Price & Where to Buy`}
-  description={bestPrice
-    ? `In-depth ${product.name} ${capacityLabel} review: ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes, real-world performance benchmarks, and current price at ${bestPrice.retailer}.`
-    : `In-depth ${product.name} ${capacityLabel} review: ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes, full specs, real-world performance, and buying recommendations.`}
+  title={productPageTitle}
+  description={productPageDesc}
   jsonLd={[productJsonLd, breadcrumbJsonLd, faqJsonLd]}
 >
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
@@ -255,7 +263,7 @@ const calloutText: Record<string, string> = {
         <div class="flex items-start justify-between mb-6">
           <div>
             <p class="text-sm font-medium text-surface-700 uppercase tracking-wider">{product.brand_name}</p>
-            <h1 class="text-2xl sm:text-3xl font-bold text-surface-900 mt-0.5">{product.name} {capacityLabel} Portable SSD</h1>
+            <h1 class="text-2xl sm:text-3xl font-bold text-surface-900 mt-0.5">{product.name} {capacityLabel} {tenantNoun} SSD</h1>
             {product.model && (
               <p class="text-sm text-surface-700 mt-1">Model: {product.model}</p>
             )}
