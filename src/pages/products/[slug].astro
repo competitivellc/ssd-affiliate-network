@@ -63,6 +63,13 @@ const scoreBgColor =
     ? "bg-blue-50"
     : "bg-amber-50";
 
+const productUrl = `https://${hostname}/products/${product.slug}`;
+const siteUrl = `https://${hostname}`;
+
+const capacityLabel = product.capacity_gb >= 1000 ? `${(product.capacity_gb / 1000).toFixed(product.capacity_gb % 1000 === 0 ? 0 : 1)}TB` : `${product.capacity_gb}GB`;
+const currentYear = new Date().getFullYear();
+const bandwidthLabel = product.read_speed_mbps >= 1000 ? `${(product.read_speed_mbps / 1000).toFixed(1)} GB/s` : `${product.read_speed_mbps} MB/s`;
+
 const tenantNoun = tenant.id === "portablessds" ? "Portable" : "External";
 
 const productPageTitle = bestPrice
@@ -72,13 +79,6 @@ const productPageTitle = bestPrice
 const productPageDesc = bestPrice
   ? `${product.name} ${capacityLabel} ${tenantNoun.toLowerCase()} SSD review & current best price at ${bestPrice.retailer}: ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes, ${product.interface || "USB"} interface, real-world benchmarks, specs, and where to buy.`
   : `${product.name} ${capacityLabel} ${tenantNoun.toLowerCase()} SSD review (${currentYear}): ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes, ${product.interface || "USB"} interface, real-world benchmarks, full specs, and where to buy.`;
-
-const productUrl = `https://${hostname}/products/${product.slug}`;
-const siteUrl = `https://${hostname}`;
-
-const capacityLabel = product.capacity_gb >= 1000 ? `${(product.capacity_gb / 1000).toFixed(product.capacity_gb % 1000 === 0 ? 0 : 1)}TB` : `${product.capacity_gb}GB`;
-const currentYear = new Date().getFullYear();
-const bandwidthLabel = product.read_speed_mbps >= 1000 ? `${(product.read_speed_mbps / 1000).toFixed(1)} GB/s` : `${product.read_speed_mbps} MB/s`;
 
 const pros: string[] = product.pros ? JSON.parse(product.pros) : [];
 const cons: string[] = product.cons ? JSON.parse(product.cons) : [];
@@ -506,7 +506,7 @@ const calloutText: Record<string, string> = {
             <div>
               <h3 class="text-base font-semibold text-surface-800 mb-1.5">File Transfer Speeds</h3>
               <p>
-                On paper, the ${product.name} delivers ${product.read_speed_mbps.toLocaleString()} MB/s reads and ${product.write_speed_mbps.toLocaleString()} MB/s writes. In practice, a 50GB file — a typical 4K video project, a large game install, or a full photo shoot — transfers in {transfer50gb}. A 100GB batch of raw files moves in {transfer100gb}. For users who regularly shuttle large files, these transfer times are a meaningful productivity improvement over slower SATA-based externals that take 3-5x longer for the same tasks.
+                On paper, the {product.name} delivers {product.read_speed_mbps.toLocaleString()} MB/s reads and {product.write_speed_mbps.toLocaleString()} MB/s writes. In practice, a 50GB file — a typical 4K video project, a large game install, or a full photo shoot — transfers in {transfer50gb}. A 100GB batch of raw files moves in {transfer100gb}. For users who regularly shuttle large files, these transfer times are a meaningful productivity improvement over slower SATA-based externals that take 3-5x longer for the same tasks.
               </p>
             </div>
             {isHighSpeed && (
