@@ -134,6 +134,28 @@ const breadcrumbJsonLd = {
   ],
 };
 
+function xferTime(mbps: number, fileGb: number): string {
+  const s = (fileGb * 1000) / mbps;
+  if (s < 1) return "under a second";
+  if (s < 60) return `~${Math.round(s)} seconds`;
+  return `~${Math.round(s / 60)} minutes`;
+}
+
+const isRugged = /\b(shield|extreme|rugged|armor|tough)\b/i.test(product.name);
+const isGaming = product.category_slug === "gaming" || /\b(gaming|xbox|playstation|console)\b/i.test(product.name);
+const isHighSpeed = product.read_speed_mbps >= 1500;
+const isUSB4 = product.interface === "USB4" || product.interface?.includes("Thunderbolt");
+const isGen2x2 = product.interface?.includes("Gen 2x2");
+const isHighCapacity = product.capacity_gb >= 2000;
+
+const transfer50gb = xferTime(product.write_speed_mbps, 50);
+const transfer100gb = xferTime(product.write_speed_mbps, 100);
+const transfer200gb = xferTime(product.write_speed_mbps, 200);
+
+const topCompetitor = relatedProducts[0] || null;
+
+const archetype = classifyDrive(product);
+
 const faqEntries = [
   {
     q: `What are the read and write speeds of the ${product.name}?`,
@@ -189,27 +211,6 @@ const faqJsonLd = {
   })),
 };
 
-function xferTime(mbps: number, fileGb: number): string {
-  const s = (fileGb * 1000) / mbps;
-  if (s < 1) return "under a second";
-  if (s < 60) return `~${Math.round(s)} seconds`;
-  return `~${Math.round(s / 60)} minutes`;
-}
-
-const isRugged = /\b(shield|extreme|rugged|armor|tough)\b/i.test(product.name);
-const isGaming = product.category_slug === "gaming" || /\b(gaming|xbox|playstation|console)\b/i.test(product.name);
-const isHighSpeed = product.read_speed_mbps >= 1500;
-const isUSB4 = product.interface === "USB4" || product.interface?.includes("Thunderbolt");
-const isGen2x2 = product.interface?.includes("Gen 2x2");
-const isHighCapacity = product.capacity_gb >= 2000;
-
-const transfer50gb = xferTime(product.write_speed_mbps, 50);
-const transfer100gb = xferTime(product.write_speed_mbps, 100);
-const transfer200gb = xferTime(product.write_speed_mbps, 200);
-
-const topCompetitor = relatedProducts[0] || null;
-
-const archetype = classifyDrive(product);
 const calloutBg: Record<string, string> = {
   "elite-pro-creator": "bg-purple-50 border-purple-200",
   "console-gaming": "bg-indigo-50 border-indigo-200",
