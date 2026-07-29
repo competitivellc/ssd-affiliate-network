@@ -338,25 +338,48 @@ node scripts/gsc_pull_revenue.js
 
 **When a new AI agent makes SEO changes and deploys them, the changes need time to take effect in Google's index before their impact can be measured.** The agent MUST re-run `node scripts/gsc_pull_revenue.js` **7-14 days after the deploy date** to measure position/click deltas on the affected URLs and queries, then compare against the baseline captured at deploy time.
 
-The baseline from the most recent SEO work (deployed 2026-07-26) is:
+The baseline from the most recent SEO work (deployed 2026-07-29 — CTR-optimized titles/meta on `/compare` and product pages) is:
 
 | Metric | externalssds.com | portablessds.com |
 |--------|------------------|------------------|
 | 90d clicks | 1 | 1 |
-| 90d impressions | 246 | 269 |
-| Avg position | 37.6 | 32.6 |
+| 90d impressions | 309 | 351 |
+| Avg position | 37.9 | 33.9 |
+| 90d CTR | 0.32% | 0.28% |
 
-Target URLs to track (each already indexed but stuck at pos 25-50):
-- `*/products/samsung-t7-shield*` — currently 129i / 0c / pos 37.7
-- `*/products/sandisk-extreme-pro-portable` — currently 83i / 0c / pos 38.7
-- `*/products/samsung-t9` — currently 43i / 0c / pos 52.3
-- `*/products/samsung-t7-shield-portable` — currently 34i / 0c / pos 27.3
+Target URLs to track (the four URLs whose titles/meta were rewritten on 2026-07-29 — these are the ones the re-run is measuring):
+- `externalssds.com/compare` — pre-deploy: 1c / 70i / pos 27.9 / CTR 1.43%
+- `externalssds.com/products/samsung-t7-shield` — pre-deploy: 0c / 155i / pos 37.6 / CTR 0%
+- `portablessds.com/compare` — pre-deploy: 1c / 97i / pos 26.7 / CTR 1.03%
+- `portablessds.com/products/sandisk-extreme-pro-portable` — pre-deploy: 0c / 96i / pos 38.1 / CTR 0%
+- `portablessds.com/products/samsung-t7-shield-portable` — pre-deploy: 0c / 43i / pos 29.5 / CTR 0%
 
-Target queries: `samsung t7 shield 4tb portable ssd amazon.com price` (pos 7.6), `1 tb portable ssd price` (pos 27.5), `portable ssd comparison` (pos 14.3).
+Target queries to watch: `samsung t7 shield 4tb portable ssd amazon.com price` (was pos 7.5, routed to `/compare`), `1 tb portable ssd price` (pos 27.7), `portable ssd comparison` (pos 14.3 on portablessds home, pos 29 on `/compare`), `rugged external ssd` (8i/pos 50.1), `shockproof portable ssd` / `shockproof portable ssds` / `shockproof ssds for travel` (collectively ~22i to the rugged-travel hub).
+
+### ⚠️ PENDING RE-RUN — DO THIS FIRST (2026-08-05 → 2026-08-12)
+
+**The 2026-07-29 CTR-fix deploy is awaiting measurement.** Any AI agent opening this repo between **2026-08-05 and 2026-08-12** (or later, until this block is replaced/removed) MUST:
+
+1. Run `node scripts/gsc_pull_revenue.js` immediately at the start of the session.
+2. Compare the 5 target URLs above against their pre-deploy numbers (compare the *same* 7-day or 90-day window — GSC numbers roll forward daily, so use whichever window the script outputs).
+3. Decide:
+   - **CTR moved up** (target: CTR ≥ 1.5% on the 5 URLs, vs ~0.31% pre-deploy) → the title/meta rewrite worked. Update the baseline table above with fresh numbers, delete this "PENDING RE-RUN" block, and note the result. Then look at the next revenue lever: internal-link equity to lift the hub pages (`/hubs/best-rugged-portable-ssd-for-travel`, `/hubs/cheapest-1tb-portable-ssd`) from pos 47-56 up to page 2.
+   - **CTR did not move** → the bottleneck is ranking position, not snippet copy. Skip further title/meta iteration. Go straight to ranking work: internal links from home + nav into the hub pages, and consider consolidating the `/products/samsung-t7-shield` page (pos 37.6) with the `/compare` page that's already ranking pos 7.5 for the buyer query `samsung t7 shield 4tb portable ssd amazon.com price`.
+4. Update this `AGENTS.md` section with the result so the *next* agent doesn't re-measure the same deploy. Either replace this "PENDING RE-RUN" block with a "RESULT (date): ..." block, or remove it if the baseline block above already reflects the measured numbers.
+5. After measuring, also note the current date as the new deploy-baseline for any SEO work *you* do this session.
 
 **Any future AI agent doing SEO work on this repo MUST, at the start of its session, re-run `node scripts/gsc_pull_revenue.js` to get a fresh baseline, and note the current date as the deploy-baseline for the next agent. Update the baseline table above with fresh numbers when you do.**
 
 For traffic/engagement analytics work, agents have the same direct GA4 access (see "Google Analytics 4 Access" section above) and should re-run `node scripts/ga4_pull_traffic.js` 7-14 days after deploys that affect UX, content, internal linking, or ad placement.
+
+## GA4 Script Note (read before running `ga4_pull_traffic.js`)
+
+As of 2026-07-29 the script accepts the `EXTERNALSSDS_GA4_PROPERTY_ID` / `PORTABLESSDS_GA4_PROPERTY_ID` env vars in either format — bare numeric ID (`547488517`) or full resource name (`properties/547488517`). It strips a leading `properties/` prefix before passing to the Data API. If you change the env var format, no script edit is needed.
+
+The script's fallback path (when those env vars are unset) calls the **Google Analytics Admin API** to discover the property ID by matching a linked web stream URL. That Admin API must be enabled on the service account's GCP project (`1061819200823`) or the fallback 403s. The env-var path bypasses the Admin API entirely, so prefer setting the env vars over enabling the Admin API.
+
+**Known open issue (as of 2026-07-29):** even with the property IDs set correctly, `node scripts/ga4_pull_traffic.js` returns zero rows on a 365-day window for both properties. Either the property IDs point at the wrong GA4 properties (empty/abandoned ones, not the ones wired to the live sites), or the service account has not been granted **Viewer** on the actual GA4 properties in the Analytics admin UI, or the GA4 tags are not actually firing on the live sites. A future agent doing analytics/traffic work should resolve this before relying on GA4 numbers; GSC is authoritative for SEO work and does not require GA4.
+
 
 ## What's Done
 - [x] Full project scaffold, Astro + Cloudflare adapter + Tailwind
