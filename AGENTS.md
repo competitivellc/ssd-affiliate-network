@@ -372,6 +372,29 @@ Target queries to watch: `samsung t7 shield 4tb portable ssd amazon.com price` (
 
 For traffic/engagement analytics work, agents have the same direct GA4 access (see "Google Analytics 4 Access" section above) and should re-run `node scripts/ga4_pull_traffic.js` 7-14 days after deploys that affect UX, content, internal linking, or ad placement.
 
+### ⚠️ PENDING RE-RUN — DO THIS FIRST (2026-08-12 → 2026-08-19)
+
+**The 2026-07-29 cannibalization consolidation deploy is awaiting measurement.** Commit `8f14782` added `<link rel="canonical">` on all `/category/{slug}` and `/best/{slug}` pages pointing at the matching `/hubs/{slug}`. This tells Google to treat the hub page as the authoritative URL for "best X for Y" queries. URLs stay live — no redirects, no 410s. Google consolidates naturally over 4-8 weeks.
+
+Any AI agent opening this repo between **2026-08-12 and 2026-08-19** (or later, until this block is replaced/removed) MUST:
+
+1. Run `node scripts/gsc_pull_revenue.js` immediately at the start of the session.
+2. Look at the hub pages — these are the ones the canonical is pointing TO:
+   - `externalssds.com/hubs/best-rugged-external-ssd` (was 0c / 18i / pos 38.3)
+   - `externalssds.com/hubs/best-ssd-for-xbox` (was 0c / 8i / pos 22.1)
+   - `externalssds.com/hubs/fastest-usb-3-2-gen-2x2` (was 0c / 4i / pos 9.5)
+   - `portablessds.com/hubs/best-rugged-portable-ssd-for-travel` (was 0c / 55i / pos 47.9)
+   - `portablessds.com/hubs/cheapest-1tb-portable-ssd` (was 0c / 17i / pos 29.3)
+   - `portablessds.com/hubs/fastest-usb-c-portable-ssd` (was 0c / 11i / pos 32.2)
+3. Look at `/category/{slug}` and `/best/{slug}` pages — these should show declining impressions as Google consolidates them onto the hubs.
+4. Decide:
+   - **Hub impressions went UP / hub position improved** → the canonical is working. Delete this block, update the baseline table, and move to the next lever: hub content depth (expand `hubs.ts` editorial blocks from 350-550 words to 1000-1500).
+   - **Hub impressions stayed flat / no change** → Google hasn't consolidated yet. Wait 2 more weeks, then re-measure. If still flat after 6 weeks total, the issue is hub content thinness, not cannibalization.
+   - **Hub impressions went DOWN** → the canonical is pointing at the wrong hub (wrong filter_criteria match). Investigate `getHubByCategory` in `db.ts` and fix the query.
+5. Update this `AGENTS.md` section with the result so the *next* agent doesn't re-measure the same deploy.
+
+**Any future AI agent doing SEO work on this repo MUST, at the start of its session, re-run `node scripts/gsc_pull_revenue.js` to get a fresh baseline, and note the current date as the deploy-baseline for the next agent. Update the baseline table above with fresh numbers when you do.**
+
 ## GA4 Script Note (read before running `ga4_pull_traffic.js`)
 
 As of 2026-07-29 the script accepts the `EXTERNALSSDS_GA4_PROPERTY_ID` / `PORTABLESSDS_GA4_PROPERTY_ID` env vars in either format — bare numeric ID (`547488517`) or full resource name (`properties/547488517`). It strips a leading `properties/` prefix before passing to the Data API. If you change the env var format, no script edit is needed.
@@ -404,6 +427,9 @@ The script's fallback path (when those env vars are unset) calls the **Google An
 - [x] GSC live data pull script (scripts/gsc_pull_revenue.js) — queries both domains for clicks/impressions/CTR/position/top pages/top queries
 - [x] GA4 live data pull script (scripts/ga4_pull_traffic.js) — queries both domains for sessions/users/pageviews/engagement/channel/country/device
 - [x] Fix: removed `export async function getStaticPaths()` from `src/pages/products/[slug].astro` — the Astro compiler was emitting a duplicate `export` inside the component function body, causing esbuild to fail with "Unexpected export" once the frontmatter grew past a threshold. SSR pages don't need `getStaticPaths()` anyway (it's ignored with a warning).
+- [x] CTR-fix: tenant-aware, query-anchored titles/meta on `/compare` and product pages (deployed 2026-07-29, commit `f0d3493`)
+- [x] Bug fix: 500 on all product pages with no fresh price (TDZ regression from CTR-fix) + `${product.name}` literal-text bug in File Transfer Speeds section (deployed 2026-07-29, commit `af36102`)
+- [x] Cannibalization consolidation: `/category/{slug}` and `/best/{slug}` canonicalized to matching `/hubs/{slug}` via BaseLayout `canonical` prop + `getHubByCategory()` DB query (deployed 2026-07-29, commit `8f14782`)
 
 ## What's Pending
 - [ ] Cron price-sync worker not deployed (needs API keys → `npx wrangler deploy worker/price-sync.ts --name ssd-price-sync`)
