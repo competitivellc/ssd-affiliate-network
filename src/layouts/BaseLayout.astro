@@ -60,6 +60,41 @@ const websiteJsonLd = {
     <script type="application/ld+json" set:html={JSON.stringify(organizationJsonLd)} />
     <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd)} />
     {jsonLd && (Array.isArray(jsonLd) ? jsonLd.map(obj => <script type="application/ld+json" set:html={JSON.stringify(obj)} />) : <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />)}
+    {tenant.gaMeasurementId && (
+      <script is:inline define:vars={{ gaId: tenant.gaMeasurementId }}>
+        (function () {
+          var GA_ID = gaId;
+          var CONSENT_KEY = 'cookie-consent';
+
+          function loadGA() {
+            if (window.dataLayer) return;
+            var s = document.createElement('script');
+            s.async = true;
+            s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+            document.head.appendChild(s);
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { window.dataLayer.push(arguments); }
+            window.gtag = gtag;
+            gtag('js', new Date());
+            gtag('config', GA_ID, { anonymize_ip: true });
+          }
+
+          var consent = null;
+          try { consent = localStorage.getItem(CONSENT_KEY); } catch (e) {}
+          if (consent === 'accepted') {
+            loadGA();
+          } else {
+            var acceptBtn = document.getElementById('cookie-consent-accept');
+            if (acceptBtn) {
+              acceptBtn.addEventListener('click', function () {
+                try { consent = localStorage.getItem(CONSENT_KEY); } catch (e) {}
+                if (consent === 'accepted') loadGA();
+              });
+            }
+          }
+        })();
+      </script>
+    )}
   </head>
   <body class="h-full flex flex-col">
     <a href="#main-content"

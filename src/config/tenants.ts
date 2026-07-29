@@ -9,6 +9,7 @@ export interface TenantConfig {
   accentColor: string;
   defaultCurrency: string;
   defaultLocale: string;
+  gaMeasurementId?: string;
 }
 
 export const tenants: Record<string, TenantConfig> = {
@@ -23,6 +24,7 @@ export const tenants: Record<string, TenantConfig> = {
     accentColor: "#f59e0b",
     defaultCurrency: "USD",
     defaultLocale: "en-US",
+    gaMeasurementId: "G-7BG64K2QZJ",
   },
   "portablessds.com": {
     id: "portablessds",
@@ -35,6 +37,7 @@ export const tenants: Record<string, TenantConfig> = {
     accentColor: "#f59e0b",
     defaultCurrency: "USD",
     defaultLocale: "en-US",
+    gaMeasurementId: "G-YFZ8SDB88N",
   },
   "ssd-affiliate-network.pages.dev": {
     id: "externalssds",
