@@ -37,6 +37,60 @@ This is non-negotiable: you have direct read access to live Google Search Consol
 
 When the user asks anything involving SEO performance, keyword opportunities, indexing status, CTR optimization, ranking movements, top pages, low-CTR queries, or "how is [domain] doing in search", **use the Search Console API directly** rather than asking the user to look it up manually. This applies to **both** `externalssds.com` **and** `portablessds.com` — pick the right env var for whichever domain the user asked about (or query both if the request is generic).
 
+---
+
+## ⚠️ IMPORTANT: Google Analytics 4 Access (READ THIS)
+
+**🚨 CRITICAL FOR ALL AI AGENTS — DO NOT SKIP 🚨**
+
+**Any AI agent working on this project CAN and SHOULD read live Google Analytics 4 (GA4) data for BOTH `externalssds.com` AND `portablessds.com` when doing traffic, engagement, conversion, audience, or performance analysis. You do NOT need to ask the user for permission or credentials — everything required is already available to you locally.**
+
+This is non-negotiable: you have direct read access to live GA4 data for both tenants. **Always use it** rather than asking the user to look things up, guessing about traffic, or speculating about user behavior. Treat GA4 data as authoritative for any analytics decision.
+
+> **Note on naming**: The env vars are named `*_GSC_SERVICE_ACCOUNT` for historical reasons, but the same JSON key files also grant access to Google Analytics 4 for the matching domain. The GSC scope (`webmasters.readonly`) is NOT sufficient on its own — you must request GA4 scopes when building the JWT client (see below).
+
+---
+
+### `externalssds.com` GA4 Access
+
+- **Service account JSON key path**: read it from the local environment variable `EXTERNALSSDS_GSC_SERVICE_ACCOUNT` (e.g. via `process.env.EXTERNALSSDS_GSC_SERVICE_ACCOUNT` in Node, or `$env:EXTERNALSSDS_GSC_SERVICE_ACCOUNT` in PowerShell). The variable holds an **absolute file path** on the local machine pointing to a service account JSON key file — NOT a JSON string itself. Read the file at that path to get the credentials.
+- **GA4 Property**: the numeric GA4 property ID for `externalssds.com`. Read it from the local environment variable `EXTERNALSSDS_GA4_PROPERTY_ID` (e.g. `123456789` — pure digits, no `properties/` prefix when used in the API). Falls back to the convention of looking up the property whose `name` matches `properties/<id>` and whose linked stream is for `externalssds.com` if the env var is not set.
+- **Service account email**: the `client_email` field inside the JSON key file. This email must be granted **Viewer** access on the GA4 property in the Google Analytics admin UI (Admin → Property access management).
+
+### `portablessds.com` GA4 Access
+
+- **Service account JSON key path**: read it from the local environment variable `PORTABLESSDS_GSC_SERVICE_ACCOUNT` (e.g. via `process.env.PORTABLESSDS_GSC_SERVICE_ACCOUNT` in Node, or `$env:PORTABLESSDS_GSC_SERVICE_ACCOUNT` in PowerShell). The variable holds an **absolute file path** on the local machine pointing to a service account JSON key file — NOT a JSON string itself. Read the file at that path to get the credentials.
+- **GA4 Property**: the numeric GA4 property ID for `portablessds.com`. Read it from the local environment variable `PORTABLESSDS_GA4_PROPERTY_ID`. Falls back to discovery by linked stream if the env var is not set.
+- **Service account email**: the `client_email` field inside the JSON key file. This email must be granted **Viewer** access on the GA4 property in the Google Analytics admin UI.
+
+### How To Read GA4 Data
+
+- **API**: Google Analytics Data API v1 (`analyticsdata.googleapis.com`) via the `googleapis` npm package — use `google.analyticsdata({ version: 'v1beta' }).properties.runReport(...)` or the v1 equivalent. Authenticate with a JWT per-domain using the `client_email` and `private_key` from that domain's JSON key, scope `https://www.googleapis.com/auth/analytics.readonly`. The two domains use SEPARATE service account JSON files and SEPARATE env vars — do not mix them.
+- **Alternative**: the Google Analytics Admin API (`analyticsadmin.googleapis.com`) for metadata (property info, account summaries, linked streams). Scope `https://www.googleapis.com/auth/analytics.readonly` covers both Data and Admin APIs.
+- **What you can query** (Data API):
+  - Report metrics: `sessions`, `totalUsers`, `newUsers`, `engagedSessions`, `engagementRate`, `averageSessionDuration`, `bounceRate`, `screenPageViews`, `conversions`, `eventCount`, `totalRevenue`, etc.
+  - Dimensions: `date`, `sessionDefaultChannelGroup`, `sessionSource`, `sessionMedium`, `sessionCampaignName`, `country`, `city`, `deviceCategory`, `browser`, `pagePath`, `pageTitle`, `landingPage`, `hostName`, `newVsReturning`, `language`, etc.
+  - Filters: date ranges, dimension/metric filters, orderings, limits, offsets.
+  - Realtime API for last-30-min activity (`runRealtimeReport`).
+- **Do NOT**: commit any JSON key file, print its contents to output, write any path into committed code, or share it. The env vars exist only in the user's local shell environment. Reference them via `process.env` / `$env:` at runtime.
+- **Suggested helper location**: if you build a reusable GA4 client, put it at `src/lib/ga4.ts` (or `scripts/ga4.ts` for one-off pulls). The client should accept a domain (`'externalssds.com'` or `'portablessds.com'`) and pick the matching env vars — never hardcode any path or property ID.
+
+### When To Use GA4 (Mandatory for Both Domains)
+
+When the user asks anything involving traffic, sessions, users, pageviews, engagement, bounce rate, session duration, conversions, revenue, channel/source attribution, top pages by traffic, top countries, device split, new vs returning users, landing pages, or "how is [domain] doing" in terms of audience behavior, **use the Analytics Data API directly** rather than asking the user to look it up manually. This applies to **both** `externalssds.com` **and** `portablessds.com` — pick the right env vars for whichever domain the user asked about (or query both if the request is generic).
+
+### GA4 Re-Run Cadence (MANDATORY for Analytics Work)
+
+A live GA4 data-pull script should exist at `scripts/ga4_pull_traffic.js` (create it if it doesn't exist yet). It queries the Analytics Data API for both `externalssds.com` and `portablessds.com` across sessions/users/pageviews/engagement, channel breakdown, top pages, top countries, device split, and 28-day trends. Run it with:
+
+```bash
+node scripts/ga4_pull_traffic.js
+```
+
+When a new AI agent makes changes that could affect traffic (SEO, content, UX, ads, internal linking) and deploys them, the changes need time to materialize in GA4. The agent MUST re-run `node scripts/ga4_pull_traffic.js` **7-14 days after the deploy date** to measure session/pageview/engagement deltas on the affected URLs and channels, then compare against the baseline captured at deploy time.
+
+---
+
 ## ⚠️ CRITICAL: Amazon Associates Compliance (ALL AI AGENTS MUST READ)
 
 **🚨 ANY AI AGENT TOUCHING THIS PROJECT MUST READ AND FOLLOW THIS SECTION. VIOLATIONS CAN CAUSE IMMEDIATE ACCOUNT TERMINATION WITH NO WARNING. 🚨**
@@ -302,6 +356,8 @@ Target queries: `samsung t7 shield 4tb portable ssd amazon.com price` (pos 7.6),
 
 **Any future AI agent doing SEO work on this repo MUST, at the start of its session, re-run `node scripts/gsc_pull_revenue.js` to get a fresh baseline, and note the current date as the deploy-baseline for the next agent. Update the baseline table above with fresh numbers when you do.**
 
+For traffic/engagement analytics work, agents have the same direct GA4 access (see "Google Analytics 4 Access" section above) and should re-run `node scripts/ga4_pull_traffic.js` 7-14 days after deploys that affect UX, content, internal linking, or ad placement.
+
 ## What's Done
 - [x] Full project scaffold, Astro + Cloudflare adapter + Tailwind
 - [x] D1 schema + seed data deployed to remote
@@ -323,6 +379,7 @@ Target queries: `samsung t7 shield 4tb portable ssd amazon.com price` (pos 7.6),
 - [x] Post-deploy submission script (npm run indexnow:submit)
 - [x] Product page SEO: commercial query-anchored titles, AggregateRating/Offer/Review/BreadcrumbList JSON-LD, FAQ schema, "Price & Where to Buy" section, competitor spec comparison table, Most Popular homepage section for internal link equity
 - [x] GSC live data pull script (scripts/gsc_pull_revenue.js) — queries both domains for clicks/impressions/CTR/position/top pages/top queries
+- [x] GA4 live data pull script (scripts/ga4_pull_traffic.js) — queries both domains for sessions/users/pageviews/engagement/channel/country/device
 - [x] Fix: removed `export async function getStaticPaths()` from `src/pages/products/[slug].astro` — the Astro compiler was emitting a duplicate `export` inside the component function body, causing esbuild to fail with "Unexpected export" once the frontmatter grew past a threshold. SSR pages don't need `getStaticPaths()` anyway (it's ignored with a warning).
 
 ## What's Pending
