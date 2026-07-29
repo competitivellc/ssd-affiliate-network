@@ -657,6 +657,24 @@ export async function getHubsForProduct(
   return matching;
 }
 
+export async function getHubByCategory(
+  db: D1Database,
+  siteId: string,
+  categorySlug: string
+): Promise<Hub | null> {
+  const { results } = await db
+    .prepare(
+      `SELECT * FROM hubs
+       WHERE site_id = ? AND is_active = 1
+         AND filter_criteria LIKE ?
+       ORDER BY display_order ASC
+       LIMIT 1`
+    )
+    .bind(siteId, `%"category_slug":%${categorySlug}%`)
+    .all<Hub>();
+  return results[0] || null;
+}
+
 export async function getPriceHistory(
   db: D1Database,
   productId: number,

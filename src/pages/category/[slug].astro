@@ -4,7 +4,7 @@ import Breadcrumb from "@components/Breadcrumb.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
 import PriceStamp from "@components/PriceStamp.astro";
 import ProductGrid from "@components/ProductGrid.astro";
-import { getProductsByCategory, getProductPricesFresh, getCategoriesBySite } from "@lib/db";
+import { getProductsByCategory, getProductPricesFresh, getCategoriesBySite, getHubByCategory } from "@lib/db";
 import { getLowestPrice } from "@lib/pricing";
 import type { Product, Price } from "@lib/db";
 
@@ -38,6 +38,9 @@ const avgScore = products.reduce((sum, p) => sum + p.overall_score, 0) / product
 
 const categoryName = category.name.replace(/\s+SSDs?$/i, "");
 const metaDesc = `Shop the best ${categoryName.toLowerCase()} external SSDs. Compare ${products.length} top-rated drives with specs, prices, and expert reviews. Free shipping on qualifying orders.`;
+
+const categoryHub = await getHubByCategory(db, tenant.id, slug!);
+const canonicalOverride = categoryHub ? `https://${hostname}/hubs/${categoryHub.slug}` : undefined;
 
 const categoryJsonLd = {
   "@context": "https://schema.org",
@@ -90,7 +93,7 @@ const faqJsonLd = {
 };
 ---
 
-<BaseLayout title={`${categoryName} External SSDs - Best Picks & Comparison`} description={metaDesc} jsonLd={categoryJsonLd}>
+<BaseLayout title={`${categoryName} External SSDs - Best Picks & Comparison`} description={metaDesc} jsonLd={categoryJsonLd} canonical={canonicalOverride}>
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <Breadcrumb items={[{ label: "Home", href: "/" }, { label: `${categoryName} SSDs` }]} />
 

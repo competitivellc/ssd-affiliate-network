@@ -8,12 +8,13 @@ export interface Props {
   title?: string;
   description?: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  canonical?: string;
 }
 
 const { tenant, hostname } = Astro.locals;
-const { jsonLd } = Astro.props;
+const { jsonLd, canonical: canonicalOverride } = Astro.props;
 const canonicalPath = (Astro.url.pathname.replace(/\/+$/, "") || "/");
-const canonicalUrl = `https://${hostname}${canonicalPath}`;
+const canonicalUrl = canonicalOverride || `https://${hostname}${canonicalPath}`;
 const title = Astro.props.title
   ? `${Astro.props.title} | ${tenant.name}`
   : tenant.name;
