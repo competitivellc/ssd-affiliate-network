@@ -13,6 +13,16 @@ const { DB, tenant, hostname, marketplace } = Astro.locals;
 const { slug } = Astro.params;
 const db = DB!;
 
+// Cannibalization consolidation (2026-07-30): the two Samsung T7 Shield
+// product URLs were stealing impressions + link equity from /compare,
+// which already ranks pos 6-7 for the high-value buyer query
+// "samsung t7 shield 4tb portable ssd amazon.com price".
+// 301 the product URLs to /compare so all ranking signal consolidates
+// onto the URL that actually converts.
+if (slug === "samsung-t7-shield" || slug === "samsung-t7-shield-portable") {
+  return Astro.redirect("/compare", 301);
+}
+
 const product = await getProductBySlug(db, tenant.id, slug!);
 if (!product) {
   return Astro.redirect("/404");
