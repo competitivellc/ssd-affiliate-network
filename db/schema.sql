@@ -40,6 +40,9 @@ CREATE TABLE IF NOT EXISTS products (
   name TEXT NOT NULL,
   slug TEXT NOT NULL,
   model TEXT,
+  asin TEXT,
+  model_family TEXT,
+  image_url TEXT,
   gtin13 TEXT,
   capacity_gb INTEGER,
   form_factor TEXT CHECK(form_factor IN ('M.2 2280','M.2 2230','2.5" SATA','mSATA','U.2','External')),
@@ -136,6 +139,7 @@ CREATE TABLE IF NOT EXISTS link_audit_log (
 
 CREATE INDEX IF NOT EXISTS idx_products_site_category ON products(site_id, category_id);
 CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
+CREATE INDEX IF NOT EXISTS idx_products_model_family ON products(model_family);
 CREATE INDEX IF NOT EXISTS idx_prices_pmc ON prices(product_id, marketplace, condition);
 CREATE INDEX IF NOT EXISTS idx_prices_retailer ON prices(retailer);
 CREATE INDEX IF NOT EXISTS idx_prices_fresh ON prices(product_id, marketplace, fetched_at);

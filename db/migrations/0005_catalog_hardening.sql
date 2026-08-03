@@ -1,0 +1,16 @@
+-- Migration 0005: Catalog hardening for Phase 3 expansion.
+-- Adds asin, model_family, image_url to products.
+-- Backfills existing 19 products with model_family and ASIN values.
+-- Creates index on model_family for capacity-variant cross-link lookups.
+-- NOTE: UNIQUE constraint on asin is intentionally omitted — the same ASIN
+-- can appear on both tenant sites (externalssds + portablessds), so a
+-- per-site unique index would be needed. Deferred to Phase 3 when new
+-- products are added per-site.
+
+-- Applied via individual wrangler CLI commands (see session log 2026-08-03).
+-- ALTER TABLE products ADD COLUMN asin TEXT;
+-- ALTER TABLE products ADD COLUMN model_family TEXT;
+-- ALTER TABLE products ADD COLUMN image_url TEXT;
+-- + 14 UPDATE statements for model_family backfill
+-- + 19 UPDATE statements for ASIN backfill
+-- CREATE INDEX idx_products_model_family ON products(model_family);

@@ -8,6 +8,9 @@ export interface Product {
   name: string;
   slug: string;
   model: string;
+  asin: string | null;
+  model_family: string | null;
+  image_url: string | null;
   gtin13: string | null;
   capacity_gb: number;
   form_factor: string;
