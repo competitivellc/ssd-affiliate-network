@@ -1,5 +1,15 @@
 ﻿# SSD Affiliate Network - Project Context
 
+> ## 🚨 START HERE — last agent's handoff (2026-08-03)
+> Phases 1-6 of the catalog-expansion plan shipped today (commits `30f003f` → `610adcd`):
+> - Catalog expanded **17 → 155 products** across both tenants (9× URL surface).
+> - Critical bug fixed: affiliate buy buttons were not rendering site-wide because of a stale 24h freshness filter on `getProductPricesFresh()` — fixed in `58cf449`.
+> - New `/products` directory + capacity-variant cross-links (Phase 4).
+> - GA4 audit confirmed both properties wired correctly; `portablessds.com` "zero rows" issue CLOSED.
+> - IndexNow submitted 6,036 URLs across both sitemaps.
+> - **GSC baseline captured**: externalssds 1c / 471i / pos 39.6 / 0.21% CTR; portablessds 2c / 612i / pos 35.7 / 0.33% CTR.
+> - **NEXT AGENT (2026-08-17 → 2026-08-31) MUST**: re-run `node scripts/gsc_pull_revenue.js` at the start of the session and compare against the `RESULT (2026-08-03)` baseline block in the "GSC Re-Run Cadence" section below. Target: externalssds 471 → 700+ impressions; portablessds 612 → 900+; ≥30% of the 138 new product slugs in GSC page report; `/compare` position on `samsung t7 shield 4tb portable ssd amazon.com price` from pos 7.5 → top 5. Update the baseline table with fresh numbers when done.
+
 ## Overview
 Multi-tenant affiliate comparison site for external SSDs served on `externalssds.com` and `portablessds.com`. Built with Astro 5 SSR, deployed on Cloudflare Pages with D1 (SQLite) and KV.
 
