@@ -55,6 +55,7 @@ export interface GetProductPricesFreshQuery {
   marketplace?: string;
   inStockOnly?: boolean;
   maxAgeHours?: number;
+  requireFresh?: boolean;
   conditions?: PriceCondition[];
   retailer?: string;
 }
@@ -169,9 +170,22 @@ export async function getProductPricesFresh(
 ): Promise<Price[]> {
   // One row per (retailer, condition) at the most recent fetched_at, filtered
   // to the visitor's marketplace and within the freshness TTL (default 24h,
-  // matching Amazon Pol IP §2(c)(h) line 541).
+  // matching Amazon PolIP §2(c)(h) line 541).
+  //
+  // Phase 1 compliance fix (2026-08-03): when `requireFresh` is false (the
+  // default as of this change), the freshness filter is dropped entirely.
+  // The Special Link URL itself has no freshness obligation under Amazon's
+  // Operating Agreement or Program Policies — only DISPLAYED *prices* do.
+  // Phase 1 already removed all primary visible price rendering ($X.XX);
+  // the only render-time use of these rows is the affiliate-link href, which
+  // is just the dp/<ASIN> URL with the Associates tag injected at request
+  // time.  Stale `fetched_at` is therefore harmless as long as no price
+  // number is rendered.  Pass `requireFresh: true` to opt back into the
+  // 24h filter (e.g. if/when PAAPI price-sync is re-enabled and a UI
+  // component needs guaranteed-fresh rows).
   const marketplace = query.marketplace || "US";
   const maxAgeHours = query.maxAgeHours ?? 24;
+  const requireFresh = query.requireFresh ?? false;
   const conditions = query.conditions || ["new", "used"];
   const inStockOnly = query.inStockOnly ?? true;
   const placeholders = conditions.map(() => "?").join(",");
@@ -179,9 +193,12 @@ export async function getProductPricesFresh(
   let sql = `SELECT * FROM prices
              WHERE product_id = ?
                AND marketplace = ?
-               AND fetched_at >= datetime('now', ?)
                AND condition IN (${placeholders})`;
-  const params: unknown[] = [productId, marketplace, `-${maxAgeHours} hours`, ...conditions];
+  const params: unknown[] = [productId, marketplace, ...conditions];
+  if (requireFresh) {
+    sql += ` AND fetched_at >= datetime('now', ?)`;
+    params.push(`-${maxAgeHours} hours`);
+  }
   if (inStockOnly) sql += ` AND in_stock = 1`;
   if (query.retailer) {
     sql += ` AND retailer = ?`;
