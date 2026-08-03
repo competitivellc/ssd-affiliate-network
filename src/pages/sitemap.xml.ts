@@ -89,6 +89,8 @@ async function buildSitemapXml(
   pushEntry(entries, seen, `${baseUrl}/editorial-methodology`, TODAY, "monthly", "0.3");
   pushEntry(entries, seen, `${baseUrl}/privacy`, TODAY, "yearly", "0.3");
   pushEntry(entries, seen, `${baseUrl}/terms`, TODAY, "yearly", "0.3");
+  // Product directory index (Phase 4 internal link equity).
+  pushEntry(entries, seen, `${baseUrl}/products`, TODAY, "weekly", "0.7");
 
   // Products — emit each live product page with its own updated_at.
   // Skip slugs that are 301-redirected elsewhere (cannibalization fix).

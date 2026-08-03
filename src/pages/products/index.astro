@@ -1,0 +1,110 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import Breadcrumb from "@components/Breadcrumb.astro";
+import ProductGrid from "@components/ProductGrid.astro";
+import { getAllProducts } from "@lib/db";
+
+const { DB, tenant, hostname } = Astro.locals;
+const db = DB!;
+const allProducts = await getAllProducts(db, tenant.id);
+
+if (allProducts.length === 0) {
+  return Astro.redirect("/404");
+}
+
+// Group by brand for the directory presentation. Each brand becomes a
+// collapsible-ish section with its products rendered as compact cards.
+const byBrand: Record<string, { name: string; slug: string; products: typeof allProducts }> = {};
+for (const p of allProducts) {
+  const key = p.brand_slug || "unknown";
+  if (!byBrand[key]) {
+    byBrand[key] = { name: p.brand_name || key, slug: key, products: [] };
+  }
+  byBrand[key].products.push(p);
+}
+const brandGroups = Object.values(byBrand).sort((a, b) => b.products.length - a.products.length);
+
+// Brands surface in alphabetical order in the jump-to list
+const brandIndex = [...brandGroups].sort((a, b) => a.name.localeCompare(b.name));
+
+const metaDesc = `Browse all ${allProducts.length} ${tenant.name} external SSDs across ${brandGroups.length} brands. Full directory of reviewed drives, sortable by brand, capacity, and form factor.`;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: `All ${tenant.name} External SSDs`,
+  numberOfItems: allProducts.length,
+  itemListElement: allProducts.slice(0, 50).map((p, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    name: p.name,
+    url: `https://${hostname}/products/${p.slug}`,
+  })),
+};
+
+const pageTitle = `All ${tenant.name} External SSDs — ${allProducts.length} Drives Reviewed`;
+---
+
+<BaseLayout title={pageTitle} description={metaDesc} canonical={`https://${hostname}/products`}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <Breadcrumb items={[{ name: "Home", url: "/" }, { name: "All SSDs" }]} />
+
+    <div class="mb-6">
+      <p class="text-xs text-surface-700 italic leading-relaxed mb-4">
+        As an Amazon Associate I earn from qualifying purchases. We may earn a commission from qualifying purchases made through links on this page. Prices and availability are subject to change.
+      </p>
+      <h1 class="text-3xl sm:text-4xl font-bold text-surface-900 mb-3">All {tenant.name}</h1>
+      <p class="text-surface-700">
+        Our complete directory of {allProducts.length} reviewed external SSDs across {brandGroups.length} brands. Each drive has been scored against a consistent rubric covering speed, endurance, build quality, warranty, and value.
+      </p>
+    </div>
+
+    <nav aria-label="Brand jump-to" class="mb-8 flex flex-wrap gap-2">
+      {brandIndex.map((b) => (
+        <a
+          href={`#brand-${b.slug}`}
+          class="px-3 py-1 text-sm font-medium rounded-full border border-surface-200 hover:border-surface-400 hover:bg-surface-50 text-surface-700 hover:text-surface-900 no-underline transition-colors"
+        >
+          {b.name} <span class="text-xs text-surface-500">({b.products.length})</span>
+        </a>
+      ))}
+    </nav>
+
+    {brandGroups.map((group) => (
+      <section id={`brand-${group.slug}`} class="mb-12 scroll-mt-20">
+        <div class="flex items-center justify-between mb-4 border-b border-surface-200 pb-2">
+          <div class="flex items-center gap-2">
+            <h2 class="text-2xl font-semibold text-surface-900">{group.name}</h2>
+            <span class="text-sm text-surface-600">{group.products.length} {group.products.length === 1 ? "drive" : "drives"}</span>
+          </div>
+          {group.products.length > 0 && (
+            <a
+              href={`/brands/${group.slug}`}
+              class="text-sm font-medium hover:text-blue-900 no-underline"
+              style={`color:${tenant.colorPrimary}`}
+            >
+              View brand page &rarr;
+            </a>
+          )}
+        </div>
+        <ProductGrid products={group.products} />
+      </section>
+    ))}
+
+    <section class="mt-12 rounded-xl border border-surface-200 p-6">
+      <h2 class="text-xl font-semibold text-surface-900 mb-3">Frequently Asked Questions</h2>
+      <div class="space-y-4">
+        <div>
+          <h3 class="text-base font-medium text-surface-900 mb-1">How are {tenant.name} scores calculated?</h3>
+          <p class="text-sm text-surface-700">Every drive is scored on a 0-10 scale using a consistent rubric covering sequential read/write speed (30%), capacity options (15%), endurance TBW (15%), build quality and form factor (15%), value-per-TB (15%), and warranty length (10%). Scores are computed objectively from manufacturer specifications — no editorial bias, no paid placement.</p>
+        </div>
+        <div>
+          <h3 class="text-base font-medium text-surface-900 mb-1">Why is a particular SSD missing from this list?</h3>
+          <p class="text-sm text-surface-700">We cover external SSDs currently available at major US retailers. If a drive is discontinued, marked out of stock at all tracked retailers, or has not yet accumulated enough third-party spec verification, it is excluded until available. Reach out via <a href="/contact" class="text-blue-800 hover:text-blue-900 font-medium">our contact page</a> if you would like us to add a specific drive.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</BaseLayout>

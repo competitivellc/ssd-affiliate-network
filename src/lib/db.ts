@@ -386,6 +386,37 @@ export async function getProductsByBrand(
   return results;
 }
 
+/**
+ * Capacity siblings within the same model_family on the same site — used to
+ * render the "Also available in" cross-link block on product pages. Sibling
+ * cross-links transfer link equity within the family and capture the
+ * "[brand] [model] [capacity] amazon" long-tail query intent without creating
+ * a separate product page per capacity. Excludes the source product.
+ *
+ * @phase Phase 4 internal link equity distribution.
+ */
+export async function getCapacityVariants(
+  db: D1Database,
+  siteId: string,
+  modelFamily: string | null | undefined,
+  excludeProductId: number
+): Promise<Product[]> {
+  if (!modelFamily) return [];
+  const { results } = await db
+    .prepare(
+      `SELECT p.*, b.name as brand_name, b.slug as brand_slug, c.name as category_name, c.slug as category_slug
+       FROM products p
+       LEFT JOIN brands b ON p.brand_id = b.id
+       LEFT JOIN categories c ON p.category_id = c.id
+       WHERE p.site_id = ? AND p.model_family = ? AND p.id != ? AND p.is_active = 1
+       ORDER BY p.capacity_gb ASC
+       LIMIT 8`
+    )
+    .bind(siteId, modelFamily, excludeProductId)
+    .all<Product>();
+  return results;
+}
+
 export async function getRelatedProducts(
   db: D1Database,
   siteId: string,
