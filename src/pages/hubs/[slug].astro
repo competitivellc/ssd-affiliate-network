@@ -12,7 +12,6 @@ import {
   getHubsByType,
 } from "@lib/db";
 import type { Hub, Product, FilterCriteria, Price } from "@lib/db";
-import { getLowestPrice } from "@lib/pricing";
 import { getHubEditorial } from "@lib/hubs";
 import type { HubEditorial } from "@lib/hubs";
 
@@ -35,18 +34,19 @@ let products: Product[];
 let productPrices: Record<number, Price[]> = {};
 
 if (hub.hub_type === "value") {
-  const all = await getHubProducts(db, tenant.id, {
+  // Phase 1 compliance fix (2026-08-03): Value hubs now sort by overall_score
+  // instead of stale price data. Without PAAPI access, price_cents in the DB
+  // may be weeks old — sorting by them would produce misleading "cheapest"
+  // rankings. Sorting by score gives a meaningful value signal (best
+  // features-per-dollar-tier) without requiring fresh price data.
+  products = await getHubProducts(db, tenant.id, {
     ...filterCriteria,
     sort: undefined,
   });
-  const pricePromises = all.map(async (p) => {
-    const prices = await getProductPricesFresh(db, p.id, { marketplace, inStockOnly: true });
-    productPrices[p.id] = prices;
-    return { ...p, _lowestPrice: prices.length > 0 ? Math.min(...prices.map((pr) => pr.price_cents)) : Infinity };
+  const pricePromises = products.map(async (p) => {
+    productPrices[p.id] = await getProductPricesFresh(db, p.id, { marketplace, inStockOnly: true });
   });
-  const withPrices = await Promise.all(pricePromises);
-  withPrices.sort((a, b) => (a._lowestPrice || 0) - (b._lowestPrice || 0));
-  products = withPrices.slice(0, filterCriteria.limit || 20);
+  await Promise.all(pricePromises);
 } else {
   products = await getHubProducts(db, tenant.id, filterCriteria);
   const pricePromises = products.map(async (p) => {
@@ -143,7 +143,7 @@ const hubJsonLd = {
         <section class="mb-8">
           <div class="flex items-center gap-3 mb-6">
             <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
-            <h2 class="text-xl font-bold text-surface-900">{hub.hub_type === "value" ? "Ranked by Price" : "Ranked by Score"}</h2>
+            <h2 class="text-xl font-bold text-surface-900">Ranked by Score</h2>
           </div>
           <ProductGrid products={products} showRank pricesByProduct={productPrices} />
         </section>
@@ -226,21 +226,23 @@ const hubJsonLd = {
 
         {hub.hub_type === "value" && products.length > 0 && (
           <section class="mb-8">
-            <h3 class="text-base font-semibold text-surface-800 mb-3">Price Overview</h3>
+            <h3 class="text-base font-semibold text-surface-800 mb-3">Quick Links</h3>
             <div class="overflow-x-auto rounded-xl border border-surface-300">
               <table class="min-w-full text-sm">
                 <thead>
                   <tr class="bg-surface-50">
                     <th class="text-left px-4 py-2.5 font-medium text-surface-700">Drive</th>
                     <th class="text-left px-4 py-2.5 font-medium text-surface-700">Capacity</th>
-                    <th class="text-left px-4 py-2.5 font-medium text-surface-700">Best Price</th>
                     <th class="text-left px-4 py-2.5 font-medium text-surface-700">Retailer</th>
                   </tr>
                 </thead>
                 <tbody>
                   {products.map((p, i) => {
                     const prices = productPrices[p.id] || [];
-                    const lowest = getLowestPrice(prices as any);
+                    const primaryLink = prices.find((pr) => pr.retailer === "Amazon" && (pr.condition || "new") === "new")
+                      || prices.find((pr) => pr.retailer === "Amazon")
+                      || prices[0]
+                      || null;
                     return (
                       <tr class={i % 2 === 0 ? "" : "bg-surface-50/50"}>
                         <td class="px-4 py-2.5 font-medium text-surface-900">{p.name}</td>
@@ -249,21 +251,18 @@ const hubJsonLd = {
                             ? `${(p.capacity_gb / 1000).toFixed(0)}TB`
                             : `${p.capacity_gb}GB`}
                         </td>
-                        <td class="px-4 py-2.5 font-medium text-surface-900">
-                          {lowest ? "Check Price" : "—"}
-                        </td>
                         <td class="px-4 py-2.5">
-                          {lowest?.affiliate_url ? (
+                          {primaryLink?.affiliate_url ? (
                             <GeoAffiliateLink
-                              url={lowest.affiliate_url}
-                              retailer={lowest.retailer}
-                              label={`Check Price at ${lowest.retailer}`}
-                              urlSource={lowest.url_source}
+                              url={primaryLink.affiliate_url}
+                              retailer={primaryLink.retailer}
+                              label={`Check on ${primaryLink.retailer}`}
+                              urlSource={primaryLink.url_source}
                               useCartExtend
                               className="inline-flex items-center gap-1 text-sm font-medium text-blue-800 hover:text-blue-900 no-underline"
                             />
                           ) : (
-                            <span class="text-surface-700">Pricing unavailable</span>
+                            <span class="text-surface-700">Unavailable</span>
                           )}
                         </td>
                       </tr>

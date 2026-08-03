@@ -2,10 +2,8 @@
 import BaseLayout from "@layouts/BaseLayout.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
-import PriceStamp from "@components/PriceStamp.astro";
 import ProductGrid from "@components/ProductGrid.astro";
 import { getProductBySlug, getProductPricesFresh, getRelatedProducts } from "@lib/db";
-import { getLowestPrice } from "@lib/pricing";
 
 const { DB, tenant, hostname, marketplace } = Astro.locals;
 const { slug, retailer } = Astro.params;
@@ -95,7 +93,7 @@ const productJsonLd: Record<string, unknown> = {
 ---
 
 <BaseLayout
-  title={`${product.name} at ${retailerName} - Check Price`}
+  title={`${product.name} at ${retailerName} - Review & Specs`}
   description={`${product.name} available at ${retailerName}. Compare prices across retailers. ${product.capacity_gb >= 1000 ? `${(product.capacity_gb / 1000).toFixed(0)}TB` : `${product.capacity_gb}GB`} ${product.interface} external SSD with ${product.read_speed_mbps} MB/s read speeds.`}
   jsonLd={productJsonLd}
 >
@@ -170,7 +168,7 @@ const productJsonLd: Record<string, unknown> = {
           <h2 class="text-xl font-semibold text-surface-900 mb-3">Why Buy {product.name} at {retailerName}?</h2>
           <div class="space-y-4 text-surface-700 leading-relaxed">
             <p>
-              The {product.name} is available at {retailerName}. Check current pricing for the latest offers.
+              The {product.name} is available at {retailerName}. Click through to view the current price and availability.
               This {product.capacity_gb >= 1000 ? `${(product.capacity_gb / 1000).toFixed(0)}TB` : `${product.capacity_gb}GB`} external SSD
               features {product.interface} connectivity with sequential read speeds up to {product.read_speed_mbps.toLocaleString()} MB/s
               and write speeds up to {product.write_speed_mbps.toLocaleString()} MB/s.
@@ -204,7 +202,7 @@ const productJsonLd: Record<string, unknown> = {
 
         {allPricesSorted.length > 1 && (
           <section class="mb-8">
-            <h2 class="text-xl font-semibold text-surface-900 mb-3">Compare Prices at Other Retailers</h2>
+            <h2 class="text-xl font-semibold text-surface-900 mb-3">Other Retailers</h2>
             <div class="space-y-3">
               {allPricesSorted.map((price) => (
                 <div class={`flex items-center justify-between rounded-lg border p-4 ${price.retailer === retailerName ? "border-blue-300 bg-blue-50" : "border-surface-200"}`}>
@@ -213,7 +211,7 @@ const productJsonLd: Record<string, unknown> = {
                     <p class="text-sm text-surface-700">{price.in_stock ? "In Stock" : "Out of Stock"}</p>
                   </div>
                   <div class="text-right">
-                    <p class="text-lg font-semibold text-blue-800">Check Price</p>
+                    <p class="text-lg font-semibold text-blue-800">Check {price.retailer}</p>
                     {price.retailer !== retailerName && price.in_stock && (
                       <GeoAffiliateLink
                         url={price.affiliate_url || ""}
@@ -251,7 +249,7 @@ const productJsonLd: Record<string, unknown> = {
           <div class="rounded-xl border border-surface-300 p-5">
             <div class="text-center mb-4">
               <p class="text-sm text-surface-700">Available at {retailerName}</p>
-              <p class="text-3xl font-bold text-surface-900">See Price</p>
+              <p class="text-3xl font-bold text-surface-900">Buy Now</p>
               <p class={`text-sm mt-1 ${retailerPrice.in_stock ? "text-emerald-700" : "text-red-700"}`}>
                 {retailerPrice.in_stock ? "In Stock" : "Out of Stock"}
               </p>
@@ -260,7 +258,7 @@ const productJsonLd: Record<string, unknown> = {
               <GeoAffiliateLink
                 url={retailerPrice.affiliate_url || ""}
                 retailer={retailerName}
-                label={`Check Price on ${retailerName} →`}
+                label={`Check on ${retailerName} →`}
                 urlSource={retailerPrice.url_source}
                 useCartExtend
                 className="w-full justify-center py-3 text-sm font-semibold bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
@@ -270,14 +268,16 @@ const productJsonLd: Record<string, unknown> = {
                 Currently out of stock at {retailerName}
               </p>
             )}
-            <PriceStamp fetchedAt={retailerPrice.fetched_at} className="mt-3 text-center" />
+            <p class="text-xs text-surface-500 italic text-center mt-3">
+              Prices and availability are subject to change — see {retailerName}'s site for current details.
+            </p>
             {amazonUsed && (
               <div class="mt-3 pt-3 border-t border-surface-200">
                 <p class="text-xs font-semibold text-surface-700 uppercase tracking-wider mb-2">Amazon Used Market</p>
                 <GeoAffiliateLink
                   url={amazonUsed.affiliate_url || ""}
                   retailer={amazonUsed.retailer}
-                  label="Lowest used Amazon price →"
+                  label="Check Amazon used →"
                   urlSource={amazonUsed.url_source}
                   className="text-xs"
                 />
@@ -310,14 +310,24 @@ const productJsonLd: Record<string, unknown> = {
           </div>
 
           <div class="rounded-xl border border-surface-300 p-5">
-            <h3 class="text-sm font-semibold text-surface-700 mb-3">All Prices for {product.name}</h3>
+            <h3 class="text-sm font-semibold text-surface-700 mb-3">Other Retailers for {product.name}</h3>
             <div class="space-y-2">
               {allPricesSorted.map((price) => (
                 <div class="flex items-center justify-between text-sm">
                   <span class={price.retailer === retailerName ? "font-medium text-blue-800" : "text-surface-700"}>
                     {price.retailer}
                   </span>
-                  <span class="font-medium text-surface-900">Check Price</span>
+                  {price.retailer !== retailerName ? (
+                    <GeoAffiliateLink
+                      url={price.affiliate_url || ""}
+                      retailer={price.retailer}
+                      label="Check →"
+                      urlSource={price.url_source}
+                      className="text-xs"
+                    />
+                  ) : (
+                    <span class="text-xs font-medium text-blue-800">Current</span>
+                  )}
                 </div>
               ))}
             </div>

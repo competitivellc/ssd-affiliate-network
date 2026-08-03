@@ -2,12 +2,10 @@
 import BaseLayout from "@layouts/BaseLayout.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
-import PriceStamp from "@components/PriceStamp.astro";
 import ProductGrid from "@components/ProductGrid.astro";
 import { getProductBySlug, getProductPricesFresh, getProductsByBrand, getRelatedProducts, getHubsForProduct } from "@lib/db";
 import type { Hub } from "@lib/db";
 import { classifyDrive } from "@lib/editorial";
-import { getLowestPrice } from "@lib/pricing";
 
 const { DB, tenant, hostname, marketplace } = Astro.locals;
 const { slug } = Astro.params;
@@ -28,28 +26,24 @@ if (!product) {
   return Astro.redirect("/404");
 }
 
-// Freshness-filtered, marketplace-matched, in-stock-only prices.
-// Pol IP §2(b): prices only displayed if reasonably current + accurate.
-// Pol IP §2(c)(h) line 541: 24h cache clock enforced.
-const livePrices = await getProductPricesFresh(db, product.id, { marketplace, inStockOnly: true });
-const bestPrice = getLowestPrice(livePrices as any);
-// Lowest Amazon new + used for comparison-pricing block (Pol §2(b) line 331).
-const amazonNew = livePrices.find((p) => p.retailer === "Amazon" && (p.condition || "new") === "new");
-const amazonUsed = livePrices.find((p) => p.retailer === "Amazon" && p.condition === "used");
-const otherRetailers = livePrices.filter(
+// Phase 1 compliance fix (2026-08-03): We no longer display explicit prices
+// ($X.XX) on product pages. Without PAAPI access we cannot guarantee price
+// freshness, and Pol §2(b) restricts price DISPLAY accuracy. Instead we
+// render only a "Check on Amazon" affiliate link — Amazon's own page shows
+// the live price. The prices table still holds Special Link URLs (used for
+// affiliate tag injection via GeoAffiliateLink) but price_cents is never
+// rendered on-page.
+const allPrices = await getProductPricesFresh(db, product.id, { marketplace, inStockOnly: true });
+const amazonNew = allPrices.find((p) => p.retailer === "Amazon" && (p.condition || "new") === "new");
+const amazonUsed = allPrices.find((p) => p.retailer === "Amazon" && p.condition === "used");
+const otherRetailers = allPrices.filter(
   (p) => p.retailer !== "Amazon" || (p.condition && p.condition !== "new")
 ).filter((p) => p !== amazonUsed);
 
-// Stale-but-known price — used ONLY for the affiliate link target (no
-// price text shown). Pol §2(b) restricts price *display* accuracy;
-// affiliate links themselves may still be rendered. The visitor lands
-// on Amazon's own page where Amazon displays the current price.
-const stalePrices = !bestPrice
-  ? await getProductPricesFresh(db, product.id, { marketplace, inStockOnly: true, maxAgeHours: 24 * 365 })
-  : [];
-const fallbackLinkPrice = stalePrices.find((p) => p.retailer === "Amazon" && (p.condition || "new") === "new")
-  || stalePrices[0]
-  || null;
+// Best affiliate link target — used ONLY for the GeoAffiliateLink href, never
+// for price display. Even stale prices produce valid Special Links (the tag
+// is injected at render time by buildAffiliateUrl).
+const primaryLink = amazonNew || allPrices.find((p) => p.retailer === "Amazon") || allPrices[0] || null;
 
 const brandProducts = product.brand_id
   ? await getProductsByBrand(db, tenant.id, product.brand_id, product.id)
@@ -82,13 +76,8 @@ const bandwidthLabel = product.read_speed_mbps >= 1000 ? `${(product.read_speed_
 
 const tenantNoun = tenant.id === "portablessds" ? "Portable" : "External";
 
-const productPageTitle = bestPrice
-  ? `${product.name} ${capacityLabel} ${tenantNoun} SSD Price & Review (${currentYear}) — ${product.read_speed_mbps.toLocaleString()} MB/s`
-  : `${product.name} ${capacityLabel} ${tenantNoun} SSD Review (${currentYear}) — ${product.read_speed_mbps.toLocaleString()} MB/s Reads`;
-
-const productPageDesc = bestPrice
-  ? `${product.name} ${capacityLabel} ${tenantNoun.toLowerCase()} SSD review & current best price at ${bestPrice.retailer}: ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes, ${product.interface || "USB"} interface, real-world benchmarks, specs, and where to buy.`
-  : `${product.name} ${capacityLabel} ${tenantNoun.toLowerCase()} SSD review (${currentYear}): ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes, ${product.interface || "USB"} interface, real-world benchmarks, full specs, and where to buy.`;
+const productPageTitle = `${product.name} ${capacityLabel} ${tenantNoun} SSD Review (${currentYear}) — ${product.read_speed_mbps.toLocaleString()} MB/s Reads`;
+const productPageDesc = `${product.name} ${capacityLabel} ${tenantNoun.toLowerCase()} SSD review (${currentYear}): ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes, ${product.interface || "USB"} interface, real-world benchmarks, full specs, and where to buy.`;
 
 const pros: string[] = product.pros ? JSON.parse(product.pros) : [];
 const cons: string[] = product.cons ? JSON.parse(product.cons) : [];
@@ -120,17 +109,16 @@ const productJsonLd: Record<string, unknown> = {
       worstRating: 1,
     },
   },
-  ...(bestPrice
+  // Phase 1 compliance fix (2026-08-03): Offer schema removed. Without PAAPI
+  // access we cannot guarantee price freshness, so we do not emit structured
+  // price data. The Product + Review (editorial) schema remains. When PAAPI
+  // access is earned, re-add Offer with live API-sourced price_cents.
+  ...(primaryLink
     ? {
         offers: {
           "@type": "Offer",
           availability: "https://schema.org/InStock",
-          // Pol §5(v) line 405 — do not cloak the destination URL. Schema.org
-          // Offer.url should point to the page on YOUR site containing the
-          // offer (which has the actual affiliate link), not the affiliate URL.
           url: productUrl,
-          priceCurrency: bestPrice.currency,
-          seller: { "@type": "Organization", name: bestPrice.retailer },
         },
       }
     : {
@@ -331,71 +319,50 @@ const calloutText: Record<string, string> = {
           </section>
         )}
 
-        {bestPrice ? (
-          <section class="mb-8 rounded-xl border border-surface-300 p-5">
-            <h2 class="text-xl font-semibold text-surface-900 mb-3">Price & Where to Buy</h2>
-            <div class="flex items-baseline gap-3 mb-4">
-              <span class="text-lg font-semibold text-blue-800">See Price</span>
-              <span class="text-sm text-surface-700">at {bestPrice.retailer}</span>
-            </div>
+        <section class="mb-8 rounded-xl border border-surface-300 p-5">
+          <h2 class="text-xl font-semibold text-surface-900 mb-3">Where to Buy</h2>
+          <p class="text-sm text-surface-700 mb-3">
+            Click through to view the current price, availability, and full product details on the retailer's site.
+          </p>
+          {primaryLink && (
             <GeoAffiliateLink
-              url={bestPrice.affiliate_url || ""}
-              retailer={bestPrice.retailer}
-              label={`Check Price on ${bestPrice.retailer} →`}
-              urlSource={bestPrice.url_source}
+              url={primaryLink.affiliate_url || ""}
+              retailer={primaryLink.retailer}
+              label={`Check on ${primaryLink.retailer} →`}
+              urlSource={primaryLink.url_source}
               useCartExtend
               className="mb-4 text-sm"
             />
-            {(amazonUsed || otherRetailers.length > 0) && (
-              <div class="mt-4 pt-4 border-t border-surface-200">
-                <p class="text-xs font-semibold text-surface-700 uppercase tracking-wider mb-2">All retailers</p>
-                <div class="space-y-1.5">
-                  {amazonUsed && (
-                    <GeoAffiliateLink
-                      url={amazonUsed.affiliate_url || ""}
-                      retailer={amazonUsed.retailer}
-                      label={`Amazon (used) →`}
-                      urlSource={amazonUsed.url_source}
-                      className="text-sm"
-                    />
-                  )}
-                  {otherRetailers.map((price) => (
-                    <GeoAffiliateLink
-                      url={price.affiliate_url || ""}
-                      retailer={price.retailer}
-                      label={`${price.retailer}${price.condition === "used" ? " (used)" : ""} →`}
-                      urlSource={price.url_source}
-                      className="text-sm"
-                    />
-                  ))}
-                </div>
+          )}
+          {(amazonUsed || otherRetailers.length > 0) && (
+            <div class="mt-4 pt-4 border-t border-surface-200">
+              <p class="text-xs font-semibold text-surface-700 uppercase tracking-wider mb-2">Other retailers</p>
+              <div class="space-y-1.5">
+                {amazonUsed && (
+                  <GeoAffiliateLink
+                    url={amazonUsed.affiliate_url || ""}
+                    retailer={amazonUsed.retailer}
+                    label={`Amazon (used) →`}
+                    urlSource={amazonUsed.url_source}
+                    className="text-sm"
+                  />
+                )}
+                {otherRetailers.map((price) => (
+                  <GeoAffiliateLink
+                    url={price.affiliate_url || ""}
+                    retailer={price.retailer}
+                    label={`${price.retailer}${price.condition === "used" ? " (used)" : ""} →`}
+                    urlSource={price.url_source}
+                    className="text-sm"
+                  />
+                ))}
               </div>
-            )}
-            <PriceStamp fetchedAt={bestPrice.fetched_at} className="mt-4" />
-          </section>
-        ) : (
-          <section class="mb-8 rounded-xl border border-surface-300 p-5">
-            <h2 class="text-xl font-semibold text-surface-900 mb-3">Where to Buy</h2>
-            <p class="text-sm text-surface-700 mb-3">
-              We could not retrieve a current in-stock price within the last 24 hours, so no price is
-              displayed here. Click through to {fallbackLinkPrice ? fallbackLinkPrice.retailer : "the retailer"}
-              to see today's price on their site.
-            </p>
-            {fallbackLinkPrice?.affiliate_url && (
-              <GeoAffiliateLink
-                url={fallbackLinkPrice.affiliate_url}
-                retailer={fallbackLinkPrice.retailer}
-                label={`Check Price on ${fallbackLinkPrice.retailer} →`}
-                urlSource={fallbackLinkPrice.url_source}
-                useCartExtend
-                className="text-sm"
-              />
-            )}
-            <p class="text-xs text-surface-700 mt-4 italic">
-              We earn a commission from qualifying purchases made through these links.
-            </p>
-          </section>
-        )}
+            </div>
+          )}
+          <p class="text-xs text-surface-700 mt-4 italic">
+            We earn a commission from qualifying purchases made through these links. Prices and availability are subject to change — see the retailer's site for current pricing.
+          </p>
+        </section>
 
         <div class="grid sm:grid-cols-2 gap-6 mb-8">
           {pros.length > 0 && (
@@ -601,10 +568,10 @@ const calloutText: Record<string, string> = {
             <div class="mt-4 text-surface-700 leading-relaxed space-y-2">
               <p>
                 {product.overall_score > topCompetitor.overall_score
-                  ? `The ${product.name} edges out the ${topCompetitor.name} in our scoring with a ${product.overall_score.toFixed(1)} vs ${topCompetitor.overall_score.toFixed(1)} rating. ${product.read_speed_mbps > topCompetitor.read_speed_mbps ? `It also delivers faster read speeds (${product.read_speed_mbps.toLocaleString()} vs ${topCompetitor.read_speed_mbps.toLocaleString()} MB/s), which matters most for file transfers and loading times.` : product.write_speed_mbps > topCompetitor.write_speed_mbps ? `It has a write speed advantage (${product.write_speed_mbps.toLocaleString()} vs ${topCompetitor.write_speed_mbps.toLocaleString()} MB/s) that benefits users who frequently save or transfer large files.` : `Both drives deliver comparable sequential performance, so the decision comes down to secondary factors like build quality, brand preference, and current pricing.`}`
+                  ? `The ${product.name} edges out the ${topCompetitor.name} in our scoring with a ${product.overall_score.toFixed(1)} vs ${topCompetitor.overall_score.toFixed(1)} rating. ${product.read_speed_mbps > topCompetitor.read_speed_mbps ? `It also delivers faster read speeds (${product.read_speed_mbps.toLocaleString()} vs ${topCompetitor.read_speed_mbps.toLocaleString()} MB/s), which matters most for file transfers and loading times.` : product.write_speed_mbps > topCompetitor.write_speed_mbps ? `It has a write speed advantage (${product.write_speed_mbps.toLocaleString()} vs ${topCompetitor.write_speed_mbps.toLocaleString()} MB/s) that benefits users who frequently save or transfer large files.` : `Both drives deliver comparable sequential performance, so the decision comes down to secondary factors like build quality, brand preference, and endurance rating.`}`
                   : product.overall_score === topCompetitor.overall_score
-                    ? `Both drives score ${product.overall_score.toFixed(1)}/10 in our evaluation. ${product.read_speed_mbps > topCompetitor.read_speed_mbps ? `The ${product.name} has a read speed edge (${product.read_speed_mbps.toLocaleString()} vs ${topCompetitor.read_speed_mbps.toLocaleString()} MB/s).` : topCompetitor.read_speed_mbps > product.read_speed_mbps ? `The ${topCompetitor.name} has faster reads (${topCompetitor.read_speed_mbps.toLocaleString()} vs ${product.read_speed_mbps.toLocaleString()} MB/s).` : `Sequential performance is similar — compare other factors like endurance, warranty, and current price.`} Check current pricing on both models to determine the better value.`
-                    : `The ${topCompetitor.name} scores higher in our evaluation (${topCompetitor.overall_score.toFixed(1)} vs ${product.overall_score.toFixed(1)}/10). ${topCompetitor.read_speed_mbps > product.read_speed_mbps ? `It also delivers faster reads (${topCompetitor.read_speed_mbps.toLocaleString()} vs ${product.read_speed_mbps.toLocaleString()} MB/s).` : `While the ${product.name} has lower scoring, it may offer advantages in other areas like ${product.tbw > topCompetitor.tbw ? "endurance" : product.warranty_years > topCompetitor.warranty_years ? "warranty coverage" : "current pricing"}. Review the full specifications above before deciding.`}`
+                    ? `Both drives score ${product.overall_score.toFixed(1)}/10 in our evaluation. ${product.read_speed_mbps > topCompetitor.read_speed_mbps ? `The ${product.name} has a read speed edge (${product.read_speed_mbps.toLocaleString()} vs ${topCompetitor.read_speed_mbps.toLocaleString()} MB/s).` : topCompetitor.read_speed_mbps > product.read_speed_mbps ? `The ${topCompetitor.name} has faster reads (${topCompetitor.read_speed_mbps.toLocaleString()} vs ${product.read_speed_mbps.toLocaleString()} MB/s).` : `Sequential performance is similar — compare other factors like endurance, warranty, and build quality.`} Check both models on the retailer's site for the latest details.`
+                    : `The ${topCompetitor.name} scores higher in our evaluation (${topCompetitor.overall_score.toFixed(1)} vs ${product.overall_score.toFixed(1)}/10). ${topCompetitor.read_speed_mbps > product.read_speed_mbps ? `It also delivers faster reads (${topCompetitor.read_speed_mbps.toLocaleString()} vs ${product.read_speed_mbps.toLocaleString()} MB/s).` : `While the ${product.name} has lower scoring, it may offer advantages in other areas like ${product.tbw > topCompetitor.tbw ? "endurance" : product.warranty_years > topCompetitor.warranty_years ? "warranty coverage" : "value"}. Review the full specifications above before deciding.`}`
                 }
               </p>
               <p>
@@ -704,28 +671,22 @@ const calloutText: Record<string, string> = {
 
       <div class="lg:col-span-1">
         <div class="sticky top-8 space-y-4">
-          {(bestPrice || fallbackLinkPrice) ? (
-            <>
-              <GeoAffiliateLink
-                url={(bestPrice || fallbackLinkPrice)!.affiliate_url || ""}
-                retailer={(bestPrice || fallbackLinkPrice)!.retailer}
-                label={`See Price on ${(bestPrice || fallbackLinkPrice)!.retailer} →`}
-                urlSource={(bestPrice || fallbackLinkPrice)!.url_source}
-                useCartExtend
-                className="w-full justify-center py-3 text-sm font-semibold bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
-              />
-              {bestPrice && <PriceStamp fetchedAt={bestPrice.fetched_at} className="mt-2" />}
-              {!bestPrice && fallbackLinkPrice && (
-                <p class="text-xs text-surface-500 italic mt-2">Pricing temporarily unavailable — click to view on {fallbackLinkPrice.retailer}</p>
-              )}
-            </>
-          ) : null}
+          {primaryLink && (
+            <GeoAffiliateLink
+              url={primaryLink.affiliate_url || ""}
+              retailer={primaryLink.retailer}
+              label={`Check on ${primaryLink.retailer} →`}
+              urlSource={primaryLink.url_source}
+              useCartExtend
+              className="w-full justify-center py-3 text-sm font-semibold bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
+            />
+          )}
 
-          {livePrices.length > 1 && (
+          {allPrices.length > 1 && (
             <div class="rounded-xl border border-surface-300 p-5">
               <h3 class="text-sm font-semibold text-surface-700 mb-3">Prices at Other Retailers</h3>
               <div class="space-y-2">
-                {livePrices.map((price) => (
+                {allPrices.map((price) => (
                   <a
                     href={`/products/${product.slug}/${price.retailer === "B&H Photo" ? "bh-photo" : price.retailer.toLowerCase()}`}
                     class="flex items-center justify-between text-sm hover:bg-surface-50 p-2 rounded-lg transition-colors"

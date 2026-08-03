@@ -320,16 +320,14 @@ When paired with a compatible host, ${tbDrives.length > 0 ? `drives like ${prodL
 function getFinalRecommendation(prods: Product[], catName: string | null): string {
   if (prods.length === 0) return "";
   const top = prods[0];
-  const prices = pricesByProduct[top.id] || [];
-  const bestPrice = getLowestPrice(prices as any);
   const cat = catName ? stripSsdSuffix(catName).toLowerCase() : "external";
 
   const last = prods.length > 1 ? prods[prods.length - 1] : null;
-  return `After evaluating ${prods.length} ${cat} SSDs side by side, our top recommendation is ${prodLink(top)}. It earned ${top.overall_score.toFixed(1)}/10 with ${fmtSpeed(top.read_speed_mbps)} reads, ${currentGbs(top.write_speed_mbps)} writes, and ${top.capacity_gb >= 1000 ? `${(top.capacity_gb / 1000).toFixed(0)}TB` : `${top.capacity_gb}GB`} of capacity${top.warranty_years >= 5 ? " backed by a " + top.warranty_years + "-year warranty" : ""}. ${bestPrice ? `Check current pricing at ${bestPrice.retailer} for the latest value on this drive.` : ""}
+  return `After evaluating ${prods.length} ${cat} SSDs side by side, our top recommendation is ${prodLink(top)}. It earned ${top.overall_score.toFixed(1)}/10 with ${fmtSpeed(top.read_speed_mbps)} reads, ${currentGbs(top.write_speed_mbps)} writes, and ${top.capacity_gb >= 1000 ? `${(top.capacity_gb / 1000).toFixed(0)}TB` : `${top.capacity_gb}GB`} of capacity${top.warranty_years >= 5 ? " backed by a " + top.warranty_years + "-year warranty" : ""}. Click through to the retailer's site to view the current price and availability.
 
-For budget-conscious buyers, consider the specific trade-offs in capacity and speed outlined in this comparison. ${last ? `${prodLink(last)} offers solid performance at a lower price point if raw speed is not the primary concern, and it is worth reading our full breakdown of both drives before deciding.` : ""}
+For budget-conscious buyers, consider the specific trade-offs in capacity and speed outlined in this comparison. ${last ? `${prodLink(last)} offers solid performance if raw speed is not the primary concern, and it is worth reading our full breakdown of both drives before deciding.` : ""}
 
-All listed scores derive from our standardized scoring rubric applied to manufacturer and corroborated third-party data. Prices and availability may vary by retailer — click through to check current stock.`;
+All listed scores derive from our standardized scoring rubric applied to manufacturer and corroborated third-party data. Click through to the retailer for current stock and pricing.`;
 }
 
 function currentGbs(mbps: number): string {
@@ -592,16 +590,23 @@ function barColor(index: number): string {
                         )}
                         <p class="text-xs text-surface-700 leading-relaxed">{product.description}</p>
                         <div class="mt-auto pt-3">
-                          {best ? (
-                            <GeoAffiliateLink
-                              url={best.affiliate_url || ""}
-                              retailer={best.retailer}
-                              label={`See Price on ${best.retailer} →`}
-                              urlSource={best.url_source}
-                              useCartExtend
-                              className="w-full justify-center py-2 text-xs font-semibold rounded-lg bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
-                            />
-                          ) : null}
+                          {(() => {
+                            const prices = pricesByProduct[product.id] || [];
+                            const primaryLink = prices.find((p) => p.retailer === "Amazon" && (p.condition || "new") === "new")
+                              || prices.find((p) => p.retailer === "Amazon")
+                              || prices[0]
+                              || null;
+                            return primaryLink ? (
+                              <GeoAffiliateLink
+                                url={primaryLink.affiliate_url || ""}
+                                retailer={primaryLink.retailer}
+                                label={`Check on ${primaryLink.retailer} →`}
+                                urlSource={primaryLink.url_source}
+                                useCartExtend
+                                className="w-full justify-center py-2 text-xs font-semibold rounded-lg bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
+                              />
+                            ) : null;
+                          })()}
                           <a
                             href={`/products/${product.slug}`}
                             class="block text-center text-xs font-medium text-blue-800 hover:text-blue-900 mt-2"
@@ -751,13 +756,16 @@ function barColor(index: number): string {
                   <div class="mt-4">
                     {(() => {
                       const prices = topProduct ? pricesByProduct[topProduct.id] || [] : [];
-                      const best = getLowestPrice(prices as any);
-                      return best ? (
+                      const primaryLink = prices.find((p) => p.retailer === "Amazon" && (p.condition || "new") === "new")
+                        || prices.find((p) => p.retailer === "Amazon")
+                        || prices[0]
+                        || null;
+                      return primaryLink ? (
                         <GeoAffiliateLink
-                          url={best.affiliate_url || ""}
-                          retailer={best.retailer}
-                          label={`Check Price on ${best.retailer}`}
-                          urlSource={best.url_source}
+                          url={primaryLink.affiliate_url || ""}
+                          retailer={primaryLink.retailer}
+                          label={`Check on ${primaryLink.retailer}`}
+                          urlSource={primaryLink.url_source}
                           useCartExtend
                           className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
                         />

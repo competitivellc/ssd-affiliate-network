@@ -61,7 +61,7 @@ const specs = [
         ))}
       </tr>
       <tr class="bg-surface-50">
-        <td class="font-semibold text-surface-900">Best Price</td>
+        <td class="font-semibold text-surface-900">Buy</td>
         {products.map((p) => {
           const prices = pricesByProduct[p.id] || [];
           const best = getLowestPrice(prices as any);

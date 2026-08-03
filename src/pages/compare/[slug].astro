@@ -2,7 +2,6 @@
 import BaseLayout from "@layouts/BaseLayout.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
-import PriceStamp from "@components/PriceStamp.astro";
 import { getAllProducts, getProductPricesFresh } from "@lib/db";
 import { getLowestPrice } from "@lib/pricing";
 import type { Product, Price } from "@lib/db";
@@ -30,8 +29,15 @@ const [pricesA, pricesB] = await Promise.all([
   getProductPricesFresh(db, productA.id, { marketplace, inStockOnly: true }),
   getProductPricesFresh(db, productB.id, { marketplace, inStockOnly: true }),
 ]);
-const bestPriceA = getLowestPrice(pricesA as any);
-const bestPriceB = getLowestPrice(pricesB as any);
+
+function getPrimaryLink(prices: Price[]): Price | null {
+  return prices.find((p) => p.retailer === "Amazon" && (p.condition || "new") === "new")
+    || prices.find((p) => p.retailer === "Amazon")
+    || prices[0]
+    || null;
+}
+const primaryLinkA = getPrimaryLink(pricesA);
+const primaryLinkB = getPrimaryLink(pricesB);
 
 const productJsonLd = {
   "@context": "https://schema.org",
@@ -67,13 +73,11 @@ const faqItems = [
   },
   {
     question: `Which has better value, ${productA.name} or ${productB.name}?`,
-    answer: bestPriceA && bestPriceB
-      ? bestPriceA.price_cents < bestPriceB.price_cents
-        ? `The ${productA.name} offers better value — check current pricing at our linked retailers to compare the latest prices.`
-        : bestPriceB.price_cents < bestPriceA.price_cents
-          ? `The ${productB.name} offers better value — check current pricing at our linked retailers to compare the latest prices.`
-          : `Both drives are similarly priced. Consider features and performance to determine value.`
-      : "Check current prices at our linked retailers for the latest value comparison.",
+    answer: productA.overall_score > productB.overall_score
+      ? `The ${productA.name} scores higher (${productA.overall_score.toFixed(1)} vs ${productB.overall_score.toFixed(1)}/10), indicating better overall value in our evaluation. Check both models on the retailer's site for the latest details.`
+      : productB.overall_score > productA.overall_score
+        ? `The ${productB.name} scores higher (${productB.overall_score.toFixed(1)} vs ${productA.overall_score.toFixed(1)}/10), indicating better overall value in our evaluation. Check both models on the retailer's site for the latest details.`
+        : `Both drives score the same in our evaluation. Consider features, endurance, and warranty to determine which suits your needs better.`,
   },
 ];
 
@@ -146,7 +150,7 @@ const loser = winner?.id === productA.id ? productB : productA;
     <div class="grid lg:grid-cols-2 gap-8 mb-8">
       {[productA, productB].map((product, index) => {
         const prices = index === 0 ? pricesA : pricesB;
-        const bestPrice = index === 0 ? bestPriceA : bestPriceB;
+        const primaryLink = index === 0 ? primaryLinkA : primaryLinkB;
         const pros = product.pros ? JSON.parse(product.pros) : [];
         const cons = product.cons ? JSON.parse(product.cons) : [];
         const isWinner = winner?.id === product.id;
@@ -183,18 +187,13 @@ const loser = winner?.id === productA.id ? productB : productA;
               ))}
             </div>
 
-            {bestPrice && (
-              <div class="flex items-center justify-between pt-4 border-t border-surface-200">
-                <div>
-                  <p class="text-lg font-semibold text-blue-800">See Price</p>
-                  <p class="text-xs text-surface-700">at {bestPrice.retailer}</p>
-                  <PriceStamp fetchedAt={bestPrice.fetched_at} className="mt-1" />
-                </div>
+            {primaryLink && (
+              <div class="pt-4 border-t border-surface-200">
                 <GeoAffiliateLink
-                  url={bestPrice.affiliate_url || ""}
-                  retailer={bestPrice.retailer}
-                  label="Check Price →"
-                  urlSource={bestPrice.url_source}
+                  url={primaryLink.affiliate_url || ""}
+                  retailer={primaryLink.retailer}
+                  label={`Check on ${primaryLink.retailer} →`}
+                  urlSource={primaryLink.url_source}
                   useCartExtend
                   className="text-sm font-semibold"
                 />
