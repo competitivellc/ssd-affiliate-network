@@ -645,3 +645,27 @@ WHERE asin IS NOT NULL
       AND p.marketplace = 'US'
       AND p.condition = 'new'
   );
+
+-- ============================================================================
+-- PORTABLESSDS - Sabrent (brand_id=6) - supplemental
+-- Phase 3 originally skipped these rows due to a heredoc parse error.
+-- ============================================================================
+
+INSERT INTO products (site_id, category_id, brand_id, name, slug, model, asin, model_family, capacity_gb, form_factor, interface, read_speed_mbps, write_speed_mbps, tbw, warranty_years, description, specifications, pros, cons, overall_score, is_featured, is_active, gtin13, image_url) VALUES
+('portablessds', 5, 6, 'Sabrent Rocket Nano V2 Portable 2TB', 'sabrent-rocket-nano-v2-portable-2tb', 'SB-NANO-V2-2TB', 'B0BN4JCKNW', 'Sabrent Rocket Nano V2', 2000, 'External', 'USB 3.2 Gen 2x2', 2000, 2000, 1200, 3, 'The 2TB Rocket Nano V2 portable doubles the SLC cache budget over the 1TB. Aluminum unibody, 2000 MB/s on Gen 2x2 hosts, 3-year warranty. The standard capacity tier for portable 2GB/s workflows.', NULL, '["Gen 2x2 2000 MB/s","Pocketable aluminum unibody","1200 TBW","USB-C cable included"]', '["3-year warranty","Caps at 1050 MB/s on Gen 2 hosts","No IP rating","Premium pricing"]', 8.5, 0, 1, NULL, NULL);
+
+INSERT INTO products (site_id, category_id, brand_id, name, slug, model, asin, model_family, capacity_gb, form_factor, interface, read_speed_mbps, write_speed_mbps, tbw, warranty_years, description, specifications, pros, cons, overall_score, is_featured, is_active, gtin13, image_url) VALUES
+('portablessds', 5, 6, 'Sabrent Rocket Nano V2 Portable 4TB', 'sabrent-rocket-nano-v2-portable-4tb', 'SB-NANO-V2-4TB', 'B0D5L5FXWC', 'Sabrent Rocket Nano V2', 4000, 'External', 'USB 3.2 Gen 2x2', 2000, 2000, 2400, 3, 'The 4TB Rocket Nano V2 portable in the same pocketable aluminum unibody. Among the smallest physical 4TB Gen 2x2 portables available — long sustained-write budget on the 4TB die stack.', NULL, '["Gen 2x2 + 4TB","Aluminum unibody heatsink","2400 TBW endurance","Cool under sustained 2 GB/s load"]', '["3-year warranty","Caps at 1050 MB/s on Gen 2 hosts","Premium pricing","No IP rating"]', 8.6, 0, 1, NULL, NULL);
+
+INSERT INTO products (site_id, category_id, brand_id, name, slug, model, asin, model_family, capacity_gb, form_factor, interface, read_speed_mbps, write_speed_mbps, tbw, warranty_years, description, specifications, pros, cons, overall_score, is_featured, is_active, gtin13, image_url) VALUES
+('portablessds', 5, 6, 'Sabrent Rocket XTRM-Q Portable 2TB', 'sabrent-rocket-xtrm-q-portable-2tb', 'SB-XTRM-Q-2TB', 'B0CD2TVQ9B', 'Sabrent Rocket Nano XTRM-Q', 2000, 'External', 'Thunderbolt 3', 2700, 2700, 1200, 3, 'A 2TB portable Thunderbolt 3 SSD from Sabrent in an aluminum body — 2700 MB/s sustained read on Thunderbolt hosts. A viable Mac-focused Thunderbolt 3 alternative to the LaCie Rugged SSD Pro 2TB at a similar price tier.', NULL, '["Thunderbolt 3 2700 MB/s","2TB portable aluminum body","Detachable USB-C cable","3-year warranty"]', '["3-year warranty","Premium pricing","Requires Thunderbolt 3/4 host","Heavier than Gen 2 peers"]', 8.6, 0, 1, NULL, NULL);
+
+INSERT INTO products (site_id, category_id, brand_id, name, slug, model, asin, model_family, capacity_gb, form_factor, interface, read_speed_mbps, write_speed_mbps, tbw, warranty_years, description, specifications, pros, cons, overall_score, is_featured, is_active, gtin13, image_url) VALUES
+('portablessds', 5, 6, 'Sabrent Rocket XTRM-Q Portable 4TB', 'sabrent-rocket-xtrm-q-portable-4tb', 'SB-XTRM-Q-4TB', 'B0DJWZV9CQ', 'Sabrent Rocket Nano XTRM-Q', 4000, 'External', 'Thunderbolt 3', 2700, 2700, 2400, 3, 'A 4TB Thunderbolt 3 portable SSD — unusual intersection of capacity and Thunderbolt-class speed. The XTRM-Q 4TB is portable-class storage for working 8K RED RAW video editors. Premium pricing matches the niche use case.', NULL, '["Thunderbolt 3 + 4TB","2700 MB/s sustained","Aluminum body","Detachable cable"]', '["3-year warranty (not 5)","Premium pricing","Requires Thunderbolt host","Heavier than typical 4TB portable"]', 8.7, 0, 1, NULL, NULL);
+
+-- ============================================================================
+-- PORTABLESSDS - Samsung T7 Shield 4TB - supplemental (was missing from Phase 3)
+-- ============================================================================
+
+INSERT INTO products (site_id, category_id, brand_id, name, slug, model, asin, model_family, capacity_gb, form_factor, interface, read_speed_mbps, write_speed_mbps, tbw, warranty_years, description, specifications, pros, cons, overall_score, is_featured, is_active, gtin13, image_url) VALUES
+('portablessds', 6, 1, 'Samsung T7 Shield Portable 4TB', 'samsung-t7-shield-portable-4tb', 'MU-PE4T0S', 'B0BHZQGN26', 'Samsung T7 Shield', 4000, 'External', 'USB 3.2 Gen 2', 1050, 1000, 2400, 3, 'The 4TB T7 Shield portable — Samsung''s full IP65 rugged body at the maximum 4TB capacity. The largest single-drive external storage in the T7 Shield line; ideal for outdoor photographers, extreme-sports videographers, and any travel workflow where a non-rugged drive would die in a year.', NULL, '["IP65 rugged body","4TB capacity","3-meter drop rated","AES 256-bit hardware encryption"]', '["1050/1000 MB/s (Gen 2 ceiling)","3-year warranty","Rubber exterior collects lint","C-to-C cable only"]', 9.4, 0, 1, NULL, NULL);
