@@ -20,13 +20,14 @@ const REDIRECTED_SLUGS = new Set([
   "samsung-t7-shield-portable",
 ]);
 
-// Today's date as YYYY-MM-DD. Used as the lastmod for static pages
-// (about/contact/privacy/terms/methodology) and as a floor for any
-// URL whose DB timestamp is missing or older than the last deploy.
-// Rationale: every deploy touches the rendered HTML of every route,
-// so "today" is a truthful lastmod for static pages even when their
-// underlying content didn't change.
-const TODAY = new Date().toISOString().split("T")[0];
+// Today's date as YYYY-MM-DD. Computed INSIDE buildSitemapXml (not at
+// module scope) because Cloudflare Worker isolates evaluate top-level
+// code once per isolate lifecycle — keeping it in the function means
+// each request gets a fresh "today" and stale isolates can't poison
+// the sitemap with an old date.
+function today(): string {
+  return new Date().toISOString().split("T")[0];
+}
 
 function fmtDate(d: string | null | undefined): string {
   if (!d) return "";
@@ -62,6 +63,8 @@ async function buildSitemapXml(
     getHubsBySite(DB, tenant.id),
     getCategoriesBySite(DB, tenant.id),
   ]);
+
+  const TODAY = today();
 
   // Per-URL lastmod strategy:
   //  - products: their own updated_at (most actionable signal)
