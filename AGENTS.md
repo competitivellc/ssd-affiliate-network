@@ -338,7 +338,42 @@ node scripts/gsc_pull_revenue.js
 
 **When a new AI agent makes SEO changes and deploys them, the changes need time to take effect in Google's index before their impact can be measured.** The agent MUST re-run `node scripts/gsc_pull_revenue.js` **7-14 days after the deploy date** to measure position/click deltas on the affected URLs and queries, then compare against the baseline captured at deploy time.
 
-The baseline from the most recent SEO work (deployed 2026-07-29 — CTR-optimized titles/meta on `/compare` and product pages) is:
+The baseline from the most recent SEO work (deployed 2026-07-30 — 301 Samsung T7 Shield product pages → `/compare` to consolidate ranking signal on the URL that already ranks pos 6-7 for `samsung t7 shield 4tb portable ssd amazon.com price`) is:
+
+| Metric | externalssds.com | portablessds.com |
+|--------|------------------|------------------|
+| 90d clicks | 1 | 2 |
+| 90d impressions | 361 | 436 |
+| Avg position | 38.8 | 33.6 |
+| 90d CTR | 0.28% | 0.46% |
+
+Target URLs to track (the three URLs whose signal is being consolidated — these are the ones the re-run is measuring):
+- `externalssds.com/compare` — pre-deploy: 1c / 83i / pos 30.2 / CTR 1.20% (query `samsung t7 shield 4tb portable ssd amazon.com price` ranked pos 7.5)
+- `externalssds.com/products/samsung-t7-shield` — pre-deploy: 0c / 172i / pos 37.7 / CTR 0% (NOW 301s to /compare)
+- `portablessds.com/compare` — pre-deploy: 2c / 119i / pos 25.9 / CTR 1.68%
+- `portablessds.com/products/samsung-t7-shield-portable` — pre-deploy: 0c / 52i / pos 30.0 / CTR 0% (NOW 301s to /compare)
+
+Target query to watch: `samsung t7 shield 4tb portable ssd amazon.com price` (was pos 7.5 on both `/compare` pages) — expect position to rise into top 5 and CTR to climb from ~1.5% → 4-6% as all 224 wasted impressions consolidate onto `/compare`.
+
+### ⚠️ PENDING RE-RUN — DO THIS FIRST (2026-08-06 → 2026-08-13)
+
+**The 2026-07-30 Samsung T7 Shield 301 consolidation deploy is awaiting measurement.** Commit `0687666` 301-redirects both `/products/samsung-t7-shield` and `/products/samsung-t7-shield-portable` to `/compare`. The product pages no longer serve content — all link equity, impressions, and crawl budget fold onto `/compare`, which is the only URL in the network ranking on page 1 for the high-EPC buyer query `samsung t7 shield 4tb portable ssd amazon.com price`.
+
+Any AI agent opening this repo between **2026-08-06 and 2026-08-13** (or later, until this block is replaced/removed) MUST:
+
+1. Run `node scripts/gsc_pull_revenue.js` immediately at the start of the session.
+2. Look at the four target URLs above — `externalssds.com/compare`, `externalssds.com/products/samsung-t7-shield`, `portablessds.com/compare`, `portablessds.com/products/samsung-t7-shield-portable`.
+3. Verify:
+   - The two product URLs return 301 (impressions should drop to zero — they're being 301'd away).
+   - `/compare` impressions rise by ~224 (the sum of pre-deploy product page impressions on both domains).
+   - `/compare` position on `samsung t7 shield 4tb portable ssd amazon.com price` improves from pos 7.5 toward top 5.
+   - `/compare` CTR climbs above 3% (from ~1.5% pre-deploy).
+4. Decide:
+   - **Consolidation worked** (`/compare` position up + CTR up + product page impressions at zero) → delete this block, update the baseline table, and move to the next revenue lever. Candidates: (a) similar 301 for `samsung-t9` and other product pages where `/compare` already ranks pos 10-15; (b) hub-page internal linking from home + nav to lift `/hubs/best-rugged-portable-ssd-for-travel` from pos 47-56; (c) content-depth expansion on hub pages (currently 350-550 words; target 1000-1500).
+   - **Consolidation didn't move the needle** → the bottleneck is the `/compare` page itself, not signal consolidation. Investigate: is `/compare` ranking stable or dropping? Are competitors outranking us? Consider a fresh round of on-page optimization on `/compare` itself.
+5. Update this `AGENTS.md` section with the result so the *next* agent doesn't re-measure the same deploy. Replace this "PENDING RE-RUN" block with a "RESULT (date): ..." block, or remove it if the baseline table above already reflects the measured numbers.
+
+**Any future AI agent doing SEO work on this repo MUST, at the start of its session, re-run `node scripts/gsc_pull_revenue.js` to get a fresh baseline, and note the current date as the deploy-baseline for the next agent. Update the baseline table above with fresh numbers when you do.**
 
 | Metric | externalssds.com | portablessds.com |
 |--------|------------------|------------------|
@@ -392,6 +427,32 @@ Any AI agent opening this repo between **2026-08-12 and 2026-08-19** (or later, 
    - **Hub impressions stayed flat / no change** → Google hasn't consolidated yet. Wait 2 more weeks, then re-measure. If still flat after 6 weeks total, the issue is hub content thinness, not cannibalization.
    - **Hub impressions went DOWN** → the canonical is pointing at the wrong hub (wrong filter_criteria match). Investigate `getHubByCategory` in `db.ts` and fix the query.
 5. Update this `AGENTS.md` section with the result so the *next* agent doesn't re-measure the same deploy.
+
+**Any future AI agent doing SEO work on this repo MUST, at the start of its session, re-run `node scripts/gsc_pull_revenue.js` to get a fresh baseline, and note the current date as the deploy-baseline for the next agent. Update the baseline table above with fresh numbers when you do.**
+
+### ⚠️ PENDING RE-RUN — DO THIS FIRST (2026-08-10 → 2026-08-17)
+
+**The 2026-08-03 sitemap rebuild deploy is awaiting measurement.** Prior to this commit, `src/pages/sitemap.xml.ts` used a single global `getLastUpdatedDate` for every non-product URL, so the live sitemap (verified Aug 3) showed `lastmod=2026-07-03` on every entry — signaling "site dormant" to Google for 30+ days. The sitemap also omitted the entire `/compare/[slug]` head-to-head combo URL space (covering ~78 unpaged comparison pages on externalssds + ~21 on portablessds) plus all 5 static informational pages (`/about`, `/contact`, `/editorial-methodology`, `/privacy`, `/terms`). Cache TTL was 24h, holding the stale value indefinitely.
+
+The fix:
+- Per-URL `lastmod`: products use `p.updated_at`; hubs use `h.updated_at`; everything else uses today's date (truthful — every deploy mutates the dynamic render).
+- Added `/compare/{a}-vs-{b}` for every unique unordered product pair (alphabetically stable slug order; redirected slugs filtered out).
+- Added the 5 missing static pages.
+- Filtered 301-redirected slugs (`samsung-t7-shield`, `samsung-t7-shield-portable`) from product + combo enumeration.
+- Dropped cache TTL 24h → 5m so subsequent deploys propagate immediately.
+
+**Impact hypothesis:** this multiplies indexable URL surface area by ~3-5× on externalssds and ~3× on portablessds, and unfreezes `lastmod` so Google's crawl scheduler sees fresh activity. Expectation within 7-14 days: total impressions on each domain rise materially (target: externalssds 471 → 700+ over a 90d window; portablessds 612 → 900+), with the new `/compare/[slug]` URLs starting to register in GSC page reports. Clicks and CTR should follow impressions.
+
+Any AI agent opening this repo between **2026-08-10 and 2026-08-17** (or later, until this block is replaced/removed) MUST:
+
+1. Run `node scripts/gsc_pull_revenue.js` immediately at the start of the session.
+2. Compare the 90d totals against the pre-deploy baseline (externalssds: 1c / 471i / pos 39.6 / 0.21% CTR; portablessds: 2c / 612i / pos 35.7 / 0.33% CTR — captured 2026-08-03).
+3. Verify the new `/compare/[slug]` URLs are now present in the GSC page report (they were 100% absent pre-deploy; the sitemap submission is the only mechanism that could surface them).
+4. Decide:
+   - **Impressions rose materially (≥20%) AND /compare/[slug] URLs appeared in GSC** → sitemap fix worked. Delete this block, update the baseline table above with fresh numbers, and move to the next revenue lever: hub content depth expansion (350-550 words → 1000-1500) on the 4 hub URLs already getting impressions (`/hubs/best-rugged-external-ssd`, `/hubs/best-ssd-for-xbox`, `/hubs/best-rugged-portable-ssd-for-travel`, `/hubs/cheapest-1tb-portable-ssd`).
+   - **Impressions flat AND /compare/[slug] still absent from GSC** → sitemap wasn't recrawled. Suspect (a) Cloudflare Pages cache still serving stale sitemap (verify by hitting `/sitemap.xml` directly and inspecting `x-cache-status` header — should be MISS or short-age HIT, not days-old), or (b) the cache key collided across tenants. Manually fetch the sitemap and inspect the header; if stale, lower the TTL further or bust the cache explicitly.
+   - **`/compare/[slug]` URLs appeared but impressions didn't rise** → sitemap fix worked mechanically, but the combo pages have zero link equity / content quality to rank. Move to internal-linking work: surface `/compare/[slug]` URLs from `/compare`, hub pages, and product pages so Google sees them as important.
+5. Update this `AGENTS.md` section with the result so the *next* agent doesn't re-measure the same deploy. Either replace this "PENDING RE-RUN" block with a "RESULT (date): ..." block, or remove it if the baseline block above already reflects the measured numbers.
 
 **Any future AI agent doing SEO work on this repo MUST, at the start of its session, re-run `node scripts/gsc_pull_revenue.js` to get a fresh baseline, and note the current date as the deploy-baseline for the next agent. Update the baseline table above with fresh numbers when you do.**
 
