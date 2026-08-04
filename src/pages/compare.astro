@@ -5,7 +5,7 @@ import ProductGrid from "@components/ProductGrid.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
 import AffiliateDisclosure from "@components/AffiliateDisclosure.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
-import { getAllProducts, getProductsByCategory, getProductPricesFresh, getCategoriesBySite } from "@lib/db";
+import { getAllProducts, getProductsByCategory, getProductPricesFresh, getCategoriesBySite, getT7ShieldAnchor } from "@lib/db";
 import { getLowestPrice } from "@lib/pricing";
 import type { Product, Price } from "@lib/db";
 
@@ -32,6 +32,20 @@ for (const p of products) {
   pricesByProduct[p.id] = await getProductPricesFresh(db, p.id, { marketplace, inStockOnly: true });
 }
 
+// Buyer-query anchor (2026-08-04): resolve the highest-capacity T7 Shield
+// variant for the default /compare view only. Renders a "Direct Answer"
+// block above Quick Winner that targets the high-purchase-intent SERP query
+// "samsung t7 shield 4tb portable ssd amazon.com price" — the only buyer
+// query the site currently ranks for. Reuses the pre-fetched prices record
+// so no extra D1 round-trip is added when the T7 anchor is already in the
+// product set.
+const isDefaultCompare = !categorySlug && selectedIds.length === 0;
+const t7Anchor = isDefaultCompare ? await getT7ShieldAnchor(db, tenant.id) : null;
+const t7Prices = t7Anchor ? (pricesByProduct[t7Anchor.id] || []) : [];
+const t7Best = t7Prices.length > 0 ? getLowestPrice(t7Prices as any) : null;
+const t7HeroVariantSlug = t7Anchor?.slug || null;
+const t7HeroVariantHref = t7HeroVariantSlug ? `/products/${t7HeroVariantSlug}` : null;
+
 const category = categorySlug ? categories.find((c) => c.slug === categorySlug) || null : null;
 const categoryName = category?.name || null;
 
@@ -44,11 +58,15 @@ const cleanCat = categoryName ? stripSsdSuffix(categoryName) : null;
 const tenantNoun = tenant.id === "portablessds" ? "Portable" : "External";
 const compareTitle = cleanCat
   ? `${cleanCat} ${tenantNoun} SSDs Compared (${new Date().getFullYear()}) — Specs, Speed & Price Side-by-Side`
-  : `${tenantNoun} SSDs Compared (${new Date().getFullYear()}) — Specs, Speed & Price Side-by-Side`;
+  : t7Anchor
+    ? `Samsung T7 Shield 4TB ${tenantNoun} SSD — Amazon Price, Specs & Side-by-Side Comparison (${new Date().getFullYear()})`
+    : `${tenantNoun} SSDs Compared (${new Date().getFullYear()}) — Specs, Speed & Price Side-by-Side`;
 
 const metaDesc = cleanCat
   ? `Side-by-side ${cleanCat.toLowerCase()} ${tenantNoun.toLowerCase()} SSD comparison: read/write speeds, capacity, USB interface, real-world benchmarks, and current best price for every model.`
-  : `Side-by-side ${tenantNoun.toLowerCase()} SSD comparison (${new Date().getFullYear()}): full specs, read/write speeds, USB interface, real-world benchmarks, and current best price.`;
+  : t7Anchor
+    ? `Samsung T7 Shield 4TB ${tenantNoun.toLowerCase()} SSD Amazon price plus a side-by-side comparison: read/write speeds, USB interface, endurance, and current price across all top ${tenantNoun.toLowerCase()} SSDs in ${new Date().getFullYear()}.`
+    : `Side-by-side ${tenantNoun.toLowerCase()} SSD comparison (${new Date().getFullYear()}): full specs, read/write speeds, USB interface, real-world benchmarks, and current best price.`;
 
 const accentStyle = { backgroundColor: tenant.primaryColorDark };
 const breadcrumbItems = [
@@ -390,6 +408,41 @@ const faqJsonLd = {
   }))
 };
 
+// Buyer-query ItemList (2026-08-04): positions the T7 Shield variant at
+// rank 1 on the default /compare page so the page's structured data matches
+// the SERP-direct-answer block above the fold. Category views omit this —
+// the T7 anchor only resolves on the default /compare URL.
+const itemListJsonLd = (() => {
+  if (!t7Anchor) return null;
+  const siteUrl = `https://${hostname}`;
+  const others = products.filter((p) => p.id !== t7Anchor.id).slice(0, 9);
+  const items = [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: `${t7Anchor.name} ${fmtCapacity(t7Anchor.capacity_gb)}`,
+      url: `${siteUrl}${t7HeroVariantHref}`,
+    },
+    ...others.map((p, i) => ({
+      "@type": "ListItem",
+      position: i + 2,
+      name: p.name,
+      url: `${siteUrl}/products/${p.slug}`,
+    })),
+  ];
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${tenantNoun} SSDs Compared — Buyer-Price Ranking (${new Date().getFullYear()})`,
+    itemListOrder: "https://schema.org/ItemListOrderAscending",
+    numberOfItems: items.length,
+    itemListElement: items,
+  };
+})();
+
+const jsonLdPayload: Record<string, unknown>[] = [faqJsonLd];
+if (itemListJsonLd) jsonLdPayload.push(itemListJsonLd);
+
 const introText = categoryName ? getCategoryIntro(categoryName, products) : null;
 const gamingAnalysis = categorySlug === "gaming" ? getGamingAnalysis(products, categoryName) : null;
 const heatAnalysis = showDetailedContent ? getHeatAnalysis(products) : null;
@@ -409,7 +462,7 @@ function barColor(index: number): string {
 }
 ---
 
-<BaseLayout title={compareTitle} description={metaDesc} jsonLd={faqJsonLd}>
+<BaseLayout title={compareTitle} description={metaDesc} jsonLd={jsonLdPayload}>
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <Breadcrumb items={breadcrumbItems} />
 
@@ -421,12 +474,16 @@ function barColor(index: number): string {
 
     <div class="mb-8">
       <h1 class="text-3xl sm:text-4xl font-bold text-surface-900">
-        {cleanCat ? `${cleanCat} SSDs Compared` : "Compare SSDs"}
-      </h1>
+        {cleanCat
+          ? `${cleanCat} SSDs Compared`
+          : t7Anchor
+            ? `Samsung T7 Shield 4TB ${tenantNoun} SSD: Amazon Price & Full Comparison`
+            : "Compare SSDs"}
+     </h1>
       {categoryName && (
         <p class="mt-2 text-surface-700 max-w-3xl" set:html={introText} />
       )}
-    </div>
+   </div>
 
     {products.length === 0 ? (
       <div class="text-center py-16">
@@ -434,6 +491,64 @@ function barColor(index: number): string {
       </div>
     ) : (
       <>
+        {t7Anchor && t7Best && (
+          <section class="rounded-xl border-2 border-blue-300 p-6 mb-8 bg-gradient-to-br from-blue-50 via-white to-white shadow-sm">
+            <div class="flex items-start gap-4 sm:gap-6">
+              <div class="w-1.5 h-full min-h-[200px] rounded-full shrink-0 hidden sm:block" style={accentStyle}</div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-3 mb-2">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-900 border border-blue-300">
+                    <svg aria-hidden="true" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/</svg>
+                    Buyer's Price Query
+                 </span>
+                  <p class="text-xs font-medium text-surface-700 uppercase tracking-wider">{t7Anchor.brand_name}</p>
+               </div>
+
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div class="flex-1">
+                    <h2 class="text-xl font-bold text-surface-900">{t7Anchor.name} — Current Amazon Price & Specs</h2>
+                    <div class="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-sm text-surface-700">
+                      <span>{fmtSpeed(t7Anchor.read_speed_mbps)} Read</span>
+                      <span>{fmtSpeed(t7Anchor.write_speed_mbps)} Write</span>
+                      <span>{fmtCapacity(t7Anchor.capacity_gb)}</span>
+                      <span>{t7Anchor.interface}</span>
+                      <span>{t7Anchor.tbw.toLocaleString()} TBW</span>
+                      <span>{t7Anchor.warranty_years}-Year Warranty</span>
+                   </div>
+                 </div>
+                  <div class="shrink-0">
+                    <GeoAffiliateLink
+                      url={t7Best.affiliate_url || ""}
+                      retailer={t7Best.retailer}
+                      label={`Check Price on ${t7Best.retailer} →`}
+                      urlSource={t7Best.url_source}
+                      useCartExtend
+                      className="w-full sm:w-auto justify-center py-2.5 px-5 text-sm font-bold rounded-lg bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white shadow-sm"
+                    />
+                 </div>
+               </div>
+
+                <p class="mt-3 text-sm text-surface-700 leading-relaxed border-t border-blue-200 pt-3">
+                  The {t7Anchor.name} is one of the most-purchased {tenantNoun.toLowerCase()} SSDs on Amazon, frequently cited for its IP65-rated rugged body, 1050 MB/s sustained throughput, and {fmtCapacity(t7Anchor.capacity_gb)} of storage in a pocket-sized enclosure. Click through to Amazon for the live price, current stock, and full product details. For a side-by-side spec comparison against every other {fmtCapacity(t7Anchor.capacity_gb)} {tenantNoun.toLowerCase()} SSD we track, see the table below.
+               </p>
+
+                <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-surface-700">
+                  {t7HeroVariantHref && (
+                    <a href={t7HeroVariantHref} class="inline-flex items-center gap-1 text-blue-800 hover:text-blue-900 font-medium">
+                      Read our full {t7Anchor.name} benchmark review
+                      <svg aria-hidden="true" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                   </a>
+                  )}
+                  <a href={t7Anchor.category_slug ? `/compare?category=${t7Anchor.category_slug}` : "/compare"} class="inline-flex items-center gap-1 text-blue-800 hover:text-blue-900 font-medium">
+                    See all {t7Anchor.category_name || "similar"} SSDs side-by-side
+                    <svg aria-hidden="true" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                 </a>
+               </div>
+             </div>
+           </div>
+         </section>
+        )}
+
         {topProduct && (() => {
           const topPrices = pricesByProduct[topProduct.id] || [];
           const topBest = getLowestPrice(topPrices as any);

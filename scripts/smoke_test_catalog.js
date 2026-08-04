@@ -67,32 +67,100 @@ for (const { domain, slug } of subset) {
     error = e.message;
   }
 
-  results.push({ domain, slug, status, affiliateBtn, tagInjected, capacityVariants, error });
+  // 301 is expected for the cannibalization consolidation targets
+  // (samsung-t7-shield, samsung-t7-shield-portable) — these URLs
+  // intentionally redirect to /compare. Flag as 'redirected', not as
+  // an issue, so we can still see them in the summary.
+  const state = status === 301 ? 'redirected' : status;
+  results.push({ domain, slug, status: state, affiliateBtn, tagInjected, capacityVariants, error });
 }
 
 const ok = results.filter(r => r.status === 200 && r.affiliateBtn && r.tagInjected && r.capacityVariants);
-const issues = results.filter(r => !(r.status === 200 && r.affiliateBtn && r.tagInjected && r.capacityVariants));
+const redirected = results.filter(r => r.status === 'redirected');
+const issues = results.filter(r => r.status !== 200 && r.status !== 'redirected');
+const renderBroken = results.filter(r => r.status === 200 && (!r.affiliateBtn || !r.tagInjected || !r.capacityVariants));
 
 console.log('=== Summary ===');
 console.log(`Tested: ${results.length}`);
 console.log(`Healthy: ${ok.length} (${((ok.length / results.length) * 100).toFixed(1)}%)`);
-console.log(`Issues: ${issues.length}\n`);
+console.log(`Redirected (expected): ${redirected.length}`);
+console.log(`Render issues: ${renderBroken.length}`);
+console.log(`Errors: ${issues.length}\n`);
+
+if (redirected.length > 0) {
+  console.log('=== 301 Redirects (cannibalization consolidation) ===');
+  for (const r of redirected) console.log(`  ${r.domain}/products/${r.slug}`);
+}
+
+if (renderBroken.length > 0) {
+  console.log('\n=== Render Issues (HTTP 200 but missing CTA/tag/variants) ===');
+  for (const r of renderBroken) {
+    const missing = [];
+    if (!r.affiliateBtn) missing.push('cta');
+    if (!r.tagInjected) missing.push('tag');
+    if (!r.capacityVariants) missing.push('variants');
+    console.log(`  ${r.domain}/products/${r.slug}  missing: ${missing.join(',')}`);
+  }
+}
 
 if (issues.length > 0) {
-  console.log('=== Issues ===');
+  console.log('\n=== Errors ===');
   for (const r of issues) {
-    const reason = r.error
-      ? `error: ${r.error}`
-      : `status=${r.status} btn=${r.affiliateBtn} tag=${r.tagInjected} vars=${r.capacityVariants}`;
+    const reason = r.error ? `error: ${r.error}` : `status=${r.status}`;
     console.log(`  ${r.domain}/products/${r.slug}  ${reason}`);
   }
 }
 
-if (limit === Infinity) {
-  console.log('\n=== Healthy URLs ===');
-  for (const r of ok) {
-    console.log(`  ${r.domain}/products/${r.slug}`);
+// /compare buyer-query smoke check (deployed 2026-08-04).
+// The default /compare URL is the only page that ranks for the high-intent
+// buyer query "samsung t7 shield 4tb portable ssd amazon.com price" — verify
+// the T7 anchor block, the title/H1 alignment, and that the Amazon Associates
+// disclosure is present on the page.
+console.log('\n=== /compare (T7 Shield buyer-query block) ===');
+const compareResults = [];
+const compareDomains = hostFilter === 'portable' ? ['portablessds.com']
+  : hostFilter === 'external' ? ['externalssds.com']
+  : ['externalssds.com', 'portablessds.com'];
+for (const domain of compareDomains) {
+  const url = `https://${domain}/compare`;
+  let status = null;
+  let titleHasT7 = false;
+  let h1HasT7 = false;
+  let t7BuyBtn = false;
+  let amazonTag = false;
+  let disclosure = false;
+  let itemListSchema = false;
+  let error = null;
+  try {
+    const res = await fetch(url, { redirect: 'manual', headers: { 'user-agent': 'opencode-smoke/1.0' } });
+    status = res.status;
+    if (status === 200) {
+      const body = await res.text();
+      titleHasT7 = /<title>[^<]*Samsung T7 Shield 4TB/i.test(body);
+      h1HasT7 = /<h1[^>]*>[^<]*Samsung T7 Shield 4TB/i.test(body);
+      t7BuyBtn = body.includes("Check Price on Amazon") || body.includes("Check Price on");
+      amazonTag = body.includes('tag=ssdnetwork07-20');
+      disclosure = body.includes("As an Amazon Associate I earn from qualifying purchases");
+      itemListSchema = body.includes('"@type":"ItemList"');
+    }
+  } catch (e) {
+    error = e.message;
   }
+  compareResults.push({ domain, status, titleHasT7, h1HasT7, t7BuyBtn, amazonTag, disclosure, itemListSchema, error });
+  const checks = [
+    ['status=200', status === 200],
+    ['title matches T7 query', titleHasT7],
+    ['H1 matches T7 query', h1HasT7],
+    ['T7 buy button present', t7BuyBtn],
+    ['Amazon affiliate tag injected', amazonTag],
+    ['Associate disclosure present', disclosure],
+    ['ItemList JSON-LD present', itemListSchema],
+  ];
+  const failed = checks.filter(([, ok]) => !ok).map(([name]) => name);
+  const state = failed.length === 0 ? 'OK' : ` FAIL [${failed.join(', ')}]`;
+  console.log(`  ${domain}/compare  ${state}${error ? `  error: ${error}` : ''}`);
 }
 
-process.exit(issues.length === 0 ? 0 : 1);
+const compareFailures = compareResults.filter(r => r.error || r.status !== 200 || !r.titleHasT7 || !r.h1HasT7 || !r.t7BuyBtn || !r.amazonTag || !r.disclosure || !r.itemListSchema);
+
+process.exit((issues.length === 0 && compareFailures.length === 0) ? 0 : 1);

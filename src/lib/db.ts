@@ -138,6 +138,43 @@ export async function getProductBySlug(
 }
 
 /**
+ * Highest-capacity Samsung T7 Shield variant for the tenant — used by /compare
+ * to render the "buyer-query direct answer" block that targets the
+ * "samsung t7 shield 4tb portable ssd amazon.com price" SERP query (the only
+ * page where the site ranks for that exact buyer intent).
+ *
+ * Excludes the canonical cannibalization-301 targets (`samsung-t7-shield` and
+ * `samsung-t7-shield-portable`) so the returned slug always resolves to a
+ * live 200 product page rather than a redirect loop. Picks 4TB when present,
+ * then 2TB, then 1TB variant. Returns null if no T7 Shield variant exists
+ * for the tenant (defensive — current catalog has them on both tenants).
+ *
+ * @phase Buyer-query optimization (deployed 2026-08-04). Targets externalssds
+ * `/compare` GSC buyer-query pos 7.5 8i 0c CTR 0%.
+ */
+export async function getT7ShieldAnchor(
+  db: D1Database,
+  siteId: string
+): Promise<Product | null> {
+  const { results } = await db
+    .prepare(
+      `SELECT p.*, b.name as brand_name, b.slug as brand_slug, c.name as category_name, c.slug as category_slug
+       FROM products p
+       LEFT JOIN brands b ON p.brand_id = b.id
+       LEFT JOIN categories c ON p.category_id = c.id
+       WHERE p.site_id = ?
+         AND p.is_active = 1
+         AND p.slug LIKE '%samsung-t7-shield%'
+         AND p.slug NOT IN ('samsung-t7-shield', 'samsung-t7-shield-portable')
+       ORDER BY p.capacity_gb DESC
+       LIMIT 1`
+    )
+    .bind(siteId)
+    .all<Product>();
+  return results[0] || null;
+}
+
+/**
  * @deprecated Use `getProductPricesFresh()` for any render path that displays
  * a price or buy button. This legacy function returns the latest snapshot
  * row per retailer for the US marketplace without freshness, in-stock, or
