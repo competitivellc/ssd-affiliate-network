@@ -347,6 +347,8 @@ node scripts/gsc_pull_revenue.js
 
 **When a new AI agent makes SEO changes and deploys them, the changes need time to take effect in Google's index before their impact can be measured.** The agent MUST re-run `node scripts/gsc_pull_revenue.js` **7-14 days after the deploy date** to measure position/click deltas on the affected URLs and queries, then compare against the baseline captured at deploy time.
 
+> **⚠ HARD GATE — READ THIS BEFORE RUNNING `gsc_pull_revenue.js`:** the script embeds a self-enforcing re-run watchdog (see the `MANDATORY RE-RUN WATCHDOG` block at the top of `scripts/gsc_pull_revenue.js`). Every run prints the current gate status (PENDING / ACTIVE WINDOW / OVERDUE / RECORDED). Once the re-run window closes **without** a new `### RESULT (YYYY-MM-DD)` block in this file dated >= the window start, the script exits with code 2 and refuses to pull data until the re-run is completed and recorded in AGENTS.md. Do NOT bypass or delete the gate — the `--force` flag is only for running the pull while drafting the RESULT block, and the RESULT must be recorded before proceeding with further SEO work.
+
 The baseline from the most recent SEO work (deployed 2026-07-30 â€” 301 Samsung T7 Shield product pages â†’ `/compare` to consolidate ranking signal on the URL that already ranks pos 6-7 for `samsung t7 shield 4tb portable ssd amazon.com price`) is:
 
 | Metric | externalssds.com | portablessds.com |
@@ -464,6 +466,8 @@ The script's fallback path (when those env vars are unset) calls the **Google An
 Paste this at the start of a new conversation with any AI coding agent:
 
 > I am building a multi-tenant SSD affiliate comparison network. The repo is at `github.com/competitivellc/ssd-affiliate-network` on branch `main`. It's an Astro 5 SSR site deployed on Cloudflare Pages with D1 (SQLite) and KV cache, serving `externalssds.com` and `portablessds.com`. The codebase is fully functional and deployed. Read `AGENTS.md` in the repo root for full context. **CRITICAL: This project earns revenue via Amazon Associates â€” any violation = immediate account termination with no warning. You MUST read and comply with the "Amazon Associates Compliance" section of AGENTS.md before writing ANY code or content.** You have direct read access to live Google Search Console data for `portablessds.com` via the service account JSON key at the path in the local env var `PORTABLESSDS_GSC_SERVICE_ACCOUNT` â€” use it for any SEO/performance work instead of asking me to look things up. I need you to help with [your specific task]. No global installs - use `npx` for all wrangler commands. After making code changes, commit and push - I won't do it. After pushing, run the Post-Deploy Checklist to submit IndexNow for both domains.
+>
+> **MANDATORY RE-RUN WATCHDOG (READ BEFORE ANY SEO WORK):** `scripts/gsc_pull_revenue.js` contains an enforced re-run gate for the 2026-08-04 `/compare` T7-buyer-query deploy (commit `9329992`). Every run prints its status; once the window (2026-08-11 â†’ 2026-08-18) closes without a new `### RESULT` block in AGENTS.md dated >= 2026-08-11, the script refuses to run (exit 2) until the re-run is done and recorded. If you see the gate, follow its instructions exactly â€” do not bypass it (except `--force` AFTER recording the result in AGENTS.md). This affects `samsung t7 shield 4tb portable ssd amazon.com price` on `/compare` (target: pos 7.5 â†’ top 5).
 
 ## D1 CLI Commands
 ```bash
