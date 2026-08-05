@@ -1,14 +1,13 @@
 ﻿# SSD Affiliate Network - Project Context
 
-> ## 🚨 START HERE — last agent's handoff (2026-08-03)
-> Phases 1-6 of the catalog-expansion plan shipped today (commits `30f003f` → `610adcd`):
-> - Catalog expanded **17 → 155 products** across both tenants (9× URL surface).
-> - Critical bug fixed: affiliate buy buttons were not rendering site-wide because of a stale 24h freshness filter on `getProductPricesFresh()` — fixed in `58cf449`.
-> - New `/products` directory + capacity-variant cross-links (Phase 4).
-> - GA4 audit confirmed both properties wired correctly; `portablessds.com` "zero rows" issue CLOSED.
-> - IndexNow submitted 6,036 URLs across both sitemaps.
-> - **GSC baseline captured**: externalssds 1c / 471i / pos 39.6 / 0.21% CTR; portablessds 2c / 612i / pos 35.7 / 0.33% CTR.
-> - **NEXT AGENT (2026-08-17 → 2026-08-31) MUST**: re-run `node scripts/gsc_pull_revenue.js` at the start of the session and compare against the `RESULT (2026-08-03)` baseline block in the "GSC Re-Run Cadence" section below. Target: externalssds 471 → 700+ impressions; portablessds 612 → 900+; ≥30% of the 138 new product slugs in GSC page report; `/compare` position on `samsung t7 shield 4tb portable ssd amazon.com price` from pos 7.5 → top 5. Update the baseline table with fresh numbers when done.
+> ## 🚨 START HERE — last agent's handoff (2026-08-05)
+> **Previous session (2026-08-04) shipped the `/compare` T7-buyer-query overhaul** (commit `9329992`):
+> - `src/pages/compare.astro` default view now titles/H1s around `Samsung T7 Shield 4TB [Portable|External] SSD — Amazon Price, Specs & Side-by-Side Comparison (2026)` and renders a new "Buyer's Price Query" anchor section (blue-bordered card, "Check Price on Amazon →" GeoAffiliateLink w/ cart-extend linkCode, spec readout, internal links to the 4TB variant product page + category compare) targeting the buyer-intent query `samsung t7 shield 4tb portable ssd amazon.com price` (was pos 7.5 on externalssds `/compare`, 0 clicks both tenants).
+> - `src/lib/db.ts`: new `getT7ShieldAnchor()` (highest-capacity non-301'd T7 Shield variant per tenant, prefers 4TB).
+> - ItemList JSON-LD: T7 Shield at position 1, products 2-10.
+> - Smoke test extended for both tenants.
+> - IndexNow re-submitted: externalssds 3,367 URLs + portablessds 3,044 URLs, all HTTP 200.
+> - **NEXT AGENT (2026-08-11 → 2026-08-18) MUST**: re-run `node scripts/gsc_pull_revenue.js` at the start of the session and compare against the `RESULT (2026-08-05)` baseline block below (fresh 90d: externalssds 517i pos39.1; portablessds 713i pos35.4). Primary target: `/compare` position on `samsung t7 shield 4tb portable ssd amazon.com price` moves from pos 7.5 → top 5 (expect CTR ~1.5% → 4-6% with real SERP-direct-answer block). Secondary: catalog-expansion surface still pending (see `RESULT (2026-08-03)` block). Update the baseline table with fresh numbers when done.
 
 ## Overview
 Multi-tenant affiliate comparison site for external SSDs served on `externalssds.com` and `portablessds.com`. Built with Astro 5 SSR, deployed on Cloudflare Pages with D1 (SQLite) and KV.
@@ -394,8 +393,25 @@ These numbers match the pre-deploy baseline within rounding - Google has NOT yet
 1. Run `node scripts/gsc_pull_revenue.js` immediately at the start of the session.
 2. Compare the 90d total impressions against the baseline above. **Target: externalssds 471 -> 700+; portablessds 612 -> 900+** (the sitemap-rebuild + catalog-expansion hypothesis). If impressions rose materially (>=20%) the catalog expansion is working; if flat, the bottleneck is crawl budget - investigate via the GSC URL inspection tool on a sample of the new product URLs.
 3. Compare the new product URLs' appearance in the GSC page report. **Target: at least 30% of the 138 new product slugs should show non-zero impressions.** If fewer than 10% appear, Google is not crawling the new URLs - the `/products` directory link equity is not propagating fast enough; investigate whether `/products` itself is indexed (URL inspection).
-4. Compare `/compare` position on the buyer query `samsung t7 shield 4tb portable ssd amazon.com price`. **Target: top 5** (was pos 7.5 pre-deploy). If CTR on `/compare` is still under 3%, consider further on-page optimization of `/compare` itself.
+4. Compare `/compare` position on the buyer query `samsung t7 shield 4tb portable ssd amazon.com price`. **Target: top 5** (was pos 7.5 pre-deploy, still pos 7.5 in the 2026-08-05 baseline captured ~24h after the `/compare` T7 overhaul deployed in `9329992`). If CTR on `/compare` is still under 3%, consider further on-page optimization of `/compare` itself.
 5. Update this `AGENTS.md` section with the result. Either replace the `Target URLs / queries to watch` block above with a `RESULT (date):` block showing what actually happened, or update the baseline table with fresh numbers. Delete the redundant `Target N` sub-bullets that no longer apply.
+
+### RESULT (2026-08-05): `/compare` T7-buyer-query overhaul baseline (deployed 2026-08-04, commit `9329992`)
+
+Targets the buyer-intent query `samsung t7 shield 4tb portable ssd amazon.com price`. This was the highest-permission buyer URL that ranks on the site but converts 0% of its impressions: pos 7.5 / 8i / 0c cross-tenant on `/compare` (the only page Google associates with the query). The default (no-filter) `/compare` view and `/compare?category=...` category views got a T7 Shield 4TB "Buyer's Price Query" anchor block with a `Check Price on Amazon →` GeoAffiliateLink (useCartExtend = cart-extend linkCode), spec readout, and internal cross-links → variant product page + category compare view. Title/H1 rewritten, ItemList JSON-LD adds the T7 Shield at position 1. Category-filtered `/compare` views are untouched (the anchor logic only wires when no category/ids filter is applied). `getT7ShieldAnchor()` in `src/lib/db.ts` prefers the 4TB variant and excludes the 301'd base slugs (`samsung-t7-shield`, `samsung-t7-shield-portable`) that redirect to `/compare`.
+
+**Post-deploy baseline (captured 2026-08-05, ~24h after `9329992` deploy + full IndexNow re-submission):**
+
+| Metric | externalssds.com | portablessds.com |
+|--------|------------------|------------------|
+| 90d clicks | 1 | 2 |
+| 90d impressions | 517 | 713 |
+| Avg position | 39.1 | 35.4 |
+| 90d CTR | 0.19% | 0.28% |
+| `/compare` total (90d) | 1c / 128i / pos 34.8 | 2c / 140i / pos 27.8 |
+| Buyer query on `/compare` | pos 7.5 / 8i / 0c | (query not yet listed in top-20 page mapping) |
+
+Note: 24h is too short for ranking movement — Google must re-crawl the changed `/compare` HTML (title/H1/structured data) and rejudge. The T7 Shield 301'd product URLs still dominate the page report (`products/samsung-t7-shield` 212i pos38.4 — its signal consolidates onto `/compare` over days) and the `samsung t7 4tb portable ssd amazon.com price` variant (non-Shield) still ranks pos 6.3 / 3i on externalssds `/compare`, so opportunities are being watched.
 
 **Any future AI agent doing SEO work on this repo MUST, at the start of its session, re-run `node scripts/gsc_pull_revenue.js` to get a fresh baseline, and note the current date as the deploy-baseline for the next agent. Update the baseline table above with fresh numbers when you do.**
 
