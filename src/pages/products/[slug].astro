@@ -157,7 +157,7 @@ function xferTime(mbps: number, fileGb: number): string {
 
 const isRugged = /\b(shield|extreme|rugged|armor|tough)\b/i.test(product.name);
 const isGaming = product.category_slug === "gaming" || /\b(gaming|xbox|playstation|console)\b/i.test(product.name);
-const isHighSpeed = product.read_speed_mbps >= 1500;
+const isHighSpeed = product.read_speed_mbps >= 1000;
 const isUSB4 = product.interface === "USB4" || product.interface?.includes("Thunderbolt");
 const isGen2x2 = product.interface?.includes("Gen 2x2");
 const isHighCapacity = product.capacity_gb >= 2000;
@@ -485,11 +485,11 @@ const calloutText: Record<string, string> = {
             <div class="w-1 h-6 rounded-full" style={{ backgroundColor: tenant.primaryColorDark }}></div>
             <h2 class="text-xl font-semibold text-surface-900">Real-World Performance</h2>
           </div>
-          <div class="text-surface-700 leading-relaxed space-y-3 [&_p]:mb-3">
+          <div class="text-surface-800 leading-relaxed [&_p]:mb-3">
             <div>
               <h3 class="text-base font-semibold text-surface-800 mb-1.5">File Transfer Speeds</h3>
               <p>
-                On paper, the {product.name} delivers {product.read_speed_mbps.toLocaleString()} MB/s reads and {product.write_speed_mbps.toLocaleString()} MB/s writes. In practice, a 50GB file — a typical 4K video project, a large game install, or a full photo shoot — transfers in {transfer50gb}. A 100GB batch of raw files moves in {transfer100gb}. For users who regularly shuttle large files, these transfer times are a meaningful productivity improvement over slower SATA-based externals that take 3-5x longer for the same tasks.
+                On paper, the {product.name} delivers {product.read_speed_mbps.toLocaleString()} MB/s reads and {product.write_speed_mbps.toLocaleString()} MB/s writes. In practice, a 50GB file — a typical 4K video project, a large game install, or a full photo shoot — transfers in {transfer50gb}. A 100GB batch of raw files moves in {transfer100gb}. For users who regularly shuttle large files, these transfer times are a meaningful productivity improvement over slower SATA-based externals that take 3-5x longer for the same tasks. Note: those numbers describe large sequential transfers — everyday tasks (opening documents, app launches, game loads) feel equally fast across all NVMe portables because random 4K performance is similar drive-to-drive.
               </p>
             </div>
             {isHighSpeed && (
@@ -506,15 +506,9 @@ const calloutText: Record<string, string> = {
               </div>
             )}
             <div>
-              <h3 class="text-base font-semibold text-surface-800 mb-1.5">What "Speed" Actually Means for Daily Use</h3>
-              <p>
-                Sequential read and write speeds — the numbers manufacturers advertise — matter most when transferring single large files. For everyday tasks like opening documents, browsing photos, running applications from the drive, or loading games, random 4K performance is more relevant. All NVMe-based external SSDs deliver random IOPS in the same general range, so the ${product.name} feels similarly responsive to other fast portables for daily use. The real differentiator shows up during large file transfers, where the ${product.read_speed_mbps.toLocaleString()} MB/s read speed pulls noticeably ahead of slower SATA-based externals.
-              </p>
-            </div>
-            <div>
               <h3 class="text-base font-semibold text-surface-800 mb-1.5">Endurance and Longevity</h3>
               <p>
-                The ${product.name} is rated for ${product.tbw.toLocaleString()} TBW (terabytes written) endurance. To put that in perspective: if you write 50GB per day — an aggressive daily workload for most users — the drive would take approximately ${Math.round(product.tbw * 1000 / 50 / 365)} years to reach its endurance limit. For typical use patterns involving backups, file transfers, and game storage, the ${product.tbw.toLocaleString()} TBW rating provides comfortable headroom well beyond the ${product.warranty_years}-year warranty period.
+                {`The ${product.name} is rated for ${product.tbw.toLocaleString()} TBW (terabytes written) endurance. To put that in perspective: if you write 50GB per day — an aggressive daily workload for most users — the drive would take approximately ${Math.round(product.tbw * 1000 / 50 / 365)} years to reach its endurance limit. For typical use patterns involving backups, file transfers, and game storage, the ${product.tbw.toLocaleString()} TBW rating provides comfortable headroom well beyond the ${product.warranty_years}-year warranty period.`}
               </p>
             </div>
           </div>
