@@ -488,6 +488,67 @@ Captured via `node scripts/gsc_pull_revenue.js` on 2026-08-06, immediately befor
 
 **Re-run window**: 2026-08-13 → 2026-08-20. The next agent MUST re-run `node scripts/gsc_pull_revenue.js` in that window and append a `RESULT (YYYY-MM-DD)` block here comparing each of the 6 URLs above pre- vs post-deploy. Success criterion: ≥1 incremental click across the 5 currently-zero-CTR H2H URLs, plus the paying URL maintaining its pos-10.3 / CTR-33% baseline on `sandisk extreme pro vs samsung t9`. Failure criterion: all 5 URLs still 0c by 2026-08-20 → the recipe isn't anchored enough; investigate via the GSC "title match" report whether Google is rewriting the new titles, and iterate the pattern.
 
+### RESULT (2026-08-07): home-page internal-link equity to H2H `/compare/[slug]` + `/products` directory (deployed 2026-08-07, commit `4de0bca`)
+
+Shipped ~12 internal links from `src/pages/index.astro` to (a) the only proven-converting URL template (H2H `/compare/[slug]`, CTR 5.6%/33% for the buyer query `sandisk extreme pro vs samsung t9`) and (b) the Phase 4 `/products` directory, which was orphaned from the home page since its 2026-08-03 creation. The new `Popular Head-to-Head Comparisons` section sits between `Most Popular` and `Browse by Category`, renders up to 8 tenant-aware candidate H2H pairs (canonicalized to alphabetically-first slug form per `sitemap.xml.ts:177`, deduped by href, dropped silently if either slug is inactive). The Quick Nav row gets an `All SSDs` link to `/products`, and the `All N Drives` section now leads with `see the full directory of all N reviewed SSDs →` before the inline product links.
+
+**Compliance**: all new anchors are internal `href="/..."` with no `rel=sponsored`/`target="_blank"`. Disclosure text, `Footer.astro`, `CookieConsent.astro`, `BaseLayout.astro`, `affiliate.ts`, and the sitemap were NOT touched. No new URL surface — no sitemap regeneration, no DB change. IndexNow single-URL submission (Option B) was used to push just the two home URLs to Bing (`https://externalssds.com/` and `https://portablessds.com/` — both HTTP 200).
+
+**Live verification (2026-08-07, ~5 min post-deploy)**:
+- `externalssds.com/` (HTTP 200): `Popular Head-to-Head Comparisons` heading renders, `/products` Quick Nav link renders, **7 unique H2H links** in the live DOM (8 candidate pairs, 1 dedupe: `(samsung-t9, samsung-t7-shield)` ↔ `(samsung-t7-shield, samsung-t9)` canonicalize to one href).
+- `portablessds.com/` (HTTP 200): `Popular Head-to-Head Comparisons` heading renders, `/products` Quick Nav link renders, **8 unique H2H links** in the live DOM. The single converting H2H URL `/compare/samsung-t9-portable-vs-sandisk-extreme-pro-portable` IS in the home DOM (verified).
+
+**GSC day-0 baseline (captured 2026-08-07 immediately before deploy, same numbers as the `RESULT (2026-08-07): GA4 measurement` baseline above)**:
+
+| Metric | externalssds.com | portablessds.com |
+|--------|------------------|------------------|
+| 90d clicks | 1 | 3 |
+| 90d impressions | 614 | 928 |
+| Avg position | 38.3 | 34.7 |
+| 90d CTR | 0.16% | 0.32% |
+| `/compare` (90d) | 1c / 154i / pos35.3 / CTR 0.65% | 2c / 146i / pos28.9 / CTR 1.37% |
+| `/compare/[H2H]` total URLs in GSC page report (90d, both tenants) | 1 URL (`samsung-t9-vs-samsung-t9-4tb` 1i) | 6 URLs (totals: 1c/40i, top: `samsung-t9-portable-vs-sandisk-extreme-pro-portable` 1c/18i/pos10.2/CTR5.56%) |
+| Buyer query `sandisk extreme pro vs samsung t9` → portablessds `/compare/[H2H]` | n/a externalssds | 1c / 3i / pos 10.3 / **CTR 33.3%** |
+| Buyer query `samsung t7 shield 4tb portable ssd amazon.com price` → externalssds `/compare` | pos 7.5 / 8i / 0c | (query not in portablessds top-20) |
+| `/products` directory in GSC page report (either tenant) | ABSENT (URL not yet surfaced to Google) | ABSENT |
+
+**Live H2H links now rendered on each home page (deployed DOM, verified via `Invoke-WebRequest` against the production URLs)**:
+
+externalssds.com home — 7 H2H links:
+- `/compare/samsung-t7-shield-vs-samsung-t9`
+- `/compare/samsung-t7-shield-vs-sandisk-extreme-pro-portable-1tb`
+- `/compare/samsung-t7-shield-2tb-vs-samsung-t7-2tb`
+- `/compare/samsung-t7-shield-4tb-vs-sandisk-extreme-pro-4tb`
+- `/compare/samsung-t7-shield-4tb-vs-samsung-t9-4tb`
+- `/compare/samsung-t9-vs-sandisk-extreme-pro-portable-2tb`
+- `/compare/crucial-x9-pro-2tb-vs-samsung-t7-2tb`
+
+portablessds.com home — 8 H2H links:
+- `/compare/samsung-t9-portable-vs-sandisk-extreme-pro-portable` **← the converting one**
+- `/compare/crucial-x9-pro-vs-samsung-t7-portable`
+- `/compare/crucial-x9-pro-vs-samsung-t7-shield-portable`
+- `/compare/crucial-x9-pro-vs-sandisk-extreme-pro-portable`
+- `/compare/crucial-x9-pro-vs-samsung-t9-portable`
+- `/compare/samsung-t7-portable-vs-sandisk-extreme-pro-portable`
+- `/compare/samsung-t7-portable-vs-samsung-t9-portable`
+- `/compare/samsung-t7-shield-portable-vs-sandisk-extreme-pro-portable`
+
+**Re-run window**: 2026-08-14 → 2026-08-21 (7-14 days post-deploy). The next agent MUST re-run `node scripts/gsc_pull_revenue.js` in that window and compare the GSC page report for each of the **15 H2H URLs above + `/products` directory on both tenants**.
+
+**Success criterion** (any one of):
+- ≥1 incremental click across the 5 currently-zero-CTR portablessds H2H URLs (`crucial-x9-pro-vs-samsung-t7-portable` 6i, `crucial-x9-pro-vs-samsung-t7-shield-portable` 6i, `crucial-x9-pro-vs-sandisk-extreme-pro-portable` 5i, `crucial-x9-pro-vs-samsung-t9-portable` 1i, plus the Samsung-vs-SanDisk URL not in current top-20) by 2026-08-21
+- The converting portablessds H2H URL (`samsung-t9-portable-vs-sandisk-extreme-pro-portable`) maintains pos ≤10.2 and CTR ≥5.6% AND gains link-driven impressions lift (target 18i → 30i+)
+- `/products` directory URL appears in GSC page report on either tenant (target: non-zero impressions on at least one tenant)
+- ≥1 externalssds H2H URL gains its first GSC impression (currently zero H2H impressions on externalssds — these are entirely new from the home-page link equity)
+
+**Failure criterion** (all of): zero new H2H URLs appear in GSC by 2026-08-21 AND `/products` still absent on both tenants AND converting H2H URL regresses to pos >15.
+
+**If failure**: investigate via the GSC URL inspection tool on `/products` (is it indexed?) and a sample new H2H URL (is Google re-crawling it?). Possible follow-ups: per-URL IndexNow submission of the top 6 H2H URLs via `submitSingleUrl()` from `src/lib/indexnow.ts` to accelerate Bing's crawl of the specific newly-linked H2H URLs (Bing honors direct URL submissions; Google ignores IndexNow but re-crawls priority-1.0 home pages within ~24h and follows the new outbound links organically).
+
+**Ghost in the 2026-08-11 → 2026-08-18 watchdog gate**: this deploy (`4de0bca`) does NOT close the `9329992` (2026-08-04 `/compare` T7-buyer-query) re-run watchdog gate. The gate window is for the T7 `/compare` recipe rewrite specifically; this `4de0bca` deploy is a separate, layered internal-link equity initiative. The next agent must still close the `9329992` gate between 2026-08-11 and 2026-08-18 by re-running `gsc_pull_revenue.js` and recording a `RESULT (>=2026-08-11)` block comparing the T7 buyer query position pre/post — i.e., capture whether `/compare` position on `samsung t7 shield 4tb portable ssd amazon.com price` moved from pos 7.5 into top 5. That re-run should ALSO serve as the `4de0bca` measurement re-run (a 2026-08-11→2026-08-18 GSC pull covers both).
+
+
+
 ## GA4 Script Note (read before running `ga4_pull_traffic.js`)
 
 As of 2026-07-29 the script accepts the `EXTERNALSSDS_GA4_PROPERTY_ID` / `PORTABLESSDS_GA4_PROPERTY_ID` env vars in either format â€” bare numeric ID (`547488517`) or full resource name (`properties/547488517`). It strips a leading `properties/` prefix before passing to the Data API. If you change the env var format, no script edit is needed.
