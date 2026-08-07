@@ -78,6 +78,35 @@ const websiteJsonLd = {
             window.gtag = gtag;
             gtag('js', new Date());
             gtag('config', GA_ID, { anonymize_ip: true });
+            wireAffiliateClickTracking();
+          }
+
+          // GA4 outbound-click attribution for affiliate Special Links.
+          // Passive capture-phase listener — never preventDefault, never
+          // modify href/rel/target, never block navigation. Amazon-compliant
+          // (first-party analytics on our own site; does not modify the
+          // Special Link, the Associates tag, the cart-extend linkCode, or
+          // the destination host). Skips silently when consent was not
+          // granted (window.gtag undefined) — the Special Link still opens.
+          function wireAffiliateClickTracking() {
+            if (document.__affWire) return;
+            document.__affWire = true;
+            document.addEventListener('click', function (e) {
+              if (typeof window.gtag !== 'function') return;
+              var t = e.target;
+              if (!t || !t.closest) return;
+              var a = t.closest('a[data-affiliate="1"]');
+              if (!a) return;
+              window.gtag('event', 'affiliate_click', {
+                link_url:      a.href,
+                link_domain:  a.hostname,
+                retailer:      a.dataset.retailer || '',
+                cta_label:    a.dataset.cta || '',
+                product_slug: a.dataset.productSlug || '',
+                page_path:    location.pathname,
+                page_location: location.href
+              });
+            }, true);
           }
 
           var consent = null;

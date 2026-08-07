@@ -30,6 +30,8 @@ export interface Props {
   variant?: "primary" | "secondary" | "compact";
   /** Render "Other retailers" list under this button. */
   others?: Price[];
+  /** Optional product slug for GA4 outbound-click attribution. */
+  productSlug?: string;
 }
 
 const {
@@ -37,6 +39,7 @@ const {
   fallbackPrice,
   variant = "primary",
   others = [],
+  productSlug,
 } = Astro.props;
 
 // Pick the price we render. Fresh wins; fallback (stale-but-known link) is
@@ -59,6 +62,7 @@ const buttonClass =
       label={`See Price on ${linkPrice.retailer} →`}
       urlSource={linkPrice.url_source}
       useCartExtend={variant === "primary"}
+      productSlug={productSlug}
       className={buttonClass}
     />
     {freshPrice && variant === "primary" && (
@@ -78,6 +82,7 @@ const buttonClass =
             retailer={p.retailer}
             label={`${p.retailer}${p.condition === "used" ? " (used)" : ""} →`}
             urlSource={p.url_source}
+            productSlug={productSlug}
             className="text-sm"
           />
         ))}

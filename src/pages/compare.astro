@@ -523,6 +523,7 @@ function barColor(index: number): string {
                       label={`Check Price on ${t7Best.retailer} →`}
                       urlSource={t7Best.url_source}
                       useCartExtend
+                      productSlug={t7Anchor?.slug}
                       className="w-full sm:w-auto justify-center py-2.5 px-5 text-sm font-bold rounded-lg bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white shadow-sm"
                     />
                  </div>
@@ -589,6 +590,7 @@ function barColor(index: number): string {
                         label={`See Price on ${topBest.retailer} →`}
                         urlSource={topBest.url_source}
                         useCartExtend
+                        productSlug={topProduct?.slug}
                         className="w-full sm:w-auto justify-center py-2.5 px-5 text-sm font-bold rounded-lg bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white shadow-sm"
                       />
                     ) : null}
@@ -718,6 +720,7 @@ function barColor(index: number): string {
                                 label={`Check on ${primaryLink.retailer} →`}
                                 urlSource={primaryLink.url_source}
                                 useCartExtend
+                                productSlug={product.slug}
                                 className="w-full justify-center py-2 text-xs font-semibold rounded-lg bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
                               />
                             ) : null;
@@ -882,6 +885,7 @@ function barColor(index: number): string {
                           label={`Check on ${primaryLink.retailer}`}
                           urlSource={primaryLink.url_source}
                           useCartExtend
+                          productSlug={topProduct?.slug}
                           className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
                         />
                       ) : null;

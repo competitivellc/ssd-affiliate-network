@@ -18,9 +18,16 @@ export interface Props {
    * "See Price" button). Leave undefined for secondary "other retailers" rows.
    */
   useCartExtend?: boolean;
+  /**
+   * Optional product slug for GA4 outbound-click attribution (added
+   * 2026-08-07). Rendered as data-product-slug on the <a>. Empty/falsy
+   * values are allowed and render as data-product-slug="". Purely passive
+   * measurement — does NOT alter href, rel, target, or the affiliate tag.
+   */
+  productSlug?: string;
 }
 
-const { url, retailer, label, className = "", urlSource, useCartExtend } = Astro.props;
+const { url, retailer, label, className = "", urlSource, useCartExtend, productSlug } = Astro.props;
 const { DB, tenant, countryCode, marketplace } = Astro.locals;
 
 let finalUrl: string | null = null;
@@ -48,6 +55,10 @@ if (!finalUrl) {
   href={finalUrl}
   target="_blank"
   rel="noopener sponsored"
+  data-affiliate="1"
+  data-retailer={retailer}
+  data-cta={label}
+  data-product-slug={productSlug || ""}
   class={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${className || "border-surface-500 text-surface-800 hover:border-surface-700 hover:bg-surface-50"}`}
 >
   {label}

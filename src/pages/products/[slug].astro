@@ -337,6 +337,7 @@ const calloutText: Record<string, string> = {
               label={`Check on ${primaryLink.retailer} →`}
               urlSource={primaryLink.url_source}
               useCartExtend
+              productSlug={product.slug}
               className="mb-4 text-sm"
             />
           )}
@@ -350,6 +351,7 @@ const calloutText: Record<string, string> = {
                     retailer={amazonUsed.retailer}
                     label={`Amazon (used) →`}
                     urlSource={amazonUsed.url_source}
+                    productSlug={product.slug}
                     className="text-sm"
                   />
                 )}
@@ -359,6 +361,7 @@ const calloutText: Record<string, string> = {
                     retailer={price.retailer}
                     label={`${price.retailer}${price.condition === "used" ? " (used)" : ""} →`}
                     urlSource={price.url_source}
+                    productSlug={product.slug}
                     className="text-sm"
                   />
                 ))}
@@ -703,6 +706,7 @@ const calloutText: Record<string, string> = {
               label={`Check on ${primaryLink.retailer} →`}
               urlSource={primaryLink.url_source}
               useCartExtend
+              productSlug={product.slug}
               className="w-full justify-center py-3 text-sm font-semibold bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
             />
           )}
