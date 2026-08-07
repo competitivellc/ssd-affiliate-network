@@ -122,11 +122,46 @@ const winner = productA.overall_score > productB.overall_score
     ? productB
     : null;
 const loser = winner?.id === productA.id ? productB : productA;
+
+// --- Buyer-intent title/H1/meta recipe (2026-08-06) ---
+// Re-anchors every /compare/{a}-vs-{b} title to the buyer's actual question
+// ("which is faster / cheaper / better"), targeting the head-to-head URL form
+// — the only template type with multiple URLs already on page 1 of Google.
+// At deploy, portablessds had 5 H2H URLs sitting pos 5–17 (~25 combined
+// impressions) but CTR 0% on 4 of them. The 1 that converts does so at 33%
+// CTR (`sandisk extreme pro vs samsung t9` → /compare/samsung-t9-portable-
+// vs-sandisk-extreme-pro-portable) — proof that an anchored "vs" phrase earns
+// the click where a generic "Expert Comparison & Review" title does not.
+const currentYear = new Date().getFullYear();
+const tenantNoun = tenant.id === "portablessds" ? "Portable" : "External";
+
+// Speed-table verdict used to forward-load the meta description with the
+// answer (so the SERP snippet leads with substance, not "Compare X and Y").
+// Pure restatement of the spec-table outcome — no editorial claim beyond what
+// the table already shows (Amazon Pol §2(b) "no misleading claims").
+const speedWinner = productA.read_speed_mbps > productB.read_speed_mbps
+  ? productA
+  : productB.read_speed_mbps > productA.read_speed_mbps
+    ? productB
+    : null;
+
+function capacityLabel(gb: number): string {
+  return gb >= 1000 ? `${(gb / 1000).toFixed(gb % 1000 === 0 ? 0 : 1)}TB` : `${gb}GB`;
+}
+
+const compareSlugTitle = `${productA.name} vs ${productB.name}: Which ${tenantNoun} SSD Is Faster & Better Value? (${currentYear})`;
+
+const compareSlugMeta = speedWinner
+  ? `${speedWinner.name} is faster (${speedWinner.read_speed_mbps.toLocaleString()} MB/s). ${productA.name}: ${productA.read_speed_mbps.toLocaleString()}/${productA.write_speed_mbps.toLocaleString()} MB/s, ${capacityLabel(productA.capacity_gb)}, ${productA.interface}. ${productB.name}: ${productB.read_speed_mbps.toLocaleString()}/${productB.write_speed_mbps.toLocaleString()} MB/s, ${capacityLabel(productB.capacity_gb)}, ${productB.interface}. See which to buy — scores, specs & current price.`
+  : `${productA.name} vs ${productB.name} — ${productA.read_speed_mbps.toLocaleString()} MB/s vs ${productB.read_speed_mbps.toLocaleString()} MB/s reads. Compare capacity, endurance, writes, and overall score to choose the right ${tenantNoun.toLowerCase()} SSD. Specs and current prices.`;
+
+// H1 mirrors title without the year (already signaled via the spec table).
+const compareSlugH1 = `${productA.name} vs ${productB.name} — Which ${tenantNoun} SSD Is Faster & Better Value?`;
 ---
 
 <BaseLayout
-  title={`${productA.name} vs ${productB.name} - Expert Comparison & Review`}
-  description={`Compare ${productA.name} and ${productB.name} side by side. Speed, capacity, price, and value analysis to help you choose the best external SSD.`}
+  title={compareSlugTitle}
+  description={compareSlugMeta}
   jsonLd={faqJsonLd}
 >
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
@@ -140,7 +175,7 @@ const loser = winner?.id === productA.id ? productB : productA;
 
     <div class="mb-8">
       <h1 class="text-3xl sm:text-4xl font-bold text-surface-900">
-        {productA.name} vs {productB.name}
+        {compareSlugH1}
       </h1>
       <p class="mt-3 text-surface-700 max-w-3xl leading-relaxed">
         Compare {productA.name} and {productB.name} side by side. Both are {productA.capacity_gb >= 1000 ? `${(productA.capacity_gb / 1000).toFixed(0)}TB` : `${productA.capacity_gb}GB`} {productA.interface} external SSDs, but they differ in speed, design, and value. Here's how they stack up.

@@ -419,6 +419,34 @@ Note: 24h is too short for ranking movement — Google must re-crawl the changed
 
 For traffic/engagement analytics work, agents have the same direct GA4 access (see "Google Analytics 4 Access" section above) and should re-run `node scripts/ga4_pull_traffic.js` 7-14 days after deploys that affect UX, content, internal linking, or ad placement.
 
+### RESULT (2026-08-06): pre-deploy baseline for `/compare/[slug]` title/H1/meta rewrite
+
+Captured via `node scripts/gsc_pull_revenue.js` on 2026-08-06, immediately before deploying the query-anchored title/H1/meta recipe rewrite on `src/pages/compare/[slug].astro`. The recipe change targets the head-to-head compare URL form — the only template type on the network with multiple URLs already on page 1 of Google.
+
+**Network-wide baseline (90d, captured 2026-08-06):**
+
+| Metric | externalssds.com | portablessds.com |
+|--------|------------------|------------------|
+| 90d clicks | 1 | 3 |
+| 90d impressions | 581 | 845 |
+| Avg position | 38.4 | 34.5 |
+| 90d CTR | 0.17% | 0.36% |
+
+**Target URLs (the 5 head-to-head compare pages already receiving impressions on portablessds):**
+
+| URL | impressions | position | CTR | clicks |
+|-----|-------------|----------|-----|--------|
+| portablessds.com/compare/samsung-t9-portable-vs-sandisk-extreme-pro-portable | 14 | 11.3 | 7.14% | 1 |
+| portablessds.com/compare/crucial-x9-pro-vs-samsung-t7-portable | 6 | 7.2 | 0% | 0 |
+| portablessds.com/compare/crucial-x9-pro-vs-samsung-t7-shield-portable | 6 | 33.3 | 0% | 0 |
+| portablessds.com/compare/crucial-x9-pro-vs-sandisk-extreme-pro-portable | 5 | 17.0 | 0% | 0 |
+| portablessds.com/compare/samsung-t7-portable-vs-crucial-x9-pro | 6 | 7.2 | 0% | 0 |
+| portablessds.com/compare/crucial-x9-pro-vs-samsung-t9-portable | 1 | 39.0 | 0% | 0 |
+
+**Top buyer query already producing a click** (proof the recipe direction works): `sandisk extreme pro vs samsung t9` — 1c / 3i / pos 10.3 / **CTR 33.3%** — landing on `portablessds.com/compare/samsung-t9-portable-vs-sandisk-extreme-pro-portable`.
+
+**Re-run window**: 2026-08-13 → 2026-08-20. The next agent MUST re-run `node scripts/gsc_pull_revenue.js` in that window and append a `RESULT (YYYY-MM-DD)` block here comparing each of the 6 URLs above pre- vs post-deploy. Success criterion: ≥1 incremental click across the 5 currently-zero-CTR H2H URLs, plus the paying URL maintaining its pos-10.3 / CTR-33% baseline on `sandisk extreme pro vs samsung t9`. Failure criterion: all 5 URLs still 0c by 2026-08-20 → the recipe isn't anchored enough; investigate via the GSC "title match" report whether Google is rewriting the new titles, and iterate the pattern.
+
 ## GA4 Script Note (read before running `ga4_pull_traffic.js`)
 
 As of 2026-07-29 the script accepts the `EXTERNALSSDS_GA4_PROPERTY_ID` / `PORTABLESSDS_GA4_PROPERTY_ID` env vars in either format â€” bare numeric ID (`547488517`) or full resource name (`properties/547488517`). It strips a leading `properties/` prefix before passing to the Data API. If you change the env var format, no script edit is needed.
