@@ -1,6 +1,47 @@
 ﻿# SSD Affiliate Network - Project Context
 
-> ## 🚨 START HERE — last agent's handoff (2026-08-05)
+> ## 🚨 START HERE — last agent's handoff (2026-08-07)
+> **Previous session (2026-08-07) shipped GA4 outbound-click attribution** (commit `a50edb2`):
+> - `src/components/GeoAffiliateLink.astro` now renders `data-affiliate="1"` + `data-retailer` + `data-cta` + `data-product-slug` on every affiliate `<a>`. New optional `productSlug?: string` prop.
+> - `src/layouts/BaseLayout.astro` gtag inline script wires a passive capture-phase `click` listener (`wireAffiliateClickTracking()`). On click of any `a[data-affiliate="1"]`, fires `gtag('event', 'affiliate_click', { link_url, link_domain, retailer, cta_label, product_slug, page_path, page_location })`. Never prevents navigation, never alters href/rel/target/tag — fully Amazon-compliant (Pol §2(a)/(b)/(e), §5(v), §6(a), §1(c)(i) preserved). Skips silently when consent not granted (link still opens normally).
+> - `AffiliateButton`, `ProductCard`, `compare.astro` (4 call sites: T7 anchor, Quick Winner, table rows, Final Recommendation), `products/[slug].astro` (4 call sites: buy button, sidebar sticky, Amazon used, other retailers), `compare/[slug].astro` (H2H product map) all pass `productSlug`. Lower-traffic call sites (ComparisonTable, category/[slug], hubs/[slug], best/[slug], brands/[slug], products/[slug]/[retailer]) still emit `data-affiliate` / `data-retailer` / `data-cta` (just empty `data-product-slug`) — backfill in a follow-up PR if needed.
+> - Verified live on prod: `portablessds/compare` returned 161 tagged CTAs, `externalssds/compare` 169, H2H page 2, product pages 7 each, home 81. T7 anchor CTA confirmed carrying `data-product-slug="samsung-t7-shield-portable-4tb"` and `tag=ssdnetwork07-20&linkCode=ll1` intact.
+> - No URLs / sitemap / DB schema / disclosure text / affiliate tag changed. IndexNow re-submission NOT required (no URL surface changed).
+> - **NEXT AGENT (2026-08-14 → 2026-08-21) MUST**:
+>   1. (a) Re-run `node scripts/gsc_pull_revenue.js` AND compare against the 2026-08-07 GSC baseline captured in this session (externalssds 614i / 1c / pos38.3 / 0.16% CTR; portablessds 928i / 3c / pos34.7 / 0.32% CTR — see full numbers below). Update the GSC baseline table with fresh numbers when done. Note: the `gsc_pull_revenue.js` watchdog gate (2026-08-11 → 2026-08-18 for the T7 `/compare` deploy `9329992`) is **still PENDING** — the prior agent's window opens 2026-08-11. If you open this repo between 2026-08-11 and 2026-08-18 you MUST complete that re-run and record the `RESULT` block as instructed in the earlier handoff. Today (2026-08-07) we ran `gsc_pull_revenue.js --force` (recorded as a pre-deploy baseline) but did NOT close the watchdog — the next agent must compare against this snapshot and close out the 9329992 gate.
+>   2. (b) Re-run `node scripts/ga4_pull_traffic.js` 7-14 days after `a50edb2` deployed (i.e. between 2026-08-14 and 2026-08-21). Pull the new `affiliate_click` custom event from the GA4 Data API (`runReport` with metric `eventCount` + dimension `eventName` filter `affiliate_click`, plus `product_slug`, `retailer`, `page_path` as breakdown dimensions) for both `G-7BG64K2QZJ` and `G-YFZ8SDB88N`. Compare against the **pre-deploy baseline: 0 `affiliate_click` events exist on either property** (no tracking was live before commit `a50edb2`). Target within 14 days post-deploy: at least 1 `affiliate_click` event recorded on at least one of the two properties, attributable to a `page_path` + `product_slug` combo. If 0 events: investigate whether cookie-consent rate is too low (the listener only fires when `window.gtag` exists, which requires `localStorage['cookie-consent'] === 'accepted'` — most users don't accept, so the cookie banner itself is a measurement gap that needs a follow-up fix).
+>   3. (c) Once `affiliate_click` data is flowing, the **NEXT revenue-velocity initiative** (already audited but deferred) is the **`price_cents = 0` filter bug**: 141 of 176 price rows (80%) have `price_cents = 0` in D1. Prices are NOT displayed on-page (per the Phase 1 compliance fix), so this is not a display error — but `best.price_cents < 12000` at `src/pages/compare.astro:93` (`getRecommendationBullets` → `isGoodValue`) flags every zero-priced product as "good value", polluting the editorial "Best Value" recommendation logic across `/compare`, `/best/[slug]`, `/category/[slug]`, `/hubs/[slug]`. Fix: change the `isGoodValue` check to skip `price_cents === 0` rows from the "good value" determination. ~30 min after the GA4 measurement data lands.
+
+> (The legacy 2026-08-05 handoff re: the T7 `/compare` overhaul is preserved in the `RESULT (2026-08-05)` block below. The 2026-08-03 catalog-expansion note is preserved in the `RESULT (2026-08-03)` block below that.)
+
+### RESULT (2026-08-07): GA4 measurement-infra baseline (deployed 2026-08-07, commit `a50edb2`)
+
+Deploys GA4 outbound-click tracking for affiliate Special Links across both tenants. Baseline captured via `node scripts/gsc_pull_revenue.js --force` + GA4 Data API inspection immediately before deploy (the `--force` was used because the 2026-08-11 → 2026-08-18 watchdog window for `9329992` had not yet opened — the next agent must close that gate as instructed above).
+
+**GSC network-wide baseline (90d, captured 2026-08-07):**
+
+| Metric | externalssds.com | portablessds.com |
+|--------|------------------|------------------|
+| 90d clicks | 1 | 3 |
+| 90d impressions | 614 | 928 |
+| Avg position | 38.3 | 34.7 |
+| 90d CTR | 0.16% | 0.32% |
+| `/compare` (90d) | 1c / 154i / pos35.3 / CTR 0.65% | 2c / 146i / pos28.9 / CTR 1.37% |
+| `/compare/[H2H]` (90d, total) | 1i | 34i / 1c / CTR 2.94% (top: samsung-t9-vs-sandisk-extreme-pro-page 18i / 1c / CTR 5.56%) |
+| Buyer query `samsung t7 shield 4tb portable ssd amazon.com price` on `/compare` | pos 7.5 / 8i / 0c | (query not in portablessds top-20) |
+
+**GA4 network-wide baseline (28d, captured 2026-08-07 — confirms zero outbound-tracking pre-deploy):**
+
+| Property | 28d sessions | 28d users | 28d pageviews | `affiliate_click` events (NEW) |
+|----------|--------------|-----------|---------------|--------------------------------|
+| G-7BG64K2QZJ (externalssds) | 18 (direct only) | 1 | 6 | **0** (listener not live) |
+| G-YFZ8SDB88N (portablessds) | 4 (direct only) | 1 | 4 | **0** (listener not live) |
+
+Note: GA4 channel breakdown is 100% "Direct" / "Unassigned" for both properties — no organic attribution is recorded (cookie banner gates gtag load, and most visitors don't accept). The new `affiliate_click` listener will inherit the same gating for the 7-14d post-deploy window: only visitors who accept cookies will produce events. A future PR should consider cookieless server-side measurement (e.g. Cloudflare Workers → GA4 Measurement Protocol via server POST) to bypass the cookie-consent gate.
+
+**Re-run window**: 2026-08-14 → 2026-08-21 (7-14 days post-deploy). The next agent MUST re-run `node scripts/ga4_pull_traffic.js` in that window and append to this block with the `affiliate_click` event count + `product_slug` breakdown for both properties. If 0 events by 2026-08-21, the cookie-consent-measurement gap is blocking measurement; address there.
+
+> ## Legacy: previous handoff (2026-08-05) — `/compare` T7-buyer-query overhaul (commit `9329992`)
 > **Previous session (2026-08-04) shipped the `/compare` T7-buyer-query overhaul** (commit `9329992`):
 > - `src/pages/compare.astro` default view now titles/H1s around `Samsung T7 Shield 4TB [Portable|External] SSD — Amazon Price, Specs & Side-by-Side Comparison (2026)` and renders a new "Buyer's Price Query" anchor section (blue-bordered card, "Check Price on Amazon →" GeoAffiliateLink w/ cart-extend linkCode, spec readout, internal links to the 4TB variant product page + category compare) targeting the buyer-intent query `samsung t7 shield 4tb portable ssd amazon.com price` (was pos 7.5 on externalssds `/compare`, 0 clicks both tenants).
 > - `src/lib/db.ts`: new `getT7ShieldAnchor()` (highest-capacity non-301'd T7 Shield variant per tenant, prefers 4TB).
