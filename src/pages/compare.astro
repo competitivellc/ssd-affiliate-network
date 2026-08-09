@@ -4,6 +4,7 @@ import ComparisonTable from "@components/ComparisonTable.astro";
 import ProductGrid from "@components/ProductGrid.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
 import AffiliateDisclosure from "@components/AffiliateDisclosure.astro";
+import AdSlot from "@components/AdSlot.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
 import { getAllProducts, getProductsByCategory, getProductPricesFresh, getCategoriesBySite, getT7ShieldAnchor } from "@lib/db";
 import { getLowestPrice } from "@lib/pricing";
@@ -660,6 +661,8 @@ function barColor(index: number): string {
         <AffiliateDisclosure className="mb-4" />
 
         <ComparisonTable products={products} pricesByProduct={pricesByProduct} />
+
+        <AdSlot placement="compare" />
 
         {showDetailedContent && (
           <div class="mt-12 space-y-10 max-w-4xl">

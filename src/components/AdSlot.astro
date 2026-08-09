@@ -1,0 +1,38 @@
+---
+import { isEeaCountry } from "@lib/adsense";
+
+export interface Props {
+  placement: "home" | "compare" | "product";
+  className?: string;
+}
+
+const { placement, className = "" } = Astro.props;
+const { tenant, countryCode } = Astro.locals;
+const cfg = tenant.adsense;
+const slotKey = placement === "home" ? "homeSlotId" : placement === "compare" ? "compareSlotId" : "productSlotId";
+const clientId = cfg?.clientId || "";
+const slotId = cfg?.[slotKey] || "";
+
+// Render nothing unless the tenant has AdSense configured AND the visitor
+// is outside the EEA/UK/CH certified-CMP scope. Consent gating happens in
+// the SDK loader (BaseLayout): the ins element is inert until the
+// adsbygoogle.js SDK loads, so visitors who never accept cookies see a
+// zero-height element and no ad cookies fire.
+const enabled = !!(clientId && slotId && !isEeaCountry(countryCode || ""));
+---
+
+{enabled && (
+  <div class={`mt-2 mb-10 border-t border-surface-200 pt-4 ${className}`.trim()}>
+    <ins
+      class="adsbygoogle block w-full"
+      style="display: block;"
+      data-ad-client={clientId}
+      data-ad-slot={slotId}
+      data-ad-format="auto"
+      data-full-width-responsive="true"
+    ></ins>
+    <script is:inline>
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+)}

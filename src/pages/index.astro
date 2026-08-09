@@ -3,6 +3,7 @@ import BaseLayout from "@layouts/BaseLayout.astro";
 import HeroSection from "@components/HeroSection.astro";
 import ProductGrid from "@components/ProductGrid.astro";
 import AffiliateDisclosure from "@components/AffiliateDisclosure.astro";
+import AdSlot from "@components/AdSlot.astro";
 import { getTopRatedProducts, getAllProducts, getCategoriesBySite, getLastUpdatedDate, getHubsBySite, getProductBySlug } from "@lib/db";
 import type { Product, Hub } from "@lib/db";
 
@@ -148,6 +149,8 @@ const topPicks = tenant.id === "portablessds"
         );
       })}
     </section>
+
+    <AdSlot placement="home" />
 
     {topRated.length > 0 && (
       <section class="mb-12">

@@ -10,6 +10,26 @@ export interface TenantConfig {
   defaultCurrency: string;
   defaultLocale: string;
   gaMeasurementId?: string;
+  /**
+   * Google AdSense configuration. Publisher IDs and ad-unit slot IDs are
+   * public information (they appear in ads.txt and in page HTML), so
+   * committing them is safe. Leave unset to keep ads off entirely (the
+   * AdSlot components and the SDK loader render nothing).
+   *
+   * EEA/UK/CH visitors are geo-gated off until a Google-certified CMP is
+   * integrated (see src/lib/adsense.ts) — ads are only served outside
+   * that scope, and only after cookie consent is accepted.
+   *
+   * clientId format: "ca-pub-XXXXXXXXXXXXXXXX" (from AdSense settings).
+   * Slot IDs: create responsive ad units in the AdSense dashboard, then
+   * paste the numeric slot IDs below per placement.
+   */
+  adsense?: {
+    clientId?: string;
+    homeSlotId?: string;
+    compareSlotId?: string;
+    productSlotId?: string;
+  };
 }
 
 export const tenants: Record<string, TenantConfig> = {

@@ -3,6 +3,7 @@ import BaseLayout from "@layouts/BaseLayout.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
 import ProductGrid from "@components/ProductGrid.astro";
+import AdSlot from "@components/AdSlot.astro";
 import { getProductBySlug, getProductPricesFresh, getProductsByBrand, getCapacityVariants, getRelatedProducts, getHubsForProduct } from "@lib/db";
 import type { Hub } from "@lib/db";
 import { classifyDrive } from "@lib/editorial";
@@ -516,6 +517,8 @@ const calloutText: Record<string, string> = {
             </div>
           </div>
         </section>
+
+        <AdSlot placement="product" />
 
         {topCompetitor && (
           <section class="mb-8">
