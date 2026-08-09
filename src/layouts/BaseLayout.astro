@@ -25,16 +25,14 @@ const siteUrl = `https://${hostname}`;
 const favicon = tenant.id === "portablessds" ? "/favicon-portable.svg" : "/favicon-external.svg";
 const logoUrl = `${siteUrl}${favicon}`;
 
-// AdSense is account-wide (one client ID can serve both tenants), so the
-// SDK loader is wired whenever ANY tenant has a clientId configured, at
-// least one ad-unit slot exists, and the visitor is outside the EEA/UK/CH
-// certified-CMP scope (see adsense.ts). Individual ad units are rendered
-// by AdSlot.astro per placement.
-const adsense = tenant.adsense;
-const hasAnySlot = !!(adsense?.homeSlotId || adsense?.compareSlotId || adsense?.productSlotId);
-const adsClient = adsense?.clientId && hasAnySlot && !isEeaCountry(Astro.locals.countryCode || "")
-  ? adsense.clientId
-  : "";
+// AdSense publisher snippet. Rendered into <head> whenever the tenant has
+// a clientId configured and the visitor is outside the EEA/UK/CH scope
+// (see adsense.ts) — this is the exact tag AdSense's crawler looks for
+// during "code snippet" site verification, so it must be present in the
+// HTML even before any ad-unit slot IDs are configured. Consent gating
+// happens at the fill level (AdSlot.astro only pushes a fill request after
+// cookie consent is accepted); loading the SDK alone sets no ad cookies.
+const showAdSenseSnippet = !!(tenant.adsense?.clientId && !isEeaCountry(Astro.locals.countryCode || ""));
 
 const organizationJsonLd = {
   "@context": "https://schema.org",
@@ -137,43 +135,12 @@ const websiteJsonLd = {
         })();
       </script>
     )}
-    {adsClient && (
-      <script is:inline define:vars={{ adsClient }}>
-        (function () {
-          var CONSENT_KEY = 'cookie-consent';
-
-          // Google AdSense SDK loader, gated on the same cookie-consent
-          // signal as GA4. The adsbygoogle.js SDK is only fetched after the
-          // visitor accepts cookies, so no ad cookies fire without consent.
-          // AdSlot components push {}-entries into window.adsbygoogle —
-          // entries queued before SDK load are drained by the loader on
-          // load; entries pushed after load hit the SDK's push handler
-          // (both behaviors are the documented adsbygoogle async pattern).
-          function loadAdSense() {
-            if (window.__adsenseLoaded) return;
-            window.__adsenseLoaded = true;
-            var s = document.createElement('script');
-            s.async = true;
-            s.crossOrigin = 'anonymous';
-            s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + adsClient;
-            document.head.appendChild(s);
-          }
-
-          var consent = null;
-          try { consent = localStorage.getItem(CONSENT_KEY); } catch (e) {}
-          if (consent === 'accepted') {
-            loadAdSense();
-          } else {
-            var acceptBtn = document.getElementById('cookie-consent-accept');
-            if (acceptBtn) {
-              acceptBtn.addEventListener('click', function () {
-                try { consent = localStorage.getItem(CONSENT_KEY); } catch (e) {}
-                if (consent === 'accepted') loadAdSense();
-              });
-            }
-          }
-        })();
-      </script>
+    {showAdSenseSnippet && (
+      <script
+        async
+        src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${tenant.adsense!.clientId}`}
+        crossorigin="anonymous"
+      ></script>
     )}
   </head>
   <body class="h-full flex flex-col">
