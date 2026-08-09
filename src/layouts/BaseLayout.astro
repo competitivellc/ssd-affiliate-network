@@ -26,11 +26,14 @@ const favicon = tenant.id === "portablessds" ? "/favicon-portable.svg" : "/favic
 const logoUrl = `${siteUrl}${favicon}`;
 
 // AdSense is account-wide (one client ID can serve both tenants), so the
-// SDK loader is wired whenever ANY tenant has a clientId configured and the
-// visitor is outside the EEA/UK/CH certified-CMP scope (see adsense.ts).
-// Individual ad units are rendered by AdSlot.astro per placement.
-const adsClient = tenant.adsense?.clientId && !isEeaCountry(Astro.locals.countryCode || "")
-  ? tenant.adsense.clientId
+// SDK loader is wired whenever ANY tenant has a clientId configured, at
+// least one ad-unit slot exists, and the visitor is outside the EEA/UK/CH
+// certified-CMP scope (see adsense.ts). Individual ad units are rendered
+// by AdSlot.astro per placement.
+const adsense = tenant.adsense;
+const hasAnySlot = !!(adsense?.homeSlotId || adsense?.compareSlotId || adsense?.productSlotId);
+const adsClient = adsense?.clientId && hasAnySlot && !isEeaCountry(Astro.locals.countryCode || "")
+  ? adsense.clientId
   : "";
 
 const organizationJsonLd = {

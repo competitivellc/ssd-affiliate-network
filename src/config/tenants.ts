@@ -45,6 +45,9 @@ export const tenants: Record<string, TenantConfig> = {
     defaultCurrency: "USD",
     defaultLocale: "en-US",
     gaMeasurementId: "G-7BG64K2QZJ",
+    adsense: {
+      clientId: "ca-pub-4951924636664760",
+    },
   },
   "portablessds.com": {
     id: "portablessds",
@@ -58,6 +61,9 @@ export const tenants: Record<string, TenantConfig> = {
     defaultCurrency: "USD",
     defaultLocale: "en-US",
     gaMeasurementId: "G-YFZ8SDB88N",
+    adsense: {
+      clientId: "ca-pub-4951924636664760",
+    },
   },
   "ssd-affiliate-network.pages.dev": {
     id: "externalssds",

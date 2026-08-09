@@ -1,13 +1,3 @@
-# Google AdSense ads.txt — required to serve ads on both externalssds.com
-# and portablessds.com (single Pages project serves both domains, so one
-# ads.txt covers both).
-#
-# TODO (only the site owner can do this): after Google approves the AdSense
-# application, replace pub-0000000000000000 with your real publisher ID
-# (from AdSense settings). Keep the exact record format. Then commit + push
-# and verify https://externalssds.com/ads.txt and
-# https://portablessds.com/ads.txt return this file.
-#
-# Reference format:
-# google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
-google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
+# Google AdSense ads.txt — serves both externalssds.com and portablessds.com
+# (single Pages project, one ads.txt covers both custom domains).
+google.com, pub-4951924636664760, DIRECT, f08c47fec0942fa0

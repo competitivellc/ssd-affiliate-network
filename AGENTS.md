@@ -22,18 +22,20 @@ Adds consent-gated, geo-gated Google AdSense display ads alongside the existing 
 - `src/components/AdSlot.astro` — responsive `<ins class="adsbygoogle">` unit per placement (`home` / `compare` / `product`). Renders NOTHING (zero layout impact) until the tenant has `adsense` config + the visitor is outside the EEA/UK/CH scope.
 - `src/layouts/BaseLayout.astro` — AdSense SDK loader (`adsbygoogle.js`) gated on the same `localStorage['cookie-consent'] === 'accepted'` signal as GA4. No ad cookies fire without consent. Queued `(adsbygoogle = window.adsbygoogle || []).push({})` entries from AdSlot are drained by the loader on load / handled by the SDK's push handler after load (documented async pattern).
 - `src/lib/adsense.ts` — EEA-27 + UK + Norway + Iceland + Liechtenstein + Switzerland list + `isEeaCountry()`. **Ads are geo-gated OFF for those countries** because Google requires a Google-certified CMP (IAB TCF v2.3 + Consent Mode v2) to serve ads there, and this site's custom cookie banner is NOT certified — serving ads to EEA/UK/CH visitors without one is an AdSense policy violation (account suspension risk). Unlock EEA revenue later by integrating a certified CMP (e.g. Cookiebot, Quantcast Choice).
-- `src/config/tenants.ts` — new optional `adsense?: { clientId, homeSlotId, compareSlotId, productSlotId }` field on `TenantConfig` (pub/slot IDs are public info — they appear in ads.txt and page HTML — so committing them is safe). **Currently unset on both tenants → ads are fully OFF in production until configured.**
+- `src/config/tenants.ts` — new optional `adsense?: { clientId, homeSlotId, compareSlotId, productSlotId }` field on `TenantConfig` (pub/slot IDs are public info — they appear in ads.txt and page HTML — so committing them is safe). **`clientId` is wired on both tenants (`ca-pub-4951924636664760`); slot IDs are NOT — ads render nothing until the three slot IDs are filled in.** The SDK loader in `BaseLayout` only loads once at least one slot ID exists, so the no-op state costs zero extra requests.
 - Ad slots placed: `src/pages/index.astro` (between Quick Nav and "Best {tenant.name}"), `src/pages/compare.astro` (below the comparison table, before the detailed analysis), `src/pages/products/[slug].astro` (after Real-World Performance, before the VS-table section). All placements are visually separated from affiliate Special Links (border + spacing; Google auto-labels ads with "Ad"). No ads near buy buttons, no ads that mimic content.
-- `public/ads.txt` — created with placeholder `pub-0000000000000000` + instructions (single file serves both domains since both are custom domains on one Pages project).
+- `public/ads.txt` — created with placeholder `pub-0000000000000000` + instructions (single file serves both domains since both are custom domains on one Pages project). **Updated 2026-08-09 (2nd commit): now serves the real `pub-4951924636664760` line on both domains.**
 - `src/pages/privacy.astro` — added "Advertising (Google AdSense)" section (DART cookie disclosure, Google Ads Settings opt-out, aboutads.info, consent-gated loading note). Updated "Last updated" to August 2026.
 
-**🚨 SITE OWNER ACTION REQUIRED (only the owner can do this — AI agents cannot apply for AdSense):**
-1. Apply for AdSense at https://adsense.google.com with the Google account that owns the GA4/GSC service account (or any Google account), add BOTH `https://externalssds.com` and `https://portablessds.com` as sites. Approval prerequisites already exist: privacy policy, terms, about, contact pages, responsive design, HTTPS.
-2. After approval: copy the publisher ID (`ca-pub-XXXXXXXXXXXXXXXX`) and create three responsive ad units ("Home leaderboard", "Compare leaderboard", "Product in-content") in the AdSense dashboard.
-3. Fill the IDs into `src/config/tenants.ts` (`clientId` + the three slot IDs — both tenants), replace the placeholder in `public/ads.txt` with the real `ca-pub-...` ID, commit + push (auto-deploys), then verify `https://externalssds.com/ads.txt` and `https://portablessds.com/ads.txt` both serve the file.
-4. AdSense site review takes hours→days; then ads go live automatically. Until that happens, this deploy is a visual no-op (which is intentional — nothing ships without valid IDs).
+**Status (2026-08-09, after owner applied for AdSense and shared the publisher ID):** application approved/complete, `clientId: "ca-pub-4951924636664760"` wired on both tenants, real ads.txt live. **Ads are still OFF — waiting on the three ad-unit slot IDs (see item 2 below).**
 
-**Next agent**: if `tenant.adsense` is still unset, no verification possible. If configured, smoke-test prod HTML for `data-ad-client` on all three placements + confirm `adsbygoogle.js` only loads after consent (visit with `localStorage['cookie-consent']='accepted'` vs without). Track AdSense earnings in the GA4 pull cadence only if Google Ads linking is enabled; otherwise just confirm units render. Watch GSC for any rank impact of ad placement on `/compare` (the ranking money page) vs the 2026-08-07 baseline.
+**🚨 SITE OWNER ACTION REQUIRED — only ONE step left (~10 min):**
+1. ✅ DONE — AdSense application approved (`ca-pub-4951924636664760`), publisher ID wired in `src/config/tenants.ts` for both tenants + real line in `public/ads.txt`.
+2. Create three **responsive** ad units in the AdSense dashboard (AdSense → Ads → Display ads): "Home leaderboard", "Compare leaderboard", "Product in-content". Each produces a numeric slot ID (e.g. `1234567890`).
+3. Paste the three slot IDs into `src/config/tenants.ts` under `adsense` → `homeSlotId` / `compareSlotId` / `productSlotId` on **both tenants**, commit + push (auto-deploys). Everything activates automatically — no other code change needed.
+4. Verify on prod: `data-ad-client="ca-pub-4951924636664760"` + the three `data-ad-slot` values appear in home / `/compare` / product-page HTML, and `adsbygoogle.js` only loads after `localStorage['cookie-consent'] === 'accepted'`. AdSense site review (both domains) takes hours→days after their first pageview with the code; then ads populate automatically.
+
+**Next agent**: if all three slot IDs are set, smoke-test prod HTML for `data-ad-client` on all three placements + confirm `adsbygoogle.js` only loads after consent (visit with `localStorage['cookie-consent']='accepted'` vs without). Track AdSense earnings in the GA4 pull cadence only if Google Ads linking is enabled; otherwise just confirm units render. Watch GSC for any rank impact of ad placement on `/compare` (the ranking money page) vs the 2026-08-07 baseline.
 
 ### RESULT (2026-08-07): GA4 measurement-infra baseline (deployed 2026-08-07, commit `a50edb2`)
 
@@ -267,8 +269,8 @@ The sites monetize via Google AdSense display ads in addition to Amazon Associat
 
 ### Configuration
 
-- `src/config/tenants.ts` → `tenant.adsense` (`clientId: "ca-pub-..."`, `homeSlotId`, `compareSlotId`, `productSlotId`). Unset = ads off. IDs are public info, safe to commit.
-- `public/ads.txt` must contain the real publisher ID line (`google.com, pub-XXXXXXXXXXXX, DIRECT, f08c47fec0942fa0`) — currently a placeholder `pub-0000000000000000`.
+- `src/config/tenants.ts` → `tenant.adsense` (`clientId: "ca-pub-4951924636664760"` wired on both tenants; `homeSlotId` / `compareSlotId` / `productSlotId` still EMPTY = ads off until filled). IDs are public info, safe to commit.
+- `public/ads.txt` contains the real publisher ID line (`google.com, pub-4951924636664760, DIRECT, f08c47fec0942fa0`) — live on both domains.
 - AdSense approval + ID creation is a **site-owner-only** step (human application, identity/tax verification). See the `RESULT (2026-08-09)` block at the top of this file for the exact activation checklist.
 
 ---
@@ -629,7 +631,7 @@ The script's fallback path (when those env vars are unset) calls the **Google An
 - [x] Cannibalization consolidation: `/category/{slug}` and `/best/{slug}` canonicalized to matching `/hubs/{slug}` via BaseLayout `canonical` prop + `getHubByCategory()` DB query (deployed 2026-07-29, commit `8f14782`)
 
 ## What's Pending
-- [ ] **AdSense activation (owner-only)**: apply for AdSense, create 3 responsive ad units, fill `tenant.adsense` in `src/config/tenants.ts` + real pub ID in `public/ads.txt`, verify `/ads.txt` on both domains (see `RESULT (2026-08-09)` block). Infra is deployed but ads are OFF until IDs are set.
+- [ ] **AdSense activation (owner-only)**: create 3 responsive ad units in the AdSense dashboard, paste the three slot IDs into `tenant.adsense` in `src/config/tenants.ts` (both tenants), commit + push (auto-activates; real pub ID already live in `public/ads.txt` + wired as `clientId`). See `RESULT (2026-08-09)` block.
 - [ ] Cron price-sync worker not deployed (needs API keys â†’ `npx wrangler deploy worker/price-sync.ts --name ssd-price-sync`)
 - [ ] D1 + KV bindings need to be added to the cron worker in dashboard
 - [ ] Real Amazon PAAPI, B&H Photo, Newegg API keys (set via `npx wrangler secret put`)
