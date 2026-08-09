@@ -26,13 +26,21 @@ const favicon = tenant.id === "portablessds" ? "/favicon-portable.svg" : "/favic
 const logoUrl = `${siteUrl}${favicon}`;
 
 // AdSense publisher snippet. Rendered into <head> whenever the tenant has
-// a clientId configured and the visitor is outside the EEA/UK/CH scope
-// (see adsense.ts) — this is the exact tag AdSense's crawler looks for
-// during "code snippet" site verification, so it must be present in the
-// HTML even before any ad-unit slot IDs are configured. Consent gating
-// happens at the fill level (AdSlot.astro only pushes a fill request after
-// cookie consent is accepted); loading the SDK alone sets no ad cookies.
-const showAdSenseSnippet = !!(tenant.adsense?.clientId && !isEeaCountry(Astro.locals.countryCode || ""));
+// a clientId configured — this is the exact tag AdSense's crawler looks for
+// during "code snippet" site verification, so it must be present in the HTML
+// even before any ad-unit slot IDs are configured. Consent gating happens at
+// the fill level (AdSlot.astro only pushes a fill request after cookie
+// consent is accepted); loading the SDK alone sets no ad cookies.
+//
+// EEA/UK/CH visitors are geo-gated OFF (Google requires a certified CMP
+// there — see adsense.ts), EXCEPT Google's own crawler user-agents
+// (Googlebot / AdsBot-Google / Mediapartners-Google): the verification
+// fetch must see the snippet regardless of which region Google's crawler
+// originates from. Crawlers never run the consent-gated fill flow, so this
+// bypass cannot serve ads to EEA users.
+const ua = Astro.request.headers.get("user-agent") || "";
+const isGoogleCrawler = /googlebot|adsbot-google|mediapartners-google/i.test(ua);
+const showAdSenseSnippet = !!(tenant.adsense?.clientId && (!isEeaCountry(Astro.locals.countryCode || "") || isGoogleCrawler));
 
 const organizationJsonLd = {
   "@context": "https://schema.org",
