@@ -85,18 +85,61 @@ const websiteJsonLd = {
           var GA_ID = gaId;
           var CONSENT_KEY = 'cookie-consent';
 
-          function loadGA() {
-            if (window.dataLayer) return;
-            var s = document.createElement('script');
-            s.async = true;
-            s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
-            document.head.appendChild(s);
-            window.dataLayer = window.dataLayer || [];
-            function gtag() { window.dataLayer.push(arguments); }
-            window.gtag = gtag;
-            gtag('js', new Date());
-            gtag('config', GA_ID, { anonymize_ip: true });
-            wireAffiliateClickTracking();
+          // Google Consent Mode v2: load gtag on every page with all storage
+          // types defaulting to 'denied'. The SDK loads without setting ANY
+          // ad/analytics cookies. In denied state: AdSense serves
+          // non-personalized contextually-targeted ads (still revenue), GA4
+          // counts sessions/pageviews as modeled conversions (still measured),
+          // and our affiliate_click listener fires on every real outbound
+          // click. When the visitor clicks 'Accept', setConsent() promotes
+          // every storage type to 'granted' and subsequent fills/events become
+          // cookie-based. Reject keeps the denied state but still yields NPA
+          // ad revenue + modeled analytics. This is Google's prescribed
+          // mechanism for serving non-personalized ads without a TCF-certified
+          // CMP (the EEA geo-gate in adsense.ts still blocks ad serving there
+          // because Consent Mode alone is not sufficient for EEA — only non-EEA
+          // traffic benefits from this gate relaxation, which is 100% of our
+          // current audience per GA4).
+          var s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+          document.head.appendChild(s);
+          window.dataLayer = window.dataLayer || [];
+          function gtag() { window.dataLayer.push(arguments); }
+          window.gtag = gtag;
+          gtag('consent', 'default', {
+            ad_storage:          'denied',
+            analytics_storage:   'denied',
+            ad_user_data:         'denied',
+            ad_personalization:  'denied',
+            functionality_storage: 'granted',
+            security_storage:     'granted',
+            wait_for_update: 500
+          });
+          gtag('js', new Date());
+          gtag('config', GA_ID, { anonymize_ip: true });
+
+          // Promote the Consent Mode v2 state to the requested value
+          // ('granted' on Accept, 'denied' on Reject). Safe to call multiple
+          // times. CookieConsent.astro's Accept/Reject click handlers call
+          // window.setConsent() after persisting to localStorage.
+          window.setConsent = function (value) {
+            var state = (value === 'accepted') ? 'granted' : 'denied';
+            try {
+              gtag('consent', 'update', {
+                ad_storage:          state,
+                analytics_storage:   state,
+                ad_user_data:         state,
+                ad_personalization:  state
+              });
+            } catch (e) {}
+          };
+
+          // Apply any persisted consent choice from a prior session.
+          var persisted = null;
+          try { persisted = localStorage.getItem(CONSENT_KEY); } catch (e) {}
+          if (persisted === 'accepted' || persisted === 'rejected') {
+            window.setConsent(persisted);
           }
 
           // GA4 outbound-click attribution for affiliate Special Links.
@@ -104,10 +147,12 @@ const websiteJsonLd = {
           // modify href/rel/target, never block navigation. Amazon-compliant
           // (first-party analytics on our own site; does not modify the
           // Special Link, the Associates tag, the cart-extend linkCode, or
-          // the destination host). Skips silently when consent was not
-          // granted (window.gtag undefined) — the Special Link still opens.
-          function wireAffiliateClickTracking() {
-            if (document.__affWire) return;
+          // the destination host). With Consent Mode v2 always-on gtag, this
+          // listener captures every outbound affiliate click — Appeals as
+          // modeled conversions while consent is denied, and as real
+          // cookie-based conversions once granted. The Special Link opens
+          // regardless of consent state.
+          if (!document.__affWire) {
             document.__affWire = true;
             document.addEventListener('click', function (e) {
               if (typeof window.gtag !== 'function') return;
@@ -116,29 +161,15 @@ const websiteJsonLd = {
               var a = t.closest('a[data-affiliate="1"]');
               if (!a) return;
               window.gtag('event', 'affiliate_click', {
-                link_url:      a.href,
-                link_domain:  a.hostname,
-                retailer:      a.dataset.retailer || '',
-                cta_label:    a.dataset.cta || '',
-                product_slug: a.dataset.productSlug || '',
-                page_path:    location.pathname,
-                page_location: location.href
+                link_url:       a.href,
+                link_domain:    a.hostname,
+                retailer:       a.dataset.retailer || '',
+                cta_label:      a.dataset.cta || '',
+                product_slug:   a.dataset.productSlug || '',
+                page_path:      location.pathname,
+                page_location:  location.href
               });
             }, true);
-          }
-
-          var consent = null;
-          try { consent = localStorage.getItem(CONSENT_KEY); } catch (e) {}
-          if (consent === 'accepted') {
-            loadGA();
-          } else {
-            var acceptBtn = document.getElementById('cookie-consent-accept');
-            if (acceptBtn) {
-              acceptBtn.addEventListener('click', function () {
-                try { consent = localStorage.getItem(CONSENT_KEY); } catch (e) {}
-                if (consent === 'accepted') loadGA();
-              });
-            }
           }
         })();
       </script>

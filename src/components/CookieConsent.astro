@@ -53,6 +53,12 @@
       try {
         localStorage.setItem(STORAGE_KEY, value);
       } catch (e) {}
+      // Notify Consent Mode v2 (BaseLayout.astro) of the chosen state.
+      // 'accepted' -> grant ad/analytics storage; 'rejected' -> keep denied.
+      // Safe when window.setConsent is undefined (e.g. gtag blocked).
+      if (typeof window.setConsent === 'function') {
+        try { window.setConsent(value); } catch (e) {}
+      }
       banner.hidden = true;
     }
 

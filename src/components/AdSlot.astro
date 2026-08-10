@@ -16,9 +16,13 @@ const slotId = cfg?.[slotKey] || "";
 // Render nothing unless the tenant has AdSense configured (client + a slot
 // ID for this placement) AND the visitor is outside the EEA/UK/CH
 // certified-CMP scope. The SDK is loaded by the publisher snippet in
-// BaseLayout's <head>; this unit stays empty until the visitor accepts
-// cookies (see the inline script below), so no ad cookies or ad requests
-// fire without consent.
+// BaseLayout's <head>. With Consent Mode v2 (always-on gtag with default-
+// denied storage), the unit's fill request fires unconditionally — the SDK
+// serves non-personalized contextually-targeted ads while consent is denied
+// (NPA = still policy-compliant revenue, no ad cookies set) and upgrades to
+// personalized fill once the visitor clicks Accept. The EEA geo-gate is
+// independent: ad serving stays OFF there because Consent Mode v2 alone
+// does not satisfy Google's CMP requirement for EEA traffic.
 const enabled = !!(clientId && slotId && !isEeaCountry(countryCode || ""));
 const adClient = enabled ? clientId : "";
 const adSlot = enabled ? slotId : "";
@@ -36,28 +40,11 @@ const adSlot = enabled ? slotId : "";
     ></ins>
     <script is:inline>
       (function () {
-        // Consent-gated fill: only push a fill request after the visitor has
-        // accepted cookies (same signal as GA4). Without consent the unit
-        // stays zero-height and the SDK makes no ad request. The adsbygoogle
-        // push queue drains on SDK load / runs via its push handler after
-        // load — the documented async pattern.
-        var CONSENT_KEY = 'cookie-consent';
-        function push() {
-          try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
-        }
-        var consent = null;
-        try { consent = localStorage.getItem(CONSENT_KEY); } catch (e) {}
-        if (consent === 'accepted') {
-          push();
-        } else {
-          var acceptBtn = document.getElementById('cookie-consent-accept');
-          if (acceptBtn) {
-            acceptBtn.addEventListener('click', function () {
-              try { consent = localStorage.getItem(CONSENT_KEY); } catch (e) {}
-              if (consent === 'accepted') push();
-            });
-          }
-        }
+        // Unconditional fill — Consent Mode v2 (BaseLayout.astro) governs
+        // whether the SDK sets ad cookies. When consent is denied, Google
+        // serves non-personalized contextually-targeted ads (no cookies set,
+        // still revenue). When granted, fills become personalized.
+        try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
       })();
     </script>
   </div>
