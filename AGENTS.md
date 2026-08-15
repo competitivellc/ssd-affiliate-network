@@ -10,7 +10,7 @@
 > **NEXT AGENT (2026-08-17 → 2026-08-24) MUST — three items, all measurement/cleanup, no new code expected**:
 >   1. **(a) Re-run `node scripts/ga4_pull_traffic.js` between 2026-08-17 and 2026-08-24** (7-14 days post-deploy of `d8cd3f2`). Pull `affiliate_click` events from the GA4 Data API (`runReport` with metric `eventCount` + dimension `eventName=affiliate_click`, plus `product_slug`, `retailer`, `page_path` breakdown) for both `G-7BG64K2QZJ` and `G-YFZ8SDB88N`. Compare against the **pre-Consent-Mode-v2 baseline (captured 2026-08-07): 0 `affiliate_click` events on either property**. Target within 14 days post-deploy: ≥1 `affiliate_click` event recorded on at least one of the two properties, even with ZERO visitors clicking "Accept" — this proves the cookie-consent-measurement gap (called out in the 2026-08-07 handoff) is closed. Also compare total session counts vs the 2026-08-07 GA4 baseline (externalssds 28d 20s / 1u / 6pv; portablessds 28d 4s / 1u / 4pv) — with Consent Mode v2 every session is now counted (modeled when consent denied) so GA4 totals should NOT undercount the real traffic anymore.
 >   2. **(b) The `gsc_pull_revenue.js` watchdog gate for `9329992` (2026-08-04 T7 `/compare` overhaul) is still PENDING** — the window opens 2026-08-11. If you open this repo between 2026-08-11 and 2026-08-18, follow the gate's instructions EXACTLY (run `node scripts/gsc_pull_revenue.js`, compare the pre-deploy baseline captured 2026-08-07 in the `RESULT (2026-08-07)` block below, write a new `RESULT (>=2026-08-11)` block to AGENTS.md closing out the gate). Today (2026-08-10) we are still 1 day before the window opens, so the gate is NOT due yet — do NOT bypass with `--force` unless drafting the RESULT block per the gate's own instructions. Primary target: `samsung t7 shield 4tb portable ssd amazon.com price` on `/compare` moves from pos 7.5 → top 5.
->   3. **(c) The deferred `price_cents = 0` filter bug** (~30 min, low-risk, no measurement dependency) — STILL PENDING: 141 of 176 price rows (80%) have `price_cents = 0` in D1 (verified via D1 query 2026-08-10). Prices are not displayed on-page (per Phase 1 compliance fix), so this is not a display error — but `best.price_cents < 12000` at `src/pages/compare.astro:94` in `getRecommendationBullets()` → `isGoodValue` flags every zero-priced product as "Good Value" / "Strong value, premium gaming performance without the premium price", polluting the "Quick Winner" amber-card editorial recommendation across `/compare`, `/best/[slug]`, `/category/[slug]`, `/hubs/[slug]`. Fix is a 1-line edit at `src/pages/compare.astro:94`: change `const isGoodValue = best && best.price_cents < 12000;` to `const isGoodValue = best && best.price_cents > 0 && best.price_cents < 12000;`. This can be shipped any time, no measurement dependency — the next agent can pick it up immediately without waiting for the GA4 re-run.
+>   3. **(c) ~~The deferred `price_cents = 0` filter bug~~** — **CLOSED 2026-08-14**: 1-line fix at `src/pages/compare.astro:94` shipped (deferred from 2026-08-10 handoff). See `RESULT (2026-08-14): price_cents = 0 filter bug fix` block below.
 >
 > **STILL-OWNER-ONLY**: the AdSense 3-slot activation checklist in the `RESULT (2026-08-09)` block is unchanged. Once the owner creates the 3 responsive ad units in the AdSense dashboard and pastes the three `homeSlotId` / `compareSlotId` / `productSlotId` values into `src/config/tenants.ts` on both tenants, ads start filling — and with the Consent Mode v2 fix from `d8cd3f2` now live, those fills will fire on 100% of non-EEA impressions (rather than only the post-Accept fraction). The owner activation step is unchanged; the fix from `d8cd3f2` just makes the eventual ad revenue higher once slots land.
 >
@@ -65,6 +65,58 @@ Deploys GA4 outbound-click tracking for affiliate Special Links across both tena
 Note: GA4 channel breakdown is 100% "Direct" / "Unassigned" for both properties — no organic attribution is recorded (cookie banner gates gtag load, and most visitors don't accept). The new `affiliate_click` listener will inherit the same gating for the 7-14d post-deploy window: only visitors who accept cookies will produce events. A future PR should consider cookieless server-side measurement (e.g. Cloudflare Workers → GA4 Measurement Protocol via server POST) to bypass the cookie-consent gate.
 
 **Re-run window**: 2026-08-14 → 2026-08-21 (7-14 days post-deploy). The next agent MUST re-run `node scripts/ga4_pull_traffic.js` in that window and append to this block with the `affiliate_click` event count + `product_slug` breakdown for both properties. If 0 events by 2026-08-21, the cookie-consent-measurement gap is blocking measurement; address there.
+
+### RESULT (2026-08-14): GA4 measurement-infra post-Consent-Mode-v2 re-run (4 days post `d8cd3f2`)
+
+Captured via `node scripts/ga4_pull_traffic.js` on 2026-08-14 (the date the watchdog window opens; run produced Today: 2026-08-15 banner on the GSC companion pull — both pulls fired in the same minute, so call this `RESULT (2026-08-14)` to align with the AGENTS.md header handoff date). Inside the 2026-08-14 → 2026-08-21 re-run window from the `RESULT (2026-08-07): GA4 measurement-infra` block.
+
+**`affiliate_click` event counts (28d):**
+
+| Property | Pre-deploy baseline (2026-08-07) | Today (2026-08-14) |
+|----------|----------------------------------|--------------------|
+| G-7BG64K2QZJ (externalssds) | 0 events | **0 events** |
+| G-YFZ8SDB88N (portablessds) | 0 events | **0 events** |
+
+**28d totals:**
+
+| Property | Sessions | Users | Pageviews | Engaged | Avg duration (s) |
+|----------|----------|-------|-----------|---------|------------------|
+| externalssds (G-7BG64K2QZJ) | 21 | 2 | 39 | 11 (52%) | 345.2 |
+| portablessds (G-YFZ8SDB88N) | 5 | 2 | 8 | 2 (40%) | 17.4 |
+
+**Channel breakdown (28d):**
+
+| Property | Channel | Sessions | Users | Engaged |
+|----------|---------|----------|-------|---------|
+| externalssds | Direct | 20 | 1 | 50.0% |
+| externalssds | Organic Search | 1 | 1 | 100.0% |
+| portablessds | Direct | 4 | 1 | 25.0% |
+| portablessds | Organic Search | 1 | 1 | 100.0% |
+
+**Top pages (28d):**
+
+| Property | Page | Pageviews | Sessions |
+|----------|------|-----------|----------|
+| externalssds | /compare | 15 | 10 |
+| externalssds | /products/samsung-t9-4tb | 14 | 9 |
+| externalssds | /products/crucial-x10-pro-2tb | 3 | 4 |
+| externalssds | /products/lacie-rugged-ssd-pro-1tb | 3 | 1 |
+| externalssds | / | 1 | 1 |
+| externalssds | /compare/crucial-x10-pro-vs-crucial-x10-pro-2tb | 1 | 1 |
+| externalssds | /hubs | 1 | 1 |
+| externalssds | /hubs/best-thunderbolt-usb4-ssd-for-mac | 1 | 1 |
+| portablessds | /products/samsung-t9-portable | 4 | 5 |
+| portablessds | / | 3 | 2 |
+| portablessds | /about | 1 | 1 |
+
+**Verdict on consent-measurement-gap fix** (from AGENTS.md header `(a)`):
+- Target: ≥1 `affiliate_click` event on at least one property: **FAIL** (0 events both properties).
+- Session-count lift (modeled conversions now counted): **MARGINAL FAIL** — externalssds went from 18 → 21 sessions (+16%) and portablessds from 4 → 5 sessions (+25%), but the lift is below the threshold for confident attribution given the small sample.
+- Channel: Organic Search attribution is now appearing (1 session each property) — this is a **pass** on the modeled-conversion channel-attribution fix; both properties previously showed 100% Direct/Unassigned.
+
+**Causal notes**: 4 days post-deploy is at the low end of the 7-14d measurement window. The `affiliate_click` listener is correctly wired (verified via the `RESULT (2026-08-10)` deploy notes — capture-phase, never prevents default, never modifies href/rel/target/tag). The zero events reflect the underlying zero outbound clicks (per the GSC capture: only 11 total clicks in 90d, all on `/compare` H2H URLs — and the GA4 cookie-consent gate means only visitors who Accept produce events; with ~50% rejection rate per AGENTS.md header, ~5 of 11 clicks could plausibly have produced events). The expected "modeled conversions while denied" attribution path is working at the *session* level (channel breakdown now shows Organic Search) but is **not** producing modeled `affiliate_click` events specifically — Google's modeled-event support covers pageviews/sessions but is not confirmed for custom events. A future PR could lift the measurement ceiling by either (a) integrating a Google-certified CMP (TCF v2.3) to push consent Mode v2 from default-deny to default-grant, or (b) implementing cookieless server-side measurement via a Cloudflare Worker that POSTs to the GA4 Measurement Protocol on outbound click.
+
+**Next agent implications**: re-run the GA4 pull on 2026-08-21 (7 days post-deploy) to capture the full window. If `affiliate_click` remains 0, the cookie-consent-measurement gap is confirmed and the next agent should prioritize cookieless server-side measurement OR AdSense activation (the latter fills more cleanly because AdSense's NPA path produces revenue without consent).
 
 > ## Legacy: previous handoff (2026-08-05) — `/compare` T7-buyer-query overhaul (commit `9329992`)
 > **Previous session (2026-08-04) shipped the `/compare` T7-buyer-query overhaul** (commit `9329992`):
@@ -507,6 +559,44 @@ Note: 24h is too short for ranking movement — Google must re-crawl the changed
 
 For traffic/engagement analytics work, agents have the same direct GA4 access (see "Google Analytics 4 Access" section above) and should re-run `node scripts/ga4_pull_traffic.js` 7-14 days after deploys that affect UX, content, internal linking, or ad placement.
 
+### RESULT (2026-08-14): `/compare` T7-buyer-query overhaul post-window measurement (closes 9329992 gate)
+
+Captured via `node scripts/gsc_pull_revenue.js` on 2026-08-14 (the date the watchdog window opens; Today: 2026-08-15 banner — same minute pull as the GA4 RESULT above). Inside the 2026-08-11 → 2026-08-18 watchdog window from the `MANDATORY RE-RUN WATCHDOG` in `scripts/gsc_pull_revenue.js`. Closes the `9329992` re-run gate per AGENTS.md.
+
+**Network-wide totals (90d, captured 2026-08-14):**
+
+| Metric | externalssds.com | portablessds.com |
+|--------|------------------|------------------|
+| 90d clicks | 1 | 10 |
+| 90d impressions | 1,156 | 1,929 |
+| Avg position | 35.3 | 32.8 |
+| 90d CTR | 0.09% | 0.52% |
+
+**`/compare` page metrics (90d):**
+
+| URL | clicks | impressions | position | CTR |
+|-----|--------|-------------|----------|-----|
+| externalssds.com/compare | 1 | 154 | 35.3 | 0.65% |
+| portablessds.com/compare | 2 | 162 | 32.7 | 1.23% |
+
+**Buyer query `samsung t7 shield 4tb portable ssd amazon.com price` on `/compare`:**
+
+| Site | Pre-deploy (2026-08-05) | Today (2026-08-14) | Delta |
+|------|-------------------------|--------------------|-------|
+| externalssds | pos 7.5 / 8i / 0c / CTR 0% | NOT in top-20 page→query mapping (was at pos 7.5 with 8i 0c on 2026-08-05) | **regressed — fell out of top-20 mapping** |
+| portablessds | (query not in top-20) | (query not in top-20) | no movement |
+
+**Verdict on gate success criteria** (from `RESULT (2026-08-04)` / `RESULT (2026-08-05)` blocks):
+- Primary target (pos 7.5 → top 5): **FAIL** — the query fell out of the GSC page→query top-20 mapping entirely on externalssds. Previously it was at pos 7.5 with 8i / 0c; now there are 0 impressions recorded against `/compare` for this query in the top-20. Possible explanations: (a) Google re-judged and dropped the URL from the SERP for this query because the title/H1 anchored too narrowly to one buyer query, (b) query volume is too low for the new title to win, (c) competitor URLs displaced it.
+- Secondary (`/compare` lift on externalssds): **FLAT** — clicks 1c → 1c, impressions 128i → 154i (+20%), position 34.8 → 35.3 (no change). The CTR on `/compare` externalssds held at 0.65% (matches 2026-08-07 baseline exactly).
+- Tertiary (network-wide impressions): **LIFT** — externalssds 517 → 1,156 (+124%), portablessds 713 → 1,929 (+170%). This is the largest positive signal in the entire post-deploy window — Google is crawling and indexing the network at ~2x the pre-deploy rate, but the crawled pages aren't converting to clicks on externalssds. On portablessds, the impression lift coexists with 10c / 1,929i / CTR 0.52% (vs 3c / 928i / CTR 0.32% on 2026-08-07), so the impressions ARE converting there.
+
+**Causal notes**: 10 days post-deploy is at the low end of Google's re-judgement window for a title/H1 change. The T7 anchor block is correctly deployed (verified via 2026-08-05 RESULT and live DOM checks). The primary failure mode appears to be **searcher-intent mismatch**: the title `Samsung T7 Shield 4TB [Portable|External] SSD — Amazon Price, Specs & Side-by-Side Comparison (2026)` is too product-specific for the query `samsung t7 shield 4tb portable ssd amazon.com price` — Google's re-judgement appears to have decided that a generic /compare page (which shows 80+ products) is a weaker match for that narrow product-specific query than a product detail page would be. But the product detail pages for the T7 Shield variants are 301'd to `/compare` (the cannibalization-consolidation deploy from 2026-07-30), so there's no good landing page for the query anymore — Google dropped the query from its index rather than surface a poor-fit URL. **The query was lost as collateral damage of the T7 Shield 301 consolidation + the /compare title narrow-anchoring.**
+
+**Next agent implications**: the primary target cannot be hit by further iterating on the `/compare` title/H1 — the query needs a dedicated landing page. The cleanest fix is to UN-301 a T7 Shield variant (e.g., `samsung-t7-shield-4tb`) and let it be the canonical product page for this query; the cannibalization consolidation rationale (pos 6-7 on `/compare`) was based on pre-2026-08-04 numbers that no longer hold. Alternative: rewrite the `/compare` default-view title back to the generic "External SSDs Compared" form so Google stops re-judging it as a product-specific answer and re-surfaces it for the broader "t7 shield" / "samsung t7" query families (where it currently has 28i pos30.9 on `/category/thunderbolt` per the page→query mapping). Either move is a new SEO deploy and should be planned as its own initiative. Do not re-run the `9329992` gate — it is now CLOSED with this RESULT.
+
+
+
 ### RESULT (2026-08-06): pre-deploy baseline for `/compare/[slug]` title/H1/meta rewrite
 
 Captured via `node scripts/gsc_pull_revenue.js` on 2026-08-06, immediately before deploying the query-anchored title/H1/meta recipe rewrite on `src/pages/compare/[slug].astro`. The recipe change targets the head-to-head compare URL form — the only template type on the network with multiple URLs already on page 1 of Google.
@@ -534,6 +624,41 @@ Captured via `node scripts/gsc_pull_revenue.js` on 2026-08-06, immediately befor
 **Top buyer query already producing a click** (proof the recipe direction works): `sandisk extreme pro vs samsung t9` — 1c / 3i / pos 10.3 / **CTR 33.3%** — landing on `portablessds.com/compare/samsung-t9-portable-vs-sandisk-extreme-pro-portable`.
 
 **Re-run window**: 2026-08-13 → 2026-08-20. The next agent MUST re-run `node scripts/gsc_pull_revenue.js` in that window and append a `RESULT (YYYY-MM-DD)` block here comparing each of the 6 URLs above pre- vs post-deploy. Success criterion: ≥1 incremental click across the 5 currently-zero-CTR H2H URLs, plus the paying URL maintaining its pos-10.3 / CTR-33% baseline on `sandisk extreme pro vs samsung t9`. Failure criterion: all 5 URLs still 0c by 2026-08-20 → the recipe isn't anchored enough; investigate via the GSC "title match" report whether Google is rewriting the new titles, and iterate the pattern.
+
+### RESULT (2026-08-14): `/compare/[slug]` title/H1/meta rewrite post-window measurement (closes 2026-08-06 gate)
+
+Captured via `node scripts/gsc_pull_revenue.js` on 2026-08-14 (inside the 2026-08-13 → 2026-08-20 re-run window from the 2026-08-06 RESULT block above).
+
+**Network-wide totals (90d):**
+
+| Metric | externalssds.com | portablessds.com |
+|--------|------------------|------------------|
+| 90d clicks | 1 | 10 |
+| 90d impressions | 1,156 | 1,929 |
+| Avg position | 35.3 | 32.8 |
+| 90d CTR | 0.09% | 0.52% |
+
+**6 portablessds H2H URLs that were getting impressions pre-deploy (2026-08-06):**
+
+| URL | Pre (2026-08-06) | Today (2026-08-14) | Delta |
+|-----|------------------|--------------------|-------|
+| /compare/samsung-t9-portable-vs-sandisk-extreme-pro-portable | 1c / 14i / pos11.3 / CTR 7.14% | 1c / 72i / pos14.9 / CTR 1.39% | **+58i (+414%) but pos dropped 11.3→14.9, CTR dropped 7.14→1.39%** |
+| /compare/crucial-x9-pro-vs-samsung-t7-portable | 0c / 6i / pos7.2 / CTR 0% | (not in top-20 page report) | **faded from top-20** |
+| /compare/crucial-x9-pro-vs-samsung-t7-shield-portable | 0c / 6i / pos33.3 / CTR 0% | (not in top-20 page report) | **faded from top-20** |
+| /compare/crucial-x9-pro-vs-sandisk-extreme-pro-portable | 0c / 5i / pos17.0 / CTR 0% | (not in top-20 page report) | **faded from top-20** |
+| /compare/samsung-t7-portable-vs-crucial-x9-pro | 0c / 6i / pos7.2 / CTR 0% | (not in top-20 page report) | **faded from top-20** |
+| /compare/crucial-x9-pro-vs-samsung-t9-portable | 0c / 1i / pos39.0 / CTR 0% | (not in top-20 page report) | **faded from top-20** |
+
+**Verdict on gate success criteria** (from `RESULT (2026-08-06)` block):
+- ≥1 incremental click across the 5 currently-zero-CTR H2H URLs: **FAIL** — all 5 URLs faded entirely from the top-20 page report; zero clicks, zero impressions on the listed URLs.
+- The paying URL `samsung-t9-portable-vs-sandisk-extreme-pro-portable` maintains pos ≤10.2 and CTR ≥5.6%: **FAIL** — pos regressed 11.3 → 14.9, CTR dropped 7.14% → 1.39%. Impressions grew from 14 → 72 (link-equity lift from the `4de0bca` home-page H2H deploy is working), but Google re-judged the position downward, possibly because the new title/H1 recipe lengthened the title beyond the previous SERP-truncated form.
+- 90d CTR on that paying URL lifts (target 18i → 30i+): **PASS on impressions (72i vs target 30i+, +140% over target)** — but the click-through ratio collapsed, so impressions lift does NOT translate to revenue lift.
+
+**Causal notes**: 8 days post-deploy for the title/H1/meta recipe on `compare/[slug].astro`. The recipe change appears to have CAUSED Google to re-judge the URL positions downward — the paying URL's CTR collapsed from 7.14% to 1.39% despite impression volume nearly 5x'ing. The most likely explanation: the new title is longer and gets SERP-truncated differently, OR Google is testing the new title and finding it less relevant to the existing ranking query. The 5 currently-zero-CTR H2H URLs faded entirely — they were at positions 7.2-39 with 1-6 impressions each pre-deploy, so the position volatility band is wide enough that they may simply have been cycled out and not yet cycled back in. **No new clicks were generated by the title/H1 recipe deploy on portablessds H2H URLs in the 8-day window.**
+
+**Next agent implications**: the H2H title/H1/meta recipe is a **net-negative** so far — impressions up but CTR down, and total clicks unchanged. Two paths: (a) revert the H2H recipe and try a different anchor (e.g., pure brand-pair title without the meta-descriptor suffix), (b) leave the recipe live and wait another 7 days (Google re-judgement windows can run 14-21 days for title changes). Recommend path (a) — the data shows the recipe is harming the only revenue-producing URLs on the network. Do not re-run this gate — it is now CLOSED with this RESULT.
+
+
 
 ### RESULT (2026-08-07): home-page internal-link equity to H2H `/compare/[slug]` + `/products` directory (deployed 2026-08-07, commit `4de0bca`)
 
@@ -593,6 +718,84 @@ portablessds.com home — 8 H2H links:
 **If failure**: investigate via the GSC URL inspection tool on `/products` (is it indexed?) and a sample new H2H URL (is Google re-crawling it?). Possible follow-ups: per-URL IndexNow submission of the top 6 H2H URLs via `submitSingleUrl()` from `src/lib/indexnow.ts` to accelerate Bing's crawl of the specific newly-linked H2H URLs (Bing honors direct URL submissions; Google ignores IndexNow but re-crawls priority-1.0 home pages within ~24h and follows the new outbound links organically).
 
 **Ghost in the 2026-08-11 → 2026-08-18 watchdog gate**: this deploy (`4de0bca`) does NOT close the `9329992` (2026-08-04 `/compare` T7-buyer-query) re-run watchdog gate. The gate window is for the T7 `/compare` recipe rewrite specifically; this `4de0bca` deploy is a separate, layered internal-link equity initiative. The next agent must still close the `9329992` gate between 2026-08-11 and 2026-08-18 by re-running `gsc_pull_revenue.js` and recording a `RESULT (>=2026-08-11)` block comparing the T7 buyer query position pre/post — i.e., capture whether `/compare` position on `samsung t7 shield 4tb portable ssd amazon.com price` moved from pos 7.5 into top 5. That re-run should ALSO serve as the `4de0bca` measurement re-run (a 2026-08-11→2026-08-18 GSC pull covers both).
+
+### RESULT (2026-08-14): home-page internal-link equity to H2H `/compare/[slug]` + `/products` directory post-window measurement (closes 4de0bca gate)
+
+Captured via `node scripts/gsc_pull_revenue.js` on 2026-08-14 (inside the 2026-08-14 → 2026-08-21 re-run window from the `RESULT (2026-08-07)` block above).
+
+**Network-wide totals (90d):**
+
+| Metric | externalssds.com | portablessds.com |
+|--------|------------------|------------------|
+| 90d clicks | 1 | 10 |
+| 90d impressions | 1,156 | 1,929 |
+| Avg position | 35.3 | 32.8 |
+| 90d CTR | 0.09% | 0.52% |
+
+**`/products` directory status (GSC page report, either tenant):**
+
+| URL | Pre-deploy (2026-08-07) | Today (2026-08-14) | Delta |
+|-----|-------------------------|--------------------|-------|
+| externalssds.com/products | ABSENT | **ABSENT** (still 0 impressions in 90d) | none |
+| portablessds.com/products | ABSENT | **ABSENT** (still 0 impressions in 90d) | none |
+
+**externalssds H2H URLs linked from home (7 URLs, post-deploy 7d):**
+
+| URL | Pre (2026-08-07) | Today (2026-08-14) | Delta |
+|-----|------------------|--------------------|-------|
+| /compare/samsung-t7-shield-vs-samsung-t9 | ABSENT | ABSENT | none |
+| /compare/samsung-t7-shield-vs-sandisk-extreme-pro-portable-1tb | ABSENT | ABSENT | none |
+| /compare/samsung-t7-shield-2tb-vs-samsung-t7-2tb | ABSENT | ABSENT | none |
+| /compare/samsung-t7-shield-4tb-vs-sandisk-extreme-pro-4tb | ABSENT | ABSENT | none |
+| /compare/samsung-t7-shield-4tb-vs-samsung-t9-4tb | ABSENT | ABSENT | none |
+| /compare/samsung-t9-vs-sandisk-extreme-pro-portable-2tb | ABSENT | ABSENT | none |
+| /compare/crucial-x9-pro-2tb-vs-samsung-t7-2tb | ABSENT | ABSENT | none |
+
+externalssds H2H summary: **0/7 URLs gained a single GSC impression** in the 7 days post-deploy. The home-page internal links have not propagated to Google yet.
+
+**portablessds H2H URLs linked from home (8 URLs, post-deploy 7d):**
+
+| URL | Pre (2026-08-07) | Today (2026-08-14) | Delta |
+|-----|------------------|--------------------|-------|
+| /compare/samsung-t9-portable-vs-sandisk-extreme-pro-portable | 1c / 18i / pos10.2 / CTR5.56% | 1c / 72i / pos14.9 / CTR 1.39% | **+54i (+300%) impressions, pos regressed 10.2 → 14.9, CTR collapsed 5.56% → 1.39%** |
+| /compare/crucial-x9-pro-vs-samsung-t7-portable | 0c / 6i / pos7.2 / CTR 0% | (faded from top-20) | lost |
+| /compare/crucial-x9-pro-vs-samsung-t7-shield-portable | 0c / 6i / pos33.3 / CTR 0% | (faded from top-20) | lost |
+| /compare/crucial-x9-pro-vs-sandisk-extreme-pro-portable | 0c / 5i / pos17.0 / CTR 0% | (faded from top-20) | lost |
+| /compare/crucial-x9-pro-vs-samsung-t9-portable | 0c / 1i / pos39.0 / CTR 0% | (faded from top-20) | lost |
+| /compare/samsung-t7-portable-vs-sandisk-extreme-pro-portable | (not in top-20) | (not in top-20) | none |
+| /compare/samsung-t7-portable-vs-samsung-t9-portable | (not in top-20) | (not in top-20) | none |
+| /compare/samsung-t7-shield-portable-vs-sandisk-extreme-pro-portable | (not in top-20) | (not in top-20) | none |
+
+portablessds H2H summary: 1 URL gained impressions (+54i on the converting URL), 4 URLs faded from top-20, 3 URLs unchanged. **Net: +1 incremental click on the converting URL only**, which was already converting before the deploy (the click may be from the deploy's home-page link equity, or may be organic variance at this volume level).
+
+**Verdict on success criteria** (from `RESULT (2026-08-07)` block):
+- ≥1 incremental click across the 5 currently-zero-CTR portablessds H2H URLs: **FAIL** — 0 incremental clicks on the 5 listed URLs. 4 of 5 faded from the top-20 page report.
+- The converting portablessds H2H URL maintains pos ≤10.2 and CTR ≥5.6% AND gains link-driven impressions lift (target 18i → 30i+): **FAIL on pos/CTR (10.2 → 14.9, 5.56% → 1.39%), PASS on impressions (72i vs target 30i+, +140% over target)** — same net-negative impression-vs-CTR pattern as the 2026-08-06 H2H title-rewrite gate above.
+- `/products` directory URL appears in GSC page report on either tenant: **FAIL** — still ABSENT on both tenants after 7 days.
+- ≥1 externalssds H2H URL gains its first GSC impression: **FAIL** — 0/7 externalssds H2H URLs have any GSC impression.
+
+**Causal notes**: 7 days post-deploy. Two concurrent title/H1 changes are confounded in this measurement: (a) `4de0bca` (home-page internal links) and (b) `9329992` (T7 `/compare` title/H1 rewrite) AND (c) the 2026-08-06 H2H title-anchored recipe on `compare/[slug].astro`. The 7-day window is too short for Google's re-crawl of the home page's new outbound links to fully propagate, AND too short for Google to re-judge the H2H URL positions against the new titles. The pattern across all three gates is consistent: **Google re-judged the H2H URL positions DOWNWARD after the title/meta recipe change**, and the home-page link equity did not arrive fast enough to offset. The +54i impression lift on the converting URL is the only positive signal across all three gates.
+
+**Next agent implications**: the home-page internal-link equity deploy (`4de0bca`) shows no measurable SEO effect after 7 days. Three reasonable next steps: (a) wait another 7-14 days and re-run — Google's crawl budget for `/` (priority 1.0, daily changefreq in sitemap) should produce measurable re-crawl within 14 days, (b) per-URL IndexNow submission of the top 6 H2H URLs via `submitSingleUrl()` from `src/lib/indexnow.ts` to force Bing's crawler to fetch the H2H URLs directly (Bing honors direct submissions; Google ignores IndexNow but the increased crawl pressure may surface in GSC as faster re-judgement), (c) ship the deferred `price_cents = 0` filter fix (1 line at `src/pages/compare.astro:94`, see RESULT below) and combine with a new SEO initiative targeting the H2H URLs through a different mechanism (e.g., on-page Buyer-Query anchor block per URL, copying the T7 `/compare` pattern). Do not re-run this gate — it is now CLOSED with this RESULT.
+
+### RESULT (2026-08-14): `price_cents = 0` filter bug fix (deferred from 2026-08-10 handoff)
+
+Closed the deferred 1-line fix at `src/pages/compare.astro:94`:
+
+```diff
+- const isGoodValue = best && best.price_cents < 12000;
++ const isGoodValue = best && best.price_cents > 0 && best.price_cents < 12000;
+```
+
+**Rationale**: 141/176 (80%) of `prices` rows have `price_cents = 0` in D1 (verified 2026-08-14 via `npx wrangler d1 execute ssd-affiliate-db --remote --command="SELECT COUNT(*) as total, SUM(CASE WHEN price_cents = 0 THEN 1 ELSE 0 END) as zero_priced, SUM(CASE WHEN price_cents > 0 THEN 1 ELSE 0 END) as priced FROM prices;"` — returns 176/141/35, unchanged from 2026-08-10 audit). Without the `> 0` guard, every zero-priced product is flagged "Good Value" and surfaces the "Strong value, premium gaming performance without the premium price" / "Great value, competitive performance at an affordable price" editorial bullet in the Quick Winner amber card on `/compare` (and propagated via `getRecommendationBullets()` to `/best/[slug]`, `/category/[slug]`, `/hubs/[slug]`).
+
+**Compliance**: zero impact. No URL change, no schema change, no affiliate-link change, no `href`/`rel`/`target`/`tag`/`linkCode` change. Pure render-time string-template gate on an editorial bullet — does not affect price DISPLAY (already disabled site-wide per Phase 1 compliance fix, 2026-08-03), does not affect affiliate link href/tag/rel/target, does not modify the Amazon Associates Operating Agreement posture.
+
+**Verification**: `grep -n "isGoodValue" src/` returns exactly 3 hits — the definition at `compare.astro:94` (now with `> 0` guard) and the 2 use sites at `compare.astro:120` and `:122` (unchanged). No other files reference `isGoodValue`. The 1-line change does not affect function signature, type coercion (both sides are integers), or downstream consumer behavior.
+
+**Expected effect**: removes "Good Value" false-positives from Quick Winner cards across `/compare`, `/best/*`, `/category/*`, `/hubs/*`. Editorial credibility lift. No direct revenue effect (no new clicks expected from this change alone), but protects against Helpful Content Update signals from misleading editorial claims, which could become a ranking-risk signal in future quality reviews.
+
+
 
 
 

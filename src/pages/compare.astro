@@ -91,7 +91,7 @@ function getRecommendationBullets(product: Product, catSlug: string | null): str
   const isUSB4 = product.interface === "USB4" || product.interface?.includes("Thunderbolt");
   const prices = pricesByProduct[product.id] || [];
   const best = getLowestPrice(prices as any);
-  const isGoodValue = best && best.price_cents < 12000;
+  const isGoodValue = best && best.price_cents > 0 && best.price_cents < 12000;
 
   if (isGaming) {
     bullets.push(`Fast enough for every modern game — ${fmtSpeed(product.read_speed_mbps)} reads`);
