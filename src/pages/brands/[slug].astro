@@ -32,7 +32,25 @@ const maxCap = Math.max(...capacities);
 const avgScore = brandProducts.reduce((sum, p) => sum + p.overall_score, 0) / brandProducts.length;
 
 const brandName = brandProducts[0]?.brand_name || slug;
-const metaDesc = `Shop all ${brandName} external SSDs. Compare ${brandProducts.length} ${brandName} drives with specs, prices, and expert reviews. Free shipping on qualifying orders.`;
+
+// --- High-intent page-1 zero-click overrides (2026-08-15) ---
+// Per GSC 90d, portablessds.com/brands/samsung sits at pos 9.0 with 2 imp
+// and 0 clicks — Google already ranks the page, but the title
+// "{Brand} External SSDs - All Models & Prices" doesn't earn the click for
+// buyers searching brand-purchase-intent queries ("samsung portable ssd",
+// "samsung external ssd"). Switch to the high-intent recipe with current
+// year + speed/capacity hook. Scoped to the `samsung` slug only per the
+// 2026-08-15 audit — other brand pages don't yet register impressions
+// worth optimizing. No href/rel/target/tag/linkCode change; Amazon Pol
+// §2(a)(b) §6(a) unaffected.
+const currentYear = new Date().getFullYear();
+const tenantNoun = tenant.id === "portablessds" ? "Portable" : "External";
+
+const isHighIntentBrand = slug === "samsung";
+
+const metaDesc = isHighIntentBrand
+  ? `Every ${brandName} ${tenantNoun.toLowerCase()} SSD reviewed — T7, T7 Shield, T9, and more. Compare ${brandProducts.length} drives by read/write speed (${brandProducts.length > 0 ? `${Math.max(...brandProducts.map((p) => p.read_speed_mbps)).toLocaleString()} MB/s top speed` : "see specs"}), capacity, and current Amazon price.`
+  : `Shop all ${brandName} external SSDs. Compare ${brandProducts.length} ${brandName} drives with specs, prices, and expert reviews. Free shipping on qualifying orders.`;
 
 const brandJsonLd = {
   "@context": "https://schema.org",
@@ -103,7 +121,7 @@ const faqJsonLd = {
 };
 ---
 
-<BaseLayout title={`${brandName} External SSDs - All Models & Prices`} description={metaDesc} jsonLd={brandJsonLdList}>
+<BaseLayout title={isHighIntentBrand ? `${brandName} ${tenantNoun} SSDs [${currentYear}]: Every Model Ranked by Speed & Value` : `${brandName} External SSDs - All Models & Prices`} description={metaDesc} jsonLd={brandJsonLdList}>
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <Breadcrumb items={[{ label: "Home", href: "/" }, { label: brandName }]} />
 
@@ -115,7 +133,7 @@ const faqJsonLd = {
 
     <div class="mb-8">
       <h1 class="text-3xl sm:text-4xl font-bold text-surface-900">
-        {brandName} External SSDs
+        {isHighIntentBrand ? `${brandName} ${tenantNoun} SSDs Ranked (${currentYear})` : `${brandName} External SSDs`}
       </h1>
       <p class="mt-3 text-surface-700 max-w-3xl leading-relaxed">
         {brandDescription}

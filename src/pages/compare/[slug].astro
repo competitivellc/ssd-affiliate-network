@@ -157,11 +157,44 @@ const compareSlugMeta = speedWinner
 
 // H1 mirrors title without the year (already signaled via the spec table).
 const compareSlugH1 = `${productA.name} vs ${productB.name} — Which ${tenantNoun} SSD Is Faster & Better Value?`;
+
+// --- High-intent page-1 zero-click overrides (2026-08-15) ---
+// Per GSC 90d, these 3 H2H URLs sit at pos 1.5-10 with 0% CTR — Google
+// already ranks them page 1, but the buyer-intent recipe above doesn't
+// earn the click for them (likely the underlying products have weak
+// standalone search interest vs a generic "compare" query). Switch the
+// title to the "Best Price" anchor used by the portablessds H2H that
+// converts at 5.56% CTR (samsung-t9-portable-vs-sandisk-extreme-pro-
+// portable), and lead the meta description with the verdict headline
+// instead of the spec restatement. Scoped to exactly these 3 URLs per
+// the 2026-08-15 audit — do not blanket-apply (see AGENTS.md RESULT
+// 2026-08-14 for the regression evidence). No href/rel/target/tag/
+// linkCode change; Amazon Pol §2(a)(b) §6(a) unaffected.
+const HIGH_INTENT_H2H_SLUGS = new Set<string>([
+  "adata-elite-se760-2tb-vs-seagate-one-touch-ssd-1tb",
+  "adata-elite-se760-1tb-vs-seagate-one-touch-ssd-2tb",
+  "adata-se800-2tb-vs-crucial-x9-pro-2tb",
+]);
+
+if (slug && HIGH_INTENT_H2H_SLUGS.has(slug)) {
+  const overrideTitle = `${productA.name} vs ${productB.name} [${currentYear}]: Specs, Speed & Best Price`;
+  const overrideH1 = `${productA.name} vs ${productB.name}: Which ${tenantNoun} SSD Wins in ${currentYear}?`;
+  const overrideMeta = speedWinner
+    ? `The ${speedWinner.name} wins our head-to-head (${speedWinner.overall_score.toFixed(1)}/10 vs ${loser.overall_score.toFixed(1)}/10). ${productA.name} reads ${productA.read_speed_mbps.toLocaleString()} MB/s; ${productB.name} reads ${productB.read_speed_mbps.toLocaleString()} MB/s. See side-by-side specs, capacity options, and the current Amazon price.`
+    : `${productA.name} vs ${productB.name} head-to-head. ${productA.read_speed_mbps.toLocaleString()} MB/s vs ${productB.read_speed_mbps.toLocaleString()} MB/s reads. See full specs, capacity options, and the current Amazon price for both.`;
+  var finalTitle = overrideTitle;
+  var finalH1 = overrideH1;
+  var finalMeta = overrideMeta;
+} else {
+  var finalTitle = compareSlugTitle;
+  var finalH1 = compareSlugH1;
+  var finalMeta = compareSlugMeta;
+}
 ---
 
 <BaseLayout
-  title={compareSlugTitle}
-  description={compareSlugMeta}
+  title={finalTitle}
+  description={finalMeta}
   jsonLd={faqJsonLd}
 >
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
@@ -175,7 +208,7 @@ const compareSlugH1 = `${productA.name} vs ${productB.name} — Which ${tenantNo
 
     <div class="mb-8">
       <h1 class="text-3xl sm:text-4xl font-bold text-surface-900">
-        {compareSlugH1}
+        {finalH1}
       </h1>
       <p class="mt-3 text-surface-700 max-w-3xl leading-relaxed">
         Compare {productA.name} and {productB.name} side by side. Both are {productA.capacity_gb >= 1000 ? `${(productA.capacity_gb / 1000).toFixed(0)}TB` : `${productA.capacity_gb}GB`} {productA.interface} external SSDs, but they differ in speed, design, and value. Here's how they stack up.

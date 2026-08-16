@@ -218,6 +218,37 @@ When a new AI agent makes changes that could affect traffic (SEO, content, UX, a
 
 ---
 
+## ⚠️ IMPORTANT: Bing Webmaster Tools Access (READ THIS)
+
+**Any AI agent working on this project CAN and SHOULD read live Bing Webmaster Tools (BWMT) data for BOTH `externalssds.com` AND `portablessds.com` when doing SEO or Bing-specific performance work. You do NOT need to ask the user for permission or credentials — the API key is read from a local environment variable and the live data-pull script is in the repo.**
+
+BWMT is the third search-engine data source alongside GSC (Google) and GA4 (analytics). Bing typically sends modest but real traffic for tech/comparison queries — keyword competition is lower than Google for the same queries, so per-impression CTR can be higher. Use BWMT data for Bing-specific SEO decisions the same way you use GSC for Google-specific decisions.
+
+### How To Read BWMT Data
+
+- **API key**: read it from `process.env.BING_WMT_API_KEY` (Node) or `$env:BING_WMT_API_KEY` (PowerShell). Obtain the key from https://www.bing.com/webmasters (sign in with the site's verified Microsoft account → Settings → API Access → Generate API Key). The key is per-account, not per-site — the same key works for both `externalssds.com` and `portablessds.com`.
+- **API base**: `https://ssl.bing.com/webmaster/api.svc/json`. Auth via `?apikey=<key>` query param.
+- **Endpoints to query**:
+  - `GET /GetQueryStats?siteUrl=<url>&startDate=<yyyy-MM-dd>&endDate=<yyyy-MM-dd>` — keyword-level clicks/impressions (28d window recommended).
+  - `GET /GetPageStats?siteUrl=<url>&startDate=...&endDate=...` — page-level clicks/impressions.
+  - `GET /GetUrlInfo?siteUrl=<url>` — index/crawl info for the site itself.
+- **Live data-pull script**: `scripts/bing_pull_traffic.js` (created 2026-08-15). Pulls keyword stats, page stats, and 28-day totals for both tenants. Falls back to a friendly "API key not configured" message if `BING_WMT_API_KEY` is unset (exits 0, no crash).
+- **Run command**: `node scripts/bing_pull_traffic.js`
+- **What you can query**: per-keyword clicks/impressions, per-page clicks/impressions, aggregate 28d totals. The JSON response is an array of `{ Query, Clicks, Impressions, AvgPosition, ... }` (keyword) or `{ Page, Clicks, Impressions, ... }` (page) objects.
+- **Do NOT**: commit the API key to the repo, print it in output, write it into any committed code, or share it. The env var exists only in the user's local shell environment. Reference it via `process.env` / `$env:` at runtime.
+
+### When To Use BWMT (Mandatory for Both Domains)
+
+When the user asks anything involving Bing-specific SEO performance, Bing keyword rankings, Bing-side CTR, Bing index coverage, or "how is [domain] doing on Bing", **use the BWMT API directly** rather than asking the user to look it up manually. This applies to **both** `externalssds.com` **and** `portablessds.com** — query both if the request is generic.
+
+### BWMT Re-Run Cadence
+
+The IndexNow fix in Part 1 of the 2026-08-15 audit/PR unblocks Bing's crawler from discovering the 6,400+ indexable URLs across both tenants (IndexNow is the URL-submission protocol Bing honors; Google ignores it). After the IndexNow fix deploys, BWMT keyword and page data will start populating over the next 7-14 days as Bing crawls the submitted URLs.
+
+When making SEO changes that target Bing (or affect the network at large), re-run `node scripts/bing_pull_traffic.js` **7-14 days post-deploy** to measure per-keyword and per-page deltas vs the BWMT baseline captured at deploy time. BWMT baseline data is sparser than GSC (Bing typically has lower crawl frequency and lower keyword diversity for low-traffic sites) — focus on aggregate totals and the top-20 keywords rather than expecting GSC-level granularity.
+
+---
+
 ## âš ï¸ CRITICAL: Amazon Associates Compliance (ALL AI AGENTS MUST READ)
 
 **ðŸš¨ ANY AI AGENT TOUCHING THIS PROJECT MUST READ AND FOLLOW THIS SECTION. VIOLATIONS CAN CAUSE IMMEDIATE ACCOUNT TERMINATION WITH NO WARNING. ðŸš¨**

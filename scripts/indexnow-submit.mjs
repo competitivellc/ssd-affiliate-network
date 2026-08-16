@@ -96,10 +96,16 @@ async function submitBatch(key, host, urls) {
   return { succeeded, failed };
 }
 
+// Project-wide IndexNow key. The key is public-by-design (served at
+// https://<domain>/<KEY>.txt per the IndexNow spec for site verification),
+// so committing it here is safe. Override via INDEXNOW_KEY env var for
+// local testing only.
+const DEFAULT_INDEXNOW_KEY = "899c04f2948896bb0b7cf612a792b2abc7a0ebb7eee71feed16f2d1a2ac8ac42";
+
 async function main() {
   loadEnv();
 
-  const key = process.env.INDEXNOW_KEY;
+  const key = process.env.INDEXNOW_KEY || DEFAULT_INDEXNOW_KEY;
   const host = process.env.INDEXNOW_HOST || "externalssds.com";
   const sitemapUrl = process.env.INDEXNOW_SITEMAP || `https://${host}/sitemap.xml`;
 
