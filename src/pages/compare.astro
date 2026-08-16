@@ -59,14 +59,14 @@ const cleanCat = categoryName ? stripSsdSuffix(categoryName) : null;
 const tenantNoun = tenant.id === "portablessds" ? "Portable" : "External";
 const compareTitle = cleanCat
   ? `${cleanCat} ${tenantNoun} SSDs Compared (${new Date().getFullYear()}) — Specs, Speed & Price Side-by-Side`
-  : t7Anchor
-    ? `Samsung T7 Shield 4TB ${tenantNoun} SSD — Amazon Price, Specs & Side-by-Side Comparison (${new Date().getFullYear()})`
+  : tenant.id === "portablessds"
+    ? `Portable SSDs Compared (${new Date().getFullYear()}) — Specs, Speed, Price & Buying Guide`
     : `${tenantNoun} SSDs Compared (${new Date().getFullYear()}) — Specs, Speed & Price Side-by-Side`;
 
 const metaDesc = cleanCat
   ? `Side-by-side ${cleanCat.toLowerCase()} ${tenantNoun.toLowerCase()} SSD comparison: read/write speeds, capacity, USB interface, real-world benchmarks, and current best price for every model.`
-  : t7Anchor
-    ? `Samsung T7 Shield 4TB ${tenantNoun.toLowerCase()} SSD Amazon price plus a side-by-side comparison: read/write speeds, USB interface, endurance, and current price across all top ${tenantNoun.toLowerCase()} SSDs in ${new Date().getFullYear()}.`
+  : tenant.id === "portablessds"
+    ? `Side-by-side ${tenantNoun.toLowerCase()} SSD comparison (${new Date().getFullYear()}): full specs, read/write speeds, USB interface, real-world benchmarks, and current best price — the buying guide for portable SSDs.`
     : `Side-by-side ${tenantNoun.toLowerCase()} SSD comparison (${new Date().getFullYear()}): full specs, read/write speeds, USB interface, real-world benchmarks, and current best price.`;
 
 const accentStyle = { backgroundColor: tenant.primaryColorDark };
@@ -409,20 +409,24 @@ const faqJsonLd = {
   }))
 };
 
-// Buyer-query ItemList (2026-08-04): positions the T7 Shield variant at
-// rank 1 on the default /compare page so the page's structured data matches
-// the SERP-direct-answer block above the fold. Category views omit this —
-// the T7 anchor only resolves on the default /compare URL.
+// Buyer-query ItemList (rolled back 2026-08-16 from the 2026-08-04 T7
+// position-1 anchor): the over-narrow title/H1 caused Google to drop
+// /compare from the top-20 mapping for `samsung t7 shield 4tb portable
+// ssd amazon.com price`. Page-level title/H1 reverted to the generic
+// form in hunks 1+2+3; the ItemList position-1 anchor reverts here to
+// match (highest-scored product = products[0]). Category views still
+// skip ItemList (only the default /compare URL emits it).
 const itemListJsonLd = (() => {
-  if (!t7Anchor) return null;
   const siteUrl = `https://${hostname}`;
-  const others = products.filter((p) => p.id !== t7Anchor.id).slice(0, 9);
+  const top = products[0];
+  if (!top) return null;
+  const others = products.filter((p) => p.id !== top.id).slice(0, 9);
   const items = [
     {
       "@type": "ListItem",
       position: 1,
-      name: `${t7Anchor.name} ${fmtCapacity(t7Anchor.capacity_gb)}`,
-      url: `${siteUrl}${t7HeroVariantHref}`,
+      name: top.name,
+      url: `${siteUrl}/products/${top.slug}`,
     },
     ...others.map((p, i) => ({
       "@type": "ListItem",
@@ -434,7 +438,7 @@ const itemListJsonLd = (() => {
   return {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: `${tenantNoun} SSDs Compared — Buyer-Price Ranking (${new Date().getFullYear()})`,
+    name: `${tenantNoun} SSDs Compared (${new Date().getFullYear()})`,
     itemListOrder: "https://schema.org/ItemListOrderAscending",
     numberOfItems: items.length,
     itemListElement: items,
@@ -477,10 +481,10 @@ function barColor(index: number): string {
       <h1 class="text-3xl sm:text-4xl font-bold text-surface-900">
         {cleanCat
           ? `${cleanCat} SSDs Compared`
-          : t7Anchor
-            ? `Samsung T7 Shield 4TB ${tenantNoun} SSD: Amazon Price & Full Comparison`
-            : "Compare SSDs"}
-     </h1>
+          : tenant.id === "portablessds"
+            ? "Portable SSDs Compared: Specs, Speed, Price & Buying Guide"
+            : `${tenantNoun} SSDs Compared`}
+      </h1>
       {categoryName && (
         <p class="mt-2 text-surface-700 max-w-3xl" set:html={introText} />
       )}
