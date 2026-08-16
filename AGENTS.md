@@ -829,6 +829,34 @@ Closed the deferred 1-line fix at `src/pages/compare.astro:94`:
 
 
 
+### RESULT (2026-08-15): Bing Webmaster Tools — first-ever baseline
+
+Captured via `node scripts/bing_pull_traffic.js` on 2026-08-15, the same day the script was deployed (commit `d448497`). This is the **first time** either tenant has ever had Bing-side keyword / page data measured — there is no pre-deploy baseline. Use this block as the anchor for future 7-14d re-runs.
+
+The script accepts `BING_WMT_API_KEY` (canonical) or `BING_WEBMASTER_API_KEY` (legacy, already set in owner's local env). Window is 14d because the BWMT API returns rows only for days with impressions; the 28d rolling window frequently returns empty for these low-traffic tenants.
+
+**externalssds.com (14d, 2026-08-02 → 2026-08-16):**
+
+- 14d total: **1 click / 28 impressions / 3.57% CTR**
+- Top keyword by impressions: `crucial x9 pro official specifications usb 3.2 gen 2 1050 mb/s` — 0c / 4i / avg pos 6
+- 1 converting keyword: `16 tb ssd external transfer speed comparison` — **1c / 1i / avg pos 1 (CTR 100%)**
+- `/compare` is the dominant page (8 impressions across the window, 1 click)
+
+**portablessds.com (14d, 2026-08-02 → 2026-08-16):**
+
+- 14d total: **1 click / 186 impressions / 0.54% CTR**
+- Top keyword by impressions: `portable ssds comparison` — 0c / **31i** / avg pos 4
+- Second-tier: `portable ssds buying guide` 15i pos 7, `crucial x9 pro` 5i pos 5
+- `/compare` page: **47i in a single day (2026-08-12)**, 1 click (CTR 2.13%)
+- `/products/crucial-x9-pro`: 26i / 0c — Bing ranks it but searchers skip
+- 1 converting keyword: `samsung portable ssds speed ratings` — 1c / 1i / avg pos 1 (CTR 100%)
+
+**Causal notes**: the `portable ssds comparison` / `portable ssds buying guide` keywords (45+ impressions over 14d, pos 4-7, 0 clicks) and the `crucial x9 pro` family (15+ impressions, 0 clicks) are the highest-leverage Bing-side targets. The page already exists at `/compare?category=...` and `/hubs/best-portable-ssd-for-console-gaming` etc., but Bing's title SERP snippet is the same generic one Google sees — same problem as the GSC zero-click URLs from the 2026-08-15 audit. Most Bing impressions are non-EEA (verified by the BWMT impression geo breakdown when available), so the AdSense EEA-gate and Consent Mode v2 deploys do not block these clicks.
+
+**Next agent implications**: re-run `node scripts/bing_pull_traffic.js` 7-14d post-deploy of any SEO change to measure Bing-side deltas. The two single-click conversions (`16 tb ssd external transfer speed comparison` externalssds, `samsung portable ssds speed ratings` portablessds) both occurred at avg pos 1 — Bing rewards position-1 titles that match exact query phrasing. The next obvious SEO lever is targeted title/H1 rewrites for the top-3 impressioning Bing keywords per tenant (NOT a blanket H2H rewrite — surgical, per the same lesson learned in AGENTS.md RESULT 2026-08-14).
+
+
+
 
 ## GA4 Script Note (read before running `ga4_pull_traffic.js`)
 
