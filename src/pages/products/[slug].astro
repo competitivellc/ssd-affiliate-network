@@ -83,8 +83,65 @@ const bandwidthLabel = product.read_speed_mbps >= 1000 ? `${(product.read_speed_
 
 const tenantNoun = tenant.id === "portablessds" ? "Portable" : "External";
 
-const productPageTitle = `${product.name} ${capacityLabel} ${tenantNoun} SSD Review (${currentYear}) — ${product.read_speed_mbps.toLocaleString()} MB/s Reads`;
-const productPageDesc = `${product.name} ${capacityLabel} ${tenantNoun.toLowerCase()} SSD review (${currentYear}): ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes, ${product.interface || "USB"} interface, real-world benchmarks, full specs, and where to buy.`;
+// Bing query-anchored title/H1/meta overrides (Plan deploy 2026-08-16).
+//
+// Each entry targets a product page that BWMT (2026-08-02 → 2026-08-16)
+// shows receiving Bing impressions for buyer-intent / spec-lookup queries
+// — but currently at 0% CTR because the generic
+// "{name} {cap} {noun} SSD Review (year) — {read} MB/s Reads" recipe
+// doesn't match the query phrasing Bing already ranks the URL for.
+//
+// Rewrite ONLY title / h1 / meta description. Leaves every
+//   href / rel / target / affiliate tag / linkCode / linkId /
+//   Offer schema / Amazon disclosure / CookieConsent / GA4 instrumentation
+// unchanged (Amazon Pol §2(a)(b) §6(a) unaffected — no link surface touched,
+// no price DISPLAY added). Tenant-scoped: applies only to (tenant, slug)
+// pairs with documented Bing impressions.
+//
+// Pattern: keep title ≤ 65 chars (Bing truncates ~65–70); lead with the
+// product name (Google partial-match weights the leading tokens); include
+// the query-cluster anchor words ("Specs", "Price", "Review", "2026");
+// include capacity + interface when the Bing query family demands them
+// ("1050 MB/s", "USB4", "4TB", "IP65").
+const HIGH_INTENT_BING_SLUGS: Record<
+  string,
+  Record<string, { title: string; h1: string; meta: string }>
+> = {
+  portablessds: {
+    "crucial-x9-pro": {
+      title: "Crucial X9 Pro 1TB Portable SSD Specs, Price & Review (2026)",
+      h1: "Crucial X9 Pro 1TB Portable SSD — Specs, Speed, Price & Review (2026)",
+      meta: "Crucial X9 Pro 1TB portable SSD review (2026): 1,050 MB/s reads over USB 3.2 Gen 2, IP55 dust/water resistance, 2-meter drop protection, full specifications, and the current Amazon price — compare against other portable SSDs side by side.",
+    },
+    "samsung-t7-portable": {
+      title: "Samsung T7 Portable 1TB SSD Specs, Price & Review (2026)",
+      h1: "Samsung T7 Portable 1TB SSD — Specs, Speed, Price & Review (2026)",
+      meta: "Samsung T7 Portable 1TB portable SSD review (2026): 1,050 MB/s reads over USB 3.2 Gen 2, AES 256-bit hardware encryption, 580 TBW endurance, 3-year warranty, and the current Amazon price.",
+    },
+    "sabrent-rocket-nano-v2": {
+      title: "Sabrent Rocket Nano V2 1TB USB4 SSD Specs, Price & Review (2026)",
+      h1: "Sabrent Rocket Nano V2 1TB USB4 SSD — 3,000 MB/s, Specs & Review (2026)",
+      meta: "Sabrent Rocket Nano V2 1TB portable SSD review (2026): 3,000 MB/s reads and 2,800 MB/s writes over USB4, Thunderbolt-compatible, 5-year warranty, and the current Amazon price.",
+    },
+  },
+  externalssds: {
+    "samsung-t7-shield-4tb": {
+      title: "Samsung T7 Shield 4TB External SSD Specs, Price & Review (2026)",
+      h1: "Samsung T7 Shield 4TB External SSD — IP65 Rugged, Specs & Review (2026)",
+      meta: "Samsung T7 Shield 4TB external SSD review (2026): 1,050 MB/s reads, IP65-rated dust/water resistance, 3-meter drop protection, AES 256-bit hardware encryption, full specifications, and the current Amazon price.",
+    },
+  },
+};
+
+const bingOverride = HIGH_INTENT_BING_SLUGS[tenant.id]?.[slug!];
+
+const productPageTitle = bingOverride
+  ? bingOverride.title
+  : `${product.name} ${capacityLabel} ${tenantNoun} SSD Review (${currentYear}) — ${product.read_speed_mbps.toLocaleString()} MB/s Reads`;
+const productPageDesc = bingOverride
+  ? bingOverride.meta
+  : `${product.name} ${capacityLabel} ${tenantNoun.toLowerCase()} SSD review (${currentYear}): ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes, ${product.interface || "USB"} interface, real-world benchmarks, full specs, and where to buy.`;
+const defaultH1 = `${product.name} ${capacityLabel} ${tenantNoun} SSD`;
 
 const pros: string[] = product.pros ? JSON.parse(product.pros) : [];
 const cons: string[] = product.cons ? JSON.parse(product.cons) : [];
@@ -268,7 +325,7 @@ const calloutText: Record<string, string> = {
         <div class="flex items-start justify-between mb-6">
           <div>
             <p class="text-sm font-medium text-surface-700 uppercase tracking-wider">{product.brand_name}</p>
-            <h1 class="text-2xl sm:text-3xl font-bold text-surface-900 mt-0.5">{product.name} {capacityLabel} {tenantNoun} SSD</h1>
+            <h1 class="text-2xl sm:text-3xl font-bold text-surface-900 mt-0.5">{bingOverride ? bingOverride.h1 : defaultH1}</h1>
             {product.model && (
               <p class="text-sm text-surface-700 mt-1">Model: {product.model}</p>
             )}
