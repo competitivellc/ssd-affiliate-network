@@ -923,3 +923,120 @@ npm run build         # Build Astro locally
 # Plain `git push` may hang silently â€” see that section.
 # AFTER push: run the Post-Deploy Checklist above (IndexNow for both domains)
 ```
+
+### RESULT (2026-08-16): Surgical Bing title/H1/meta on portablessds `/compare` + T7 title-anchor rollback (commit `b61fa74`)
+
+**Deployed 2026-08-16, commit `b61fa74`.** Single-file change (`src/pages/compare.astro`, +21/-17). No other source files touched. No URL surface change, no schema.org types added/removed, no affiliate `href`/`rel`/`target`/`tag`/`linkCode` change, no Amazon disclosure change.
+
+**What shipped (4 hunks in 1 file):**
+
+1. `compareTitle` ternary (lines 60-64) — T7-anchor branch (`Samsung T7 Shield 4TB {tenantNoun} SSD — Amazon Price...`) replaced with tenant-aware branch: portablessds → `Portable SSDs Compared (2026) — Specs, Speed, Price & Buying Guide`; externalssds → unchanged generic fallback.
+2. `metaDesc` ternary (lines 66-70) — same rollback pattern. Portablessds meta description now contains "the buying guide for portable SSDs" anchor phrase.
+3. `<h1>` JSX block (lines 477-483) — T7-anchor branch (`Samsung T7 Shield 4TB {tenantNoun} SSD: Amazon Price & Full Comparison`) replaced with tenant-aware branch: portablessds → `Portable SSDs Compared: Specs, Speed, Price & Buying Guide`; externalssds → `External SSDs Compared`.
+4. ItemList JSON-LD (lines 412-441) — T7 Shield hardcoded at rank 1 reverted to highest-scored product (`products[0]`, currently `Samsung T9 2TB` on externalssds, `Samsung T9 Portable SSD` on portablessds). JSON-LD `name` field reverted from `Buyer-Price Ranking (2026)` to generic `Compared (2026)`.
+
+**T7 Buyer's Price Query card (lines 495-552) preserved** — editorial content (blue-bordered card with `Check Price on Amazon →` GeoAffiliateLink, spec readout, internal cross-links) remains on the default `/compare` view. The card is unrelated to the page-level metadata regression — it's the page-level `<title>`/`<h1>`/JSON-LD over-narrowing that caused Google to drop the `samsung t7 shield 4tb portable ssd amazon.com price` query from the `/compare` page→query mapping.
+
+**Rationale** (from the 2026-08-14 RESULT block on commit `9329992`): the 2026-08-04 deploy over-anchored the `/compare` default-view metadata to a single product. Google re-judged `/compare` as too narrow for the buyer query and dropped it from the top-20 page→query mapping on externalssds (was pos 7.5 / 8i / 0c pre-deploy, now 0i post-deploy). The 2026-08-14 RESULT block explicitly recommended reverting the title/H1 back to the generic form as the recovery path — this deploy implements that recommendation. The Bing-targeted surgical change (the portablessds "Buying Guide" phrasing) is layered on top of the rollback because portablessds `/compare` is already ranking pos 4-7 on Bing for `portable ssds comparison` (31i/14d, 0c) and `portable ssds buying guide` (15i/14d, 0c) per BWMT data — adding "Buying Guide" to the title matches those exact-phrase queries. Externalssds has no Bing traffic on these queries, so the generic externalssds title is unchanged from the rollback form.
+
+**Compliance**: zero Amazon Associates impact. `git diff src/pages/compare.astro` shows zero changes to `href=`, `rel=`, `linkCode`, or `data-affiliate` attributes. Amazon disclosure text on `/compare` still rendered (line 471-473 inline + Footer component + CookieConsent + BaseLayout). No new structured data types; only the `position` and `name` fields of the existing ItemList are reverted. Disclosure, CookieConsent, BaseLayout, Footer, GeoAffiliateLink, affiliate.ts, db.ts — all untouched.
+
+**IndexNow** (per AGENTS.md Post-Deploy Checklist): both tenants submitted their full sitemaps via `npm run indexnow:submit`:
+- `externalssds.com`: 3,367 URLs, HTTP 200, ✓
+- `portablessds.com`: 3,044 URLs, HTTP 200, ✓
+
+This is a higher-coverage submit than the surgical 15-URL list originally scoped in the plan — the existing `scripts/indexnow-submit.mjs` is sitemap-only with no URL-list override, so the sitemap path is the established deploy mechanism. The 15 priority URLs (13 converting H2H + `/products` × 2) are a subset of the 6,411 submitted URLs.
+
+**Live verification (~60s post-deploy, both tenants HTTP 200):**
+
+| URL | Title | H1 |
+|---|---|---|
+| `https://externalssds.com/compare` | `External SSDs Compared (2026) — Specs, Speed & Price Side-by-Side \| External SSDs` | `External SSDs Compared` |
+| `https://portablessds.com/compare` | `Portable SSDs Compared (2026) — Specs, Speed, Price & Buying Guide \| Portable SSDs` | `Portable SSDs Compared: Specs, Speed, Price & Buying Guide` |
+
+ItemList JSON-LD position-1 verified: `Samsung T9 2TB` (externalssds), `Samsung T9 Portable SSD` (portablessds). T7 Buyer's Price Query card verified present on default `/compare` view (both tenants).
+
+**Measurement plan (post-deploy):**
+
+1. **Day +3** (`2026-08-19`): `node scripts/bing_pull_traffic.js` — check whether Bing has re-crawled `/compare` and whether the new title appears in the BWMT keyword rankings for `portable ssds comparison` (31i/14d baseline) and `portable ssds buying guide` (15i/14d baseline).
+2. **Day +7** (`2026-08-23`): `node scripts/gsc_pull_revenue.js` + `node scripts/ga4_pull_traffic.js` — check whether GSC page→query top-20 mapping on externalssds `/compare` recovers the `samsung t7 shield 4tb portable ssd amazon.com price` query (was pos 7.5 / 8i / 0c pre-`9329992`, currently ABSENT).
+3. **Day +14** (`2026-08-30`): all three scripts + write the closing RESULT block to AGENTS.md.
+
+**Success criteria:**
+
+- **PRIMARY**: BWMT portablessds `/compare` 14d CTR lifts from 0.54% (baseline 1c/186i) → ≥3% (~6+ incremental Bing clicks/14d, ~13/mo, ~156/yr).
+- **PRIMARY**: BWMT keyword `portable ssds comparison` CTR lifts from 0% (0c/31i) → ≥3%.
+- **PRIMARY**: BWMT keyword `portable ssds buying guide` CTR lifts from 0% (0c/15i) → ≥3%.
+- **SECONDARY**: GSC externalssds `/compare` page→query top-20 mapping recovers the `samsung t7 shield 4tb portable ssd amazon.com price` query (currently ABSENT).
+- **TERTIARY**: `/products` URL appears in BWMT `GetPageStats` for either tenant within 7d (forced re-crawl via sitemap submit).
+
+**Failure criteria (all of):** Day +14 BWMT CTR still ≤0.54%; `portable ssds comparison` still 0c/31i; GSC externalssds `/compare` still missing the T7 buyer query. **If failure**: revert via `git revert b61fa74 --no-edit` + `git push` (PAT injection), document in AGENTS.md why the surgical Bing title approach didn't work for this query family, move to the next lever in the queue (cookieless server-side `affiliate_click` measurement via Cloudflare Worker → GA4 Measurement Protocol, OR per-URL IndexNow of the converting H2H URLs that have faded from top-20 page→query mapping).
+
+**Owner action required**: none. This deploy is fully autonomous; no AdSense, no API keys, no D1 writes. AdSense activation remains blocked on Google's "Getting ready" review status (out of scope; per audit at session start).
+
+### RESULT (2026-08-16): Bing-targeted title/H1/meta on 4 product pages (deployed 2026-08-16, commit `f710700`)
+
+Targets 4 product pages that are already receiving Bing impressions at 0% CTR. BWMT 14d baseline (2026-08-02 → 2026-08-16) shows the network is invisible to Google but Bing is sending real impressions — the bottleneck is searcher-intent matching, not crawl/index. The 4 pages below were picked because their existing generic title doesn't match the exact-phrase Bing queries sending impressions, so Bing users see the page in results but skip it (CTR 0%). This deploy rewrites the title/H1/meta on each of the 4 pages to match the exact Bing queries that are already sending impressions, with the explicit goal of lifting CTR from 0% → ≥3% on impressions the site is already earning.
+
+**Deployed 2026-08-16, commit `f710700`.** Single-file change (`src/pages/products/[slug].astro`, +35/-7). No other source files touched. No URL surface change, no schema.org types added/removed, no affiliate `href`/`rel`/`target`/`tag`/`linkCode` change, no Amazon disclosure change, no D1 writes.
+
+**What shipped (4 surgical overrides + 1 sentinel sanity check):**
+
+| Tenant | Slug | New Title | New H1 | Bing query targeted |
+|---|---|---|---|---|
+| portablessds | `crucial-x9-pro` | `Crucial X9 Pro 1TB Portable SSD Specs, Price & Review (2026)` | `Crucial X9 Pro 1TB Portable SSD — Specs, Speed, Price & Review` | `crucial x9 pro` (5i/14d, pos 5, 0c) |
+| portablessds | `samsung-t7-portable` | `Samsung T7 Portable 1TB Portable SSD Specs, Price & Review (2026)` | `Samsung T7 Portable 1TB Portable SSD — Specs, Speed, Price & Review` | (BWMT page-level impressions) |
+| portablessds | `sabrent-rocket-nano-v2` | `Sabrent Rocket Nano V2 1TB Portable SSD Specs, Price & Review (2026)` | `Sabrent Rocket Nano V2 1TB Portable SSD — Specs, Speed, Price & Review` | (BWMT page-level impressions) |
+| externalssds | `samsung-t7-shield-4tb` | `Samsung T7 Shield 4TB External SSD Specs, Price & Review (2026)` | `Samsung T7 Shield 4TB External SSD — Specs, Speed, Price & Review` | (BWMT page-level impressions) |
+
+**Implementation** (`src/pages/products/[slug].astro`):
+- New `HIGH_INTENT_BING_SLUGS` const map (lines 106-136) keyed by `${tenantId}-${slug}`, holds `{ title, h1, desc }` per slug.
+- New `bingOverride` variable resolved at top of frontmatter (line 136) — `tenant.tenantId === 'portablessds' ? HIGH_INTENT_BING_SLUGS['portablessds-' + product.slug] : HIGH_INTENT_BING_SLUGS['externalssds-' + product.slug]`.
+- `productPageTitle` (lines 138-143) — ternary: `bingOverride?.title ?? \`${product.name} ${capacityLabel} ${tenantNoun} SSD Review (${year})...\``.
+- `productPageDesc` (lines 145-148) — same ternary pattern.
+- `<h1>` JSX (line 328) — `{bingOverride ? bingOverride.h1 : defaultH1}` (where `defaultH1 = \`${product.name} ${capacityLabel}\``).
+- All overrides are surgical: only the 4 listed slugs trigger the override. Every other product page uses the existing generic title recipe (verified via `https://portablessds.com/products/samsung-t9-portable` returning OLD generic title `Samsung T9 Portable SSD 1.0TB Portable SSD Review (2026) — 2,000 MB/s Reads | Portable SSDs` — sanity check 5.7 PASS).
+
+**Compliance**: zero Amazon Associates impact. `git diff src/pages/products/[slug].astro` shows zero changes to `href=`, `rel=`, `linkCode`, or `data-affiliate` attributes. Amazon disclosure text on every product page still rendered (inline + Footer component + CookieConsent + BaseLayout). The override targets `<title>`, `<meta name="description">`, and `<h1>` only — all three are Amazon-policy-compliant surface (Associates TOS does not restrict page metadata). Disclosure, CookieConsent, BaseLayout, Footer, GeoAffiliateLink, affiliate.ts, db.ts — all untouched.
+
+**BWMT 14d baseline (captured 2026-08-16) — the impressions this deploy is targeting:**
+
+| Page | 14d impressions | 14d clicks | CTR | avg pos |
+|---|---|---|---|---|
+| `portablessds.com/products/crucial-x9-pro` | 26 | 0 | 0% | 5 |
+| `portablessds.com/products/samsung-t7-portable` | 6 | 0 | 0% | 4 |
+| `portablessds.com/products/sabrent-rocket-nano-v2` | 1 | 0 | 0% | 7 |
+| `externalssds.com/products/samsung-t7-shield-4tb` | 1 | 0 | 0% | 6 |
+| **Total (4 pages)** | **34** | **0** | **0%** | — |
+
+Top Bing keyword driving these impressions: `crucial x9 pro` (5i/14d, pos 5, 0c). The page already ranks pos 5 for the keyword — the problem is the searcher sees a generic "Crucial X9 Pro 1.0TB Portable SSD Review (2026)" snippet and doesn't know the page answers the exact query, so they skip. The new title `Crucial X9 Pro 1TB Portable SSD Specs, Price & Review (2026)` matches the exact search phrase and surfaces "Specs, Price & Review" — explicit intent-match signals.
+
+**Live verification (~60s post-deploy, both tenants HTTP 200):**
+
+- `https://portablessds.com/products/crucial-x9-pro` → title: `Crucial X9 Pro 1TB Portable SSD Specs, Price & Review (2026) | Portable SSDs`; H1: `Crucial X9 Pro 1TB Portable SSD — Specs, Speed, Price & Review`
+- `https://portablessds.com/products/samsung-t7-portable` → title: `Samsung T7 Portable 1TB Portable SSD Specs, Price & Review (2026) | Portable SSDs`
+- `https://portablessds.com/products/sabrent-rocket-nano-v2` → title: `Sabrent Rocket Nano V2 1TB Portable SSD Specs, Price & Review (2026) | Portable SSDs`
+- `https://externalssds.com/products/samsung-t7-shield-4tb` → title: `Samsung T7 Shield 4TB External SSD Specs, Price & Review (2026) | External SSDs`
+- Affiliate link href/rel/target/tag/linkCode UNCHANGED on all 4 pages (verified via `grep` on the prod HTML): `tag=ssdnetwork07-20&linkCode=ll1` injected, `rel="noopener sponsored"` present, `target="_blank"` present, `data-affiliate="1"` present.
+- Amazon disclosure `As an Amazon Associate I earn from qualifying purchases` still rendered on all 4 pages.
+- Sanity check: `https://portablessds.com/products/samsung-t9-portable` (NOT in override list) still shows OLD generic title — confirms override is surgical, not blanket.
+
+**IndexNow** (per AGENTS.md Post-Deploy Checklist): not strictly required for Bing (Bing auto-discovers via sitemap), but the previous b61fa74 sitemap submit at 2026-08-16 covered these 4 URLs already. No re-submit.
+
+**Measurement plan (post-deploy):**
+
+1. **Day +3** (`2026-08-19`): `node scripts/bing_pull_traffic.js` — re-run BWMT pull for both tenants. Capture 14d totals, page-level stats for the 4 target URLs, and keyword-level stats for `crucial x9 pro` (5i baseline). Compare against the 34 imp / 0c baseline.
+2. **Day +7** (`2026-08-23`): `node scripts/bing_pull_traffic.js` + `node scripts/gsc_pull_revenue.js` — full BWMT + GSC re-pull. Compare 14d totals, page-level stats, and check whether Google has picked up the new titles (GSC `topQueries` per-page for the 4 URLs).
+3. **Day +14** (`2026-08-30`): all three scripts + write the closing RESULT block to AGENTS.md.
+
+**Success criteria:**
+
+- **PRIMARY**: BWMT page-level CTR for the 4 target URLs lifts from 0% (0c/34i baseline) → ≥3% (≥1 incremental Bing click/14d).
+- **PRIMARY**: BWMT keyword `crucial x9 pro` CTR lifts from 0% (0c/5i) → ≥3% on portablessds.
+- **SECONDARY**: BWMT page-level impressions grow (4 URLs combined: 34i/14d → 40+i/14d) — title rewrite should surface better SERP snippet, earning more impressions from existing rank positions.
+- **TERTIARY**: Zero collateral damage — none of the 156 non-target product pages lose GSC impressions or position.
+
+**Failure criteria (all of):** Day +14 BWMT CTR still 0% on the 4 target URLs AND `crucial x9 pro` keyword CTR still 0% AND impressions flat (no growth from better SERP snippet) AND any non-target product page loses GSC visibility. **If failure**: revert via `git revert f710700 --no-edit` + `git push` (PAT injection), document in AGENTS.md why the Bing-targeted title approach didn't lift CTR for this product family, move to the next lever in the queue (cookieless server-side `affiliate_click` measurement, OR per-URL IndexNow of the converting H2H URLs).
+
+**Owner action required**: none. This deploy is fully autonomous; no AdSense, no API keys, no D1 writes. AdSense activation remains blocked on Google's "Getting ready" review status (out of scope).
+
