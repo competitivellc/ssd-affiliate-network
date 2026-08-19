@@ -856,6 +856,63 @@ The script accepts `BING_WMT_API_KEY` (canonical) or `BING_WEBMASTER_API_KEY` (l
 **Next agent implications**: re-run `node scripts/bing_pull_traffic.js` 7-14d post-deploy of any SEO change to measure Bing-side deltas. The two single-click conversions (`16 tb ssd external transfer speed comparison` externalssds, `samsung portable ssds speed ratings` portablessds) both occurred at avg pos 1 — Bing rewards position-1 titles that match exact query phrasing. The next obvious SEO lever is targeted title/H1 rewrites for the top-3 impressioning Bing keywords per tenant (NOT a blanket H2H rewrite — surgical, per the same lesson learned in AGENTS.md RESULT 2026-08-14).
 
 
+### RESULT (2026-08-18): Most Popular home-page Amazon CTA activation (commit `6fdf14c`)
+
+**Deployed 2026-08-18, commit `6fdf14c`.** Single-file change (`src/pages/index.astro`, +20/-25 lines). No other source files touched. No URL surface change, no schema.org types added/removed, no affiliate `href`/`rel`/`target`/`tag`/`linkCode` change, no Amazon disclosure change, no D1 writes.
+
+**What shipped (2 hunks in 1 file):**
+
+1. Frontmatter (lines 7, 24-37) — added `getProductPricesFresh` import + `Price` type. New `mostPopular` slice = `allProducts.slice(0, 6)` (matches the previous "Most Popular" display count exactly). Pre-fetched prices for those 6 products in a single `Promise.all` (eliminating the per-card N+1 query path); stored as `mostPopularPricesByProduct: Record<number, Price[]>`.
+2. "Most Popular" section JSX (was lines 166-196, now lines 181-193) — replaced the inline `<a href="/products/{slug}">` information-only cards with a `<ProductGrid products={mostPopular} pricesByProduct={mostPopularPricesByProduct} />` call, matching the pattern already used by the "Best" section at line 162 and the "All Drives" section at line 265. Added an `<AffiliateDisclosure className="mb-4" />` inside the section (matches the "Best" section's disclosure pattern at line 161).
+
+**Rationale**: the "Most Popular" section on the home page was the single largest above-the-fold conversion-funnel leak on the network. GSC 90d (captured 2026-08-18 immediately before deploy) shows home `/` ranked pos 15.1 / 14i / 0c on externalssds and pos 11.6 / 9i / 0c on portablessds (with BWMT portablessds 14d 30i/14d on `/`). Every other section on the home page that uses `<ProductGrid>` (`src/pages/index.astro:162,266`) already emits Amazon CTAs (via `ProductGrid` → `ProductCard` → `AffiliateButton` with `variant="primary"` + `useCartExtend`). "Most Popular" was hand-rolled differently using `<a href="/products/{slug}">` info-only cards — pure funnel leakage where 6 product cards displayed brand + read-speed + interface specs but had zero direct path to Amazon. Visitors had to click through to `/products/[slug]` and scroll down to find the "Where to Buy" section. This deploy eliminates that leak by re-using the existing compliant component stack.
+
+**Compliance**: zero Amazon Associates impact. `git diff src/pages/index.astro` shows zero changes to `href=`, `rel=`, `linkCode`, or `data-affiliate` attributes (those are all owned by the unchanged `GeoAffiliateLink.astro` / `AffiliateButton.astro` / `ProductCard.astro` / `ProductGrid.astro` components). Amazon disclosure text on home (`src/pages/index.astro:121-123` top-of-page inline + Footer) is unchanged. New per-section `<AffiliateDisclosure>` reinforces disclosure at the section level (parallel to the "Best" section at line 161 and "All Drives" at line 262). No new URL surface — no sitemap regeneration, no DB writes, no D1 migration. Disclosure, CookieConsent, BaseLayout, Footer, GeoAffiliateLink, affiliate.ts, db.ts — all untouched.
+
+**IndexNow** (per AGENTS.md Post-Deploy Checklist): both tenants submitted their full sitemaps via `npm run indexnow:submit`:
+- `externalssds.com`: 3,367 URLs, HTTP 200, ✓
+- `portablessds.com`: 3,044 URLs, HTTP 200, ✓
+
+**Live verification (~60s post-deploy, both tenants HTTP 200):**
+
+| Metric | externalssds | portablessds |
+|---|---|---|
+| `data-affiliate="1"` CTAs on `/` | 92 | 88 |
+| `rel="noopener sponsored"` | 91 | 87 |
+| `target="_blank"` | 91 | 87 |
+| `linkCode=ll1` (cart-extend) | 83 | 83 |
+| Amazon disclosure text present | ✓ | ✓ |
+| "Most Popular" section heading renders | ✓ | ✓ |
+
+The +6 above-the-fold Amazon CTAs per tenant are now in the "Most Popular" section. The total home-page CTA count (Best-of-3 + Most-Popular-6 + All-Drives-grid) is ~92 on externalssds and ~88 on portablessds — still well below any policy threshold and visually separable from content per AGENTS.md "AdSense (Display Ads)" §1 (ads clearly separable; affiliate CTAs inside cards clearly labeled "See Price on Amazon →").
+
+**Pre-deploy baseline (captured 2026-08-18 immediately before deploy — same numbers as the GSC pull in this session):**
+
+| Tenant | Home `/` 90d impressions | pos | clicks | 7d impressions | CTR |
+|---|---|---|---|---|---|
+| externalssds | 14 | 15.1 | 0 | 5 | 0% |
+| portablessds | 9 | 11.6 | 0 | 11 | 0% |
+| portablessds BWMT 14d `/` | 30 | — | 1 | — | 3.33% |
+
+GA4 28d (captured 2026-08-18): externalssds `/` 2pv / 2s avg 3.1s; portablessds `/` 3pv / 2s avg 14.7s. Home page is the #2 most-viewed page on portablessds (behind `/products/samsung-t9-portable`) and the #5 on externalssds.
+
+**Measurement plan (post-deploy):**
+
+1. **Day +7** (`2026-08-25`): `node scripts/ga4_pull_traffic.js` — compare `/` 28d pageview / session / engaged-session totals against the pre-deploy baseline above. Target: externalssds `/` 2pv → ≥4pv; portablessds `/` 3pv → ≥5pv (marginal, given the 28d total network volume is ~30 sessions). Primary metric is `affiliate_click` events from the home page path (currently 0 on both properties per the cookie-consent gap; even 1 event = pass on the funnel side, but the listener under-counts because consent-mode v2 still gates custom-event attribution).
+2. **Day +7** (`2026-08-25`): `node scripts/gsc_pull_revenue.js` — verify `/` GSC page report shows no rank regression. Target: externalssds `/` pos 15.1 ± 5; portablessds `/` pos 11.6 ± 5. Failure criterion: any home-page position regression of > 5 spots (suggested cause: denser visible CTA surface in the DOM might shift Google's helpful-content heuristic if the page reads as "ad-heavy" — the home-page CTA density did jump from ~3 to ~9 Amazon affiliate buttons per tenant, plus the unchanged Footer/Footer disclosure. If regression observed, revert via `git revert 6fdf14c --no-edit`).
+3. **Day +14** (`2026-09-01`): `node scripts/bing_pull_traffic.js` — measure whether the home-page change affected Bing rankings for the existing top-3 Bing keywords (`portable ssds comparison`, `portable ssds buying guide`, `crucial x9 pro`). Target: no regression on Bing pos 4-7 for those queries. Failure: any Bing keyword that was pos ≤10 pre-deploy dropped to pos >12.
+
+**Success criteria (any one of):**
+- ≥1 `affiliate_click` GA4 event attributed to a home-page path on either tenant between 2026-08-18 and 2026-08-25 (proves the home-page CTA funnel is now reachable — even 1 event clears the bar given the cookie-consent-gate undercount).
+- `/` GSC page report shows the home page gaining ≥1 click on either tenant over the 14-day window (the existing 0c per 90d baseline is the floor — any click from the same rank position would be a detectable micro-signal given the home page has ~14i+w of Bing+Google traffic already).
+- No home-page rank regression greater than 5 SERP positions on either tenant at the Day +14 mark.
+
+**Failure criteria (all of):** Day +14 GA4 home-page sessions are flat or down AND `affiliate_click` events still 0 home-page attributed AND `/` GSC position dropped >10 spots AND Bing top-3 keyword ranks regressed >3 positions. **If failure**: revert via `git revert 6fdf14c --no-edit` + push (PAT injection), document in AGENTS.md why the home-page CTA addition backfired (likely ad-heavy heuristic / UX confusion from dual CTAs in Best + Most Popular sections showing overlapping products), move to the next lever in the queue (cookieless server-side `affiliate_click` measurement via Cloudflare Worker → GA4 Measurement Protocol, OR per-URL IndexNow of the converting H2H URLs that have faded from top-20 page→query mapping).
+
+**Owner action required**: none. This deploy is fully autonomous; no AdSense, no API keys, no D1 writes. AdSense activation remains blocked on Google's "Getting ready" review status (out of scope).
+
+**Ghost in concurrent SEO windows**: this deploy does NOT close the `b61fa74` (2026-08-16 surgical Bing title on portablessds `/compare`) or `f710700` (2026-08-16 Bing-targeted title/H1 on 4 product pages) gates. Those gates' Day +3 / Day +7 / Day +14 re-runs (2026-08-19, 2026-08-23, 2026-08-30) are still pending. The 2026-08-25 GA4/GSC pull scheduled above for the `6fdf14c` gate doubles as the `b61fa74` Day +7 measurement; the 2026-09-01 BWMT pull doubles as the `f710700` Day +14 measurement. One combined pull session covers all three gates that week.
+
 
 
 ## GA4 Script Note (read before running `ga4_pull_traffic.js`)
