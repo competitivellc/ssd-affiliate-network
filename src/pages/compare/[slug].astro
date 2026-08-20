@@ -158,6 +158,34 @@ const compareSlugMeta = speedWinner
 // H1 mirrors title without the year (already signaled via the spec table).
 const compareSlugH1 = `${productA.name} vs ${productB.name} — Which ${tenantNoun} SSD Is Faster & Better Value?`;
 
+// --- Bing-CTR v1 Phase 2 slug-map (owner-approved 2026-08-19, deployed EARLY
+// 2026-08-20 per audit: Google H2H evidence independently validates the
+// pattern — 100% of last-7d clicks land on H2H URLs) ---
+// Surgical, tenant-scoped: ONLY these 3 portablessds slugs per the approved
+// plan table. Title <=60 chars, H1 mirrors title, meta embeds the exact query
+// phrase. Do NOT blanket-apply (see AGENTS.md RESULT 2026-08-14 for the
+// regression evidence on untargeted retitles). No href/rel/target/tag/
+// linkCode change; Amazon Pol §2(a)(b) §6(a) unaffected.
+const BING_SLUG_MAP: Record<string, { title: string; h1: string; meta: string }> = {
+  "portablessds-crucial-x9-pro-vs-samsung-t7-shield-portable": {
+    title: "Crucial X9 Pro vs Samsung T7 Shield: Speed & Price",
+    h1: "Crucial X9 Pro vs Samsung T7 Shield: Speed & Price",
+    meta: `Crucial X9 Pro vs Samsung T7 Shield head-to-head — speed, specs & current price. ${speedWinner ? `${speedWinner.name} is faster (${speedWinner.read_speed_mbps.toLocaleString()} MB/s reads).` : "Read speeds are level."} Scores, capacity options & Amazon price for both portable SSDs.`,
+  },
+  "portablessds-samsung-t9-portable-vs-sandisk-extreme-pro-portable": {
+    title: "Samsung T9 vs SanDisk Extreme Pro: Which Is Faster?",
+    h1: "Samsung T9 vs SanDisk Extreme Pro: Which Is Faster?",
+    meta: `Samsung T9 vs SanDisk Extreme Pro — ${speedWinner ? `${speedWinner.name} is faster at ${speedWinner.read_speed_mbps.toLocaleString()} MB/s reads` : "comparable read speeds"}. Side-by-side specs, scores & the current Amazon price for both portable SSDs.`,
+  },
+  "portablessds-samsung-t7-shield-portable-vs-sandisk-extreme-pro-portable": {
+    title: "Samsung T7 Shield vs SanDisk Extreme Pro: Speed & Price",
+    h1: "Samsung T7 Shield vs SanDisk Extreme Pro: Speed & Price",
+    meta: `Samsung T7 Shield vs SanDisk Extreme Pro head-to-head — speed, ruggedness & current price. ${speedWinner ? `${speedWinner.name} leads on read speed (${speedWinner.read_speed_mbps.toLocaleString()} MB/s).` : "Read speeds are level."} Full specs, scores & Amazon price.`,
+  },
+};
+
+const bingOverride = tenant.id === "portablessds" && slug ? BING_SLUG_MAP[`portablessds-${slug}`] : undefined;
+
 // --- High-intent page-1 zero-click overrides (2026-08-15) ---
 // Per GSC 90d, these 3 H2H URLs sit at pos 1.5-10 with 0% CTR — Google
 // already ranks them page 1, but the buyer-intent recipe above doesn't
@@ -176,7 +204,11 @@ const HIGH_INTENT_H2H_SLUGS = new Set<string>([
   "adata-se800-2tb-vs-crucial-x9-pro-2tb",
 ]);
 
-if (slug && HIGH_INTENT_H2H_SLUGS.has(slug)) {
+if (bingOverride) {
+  var finalTitle = bingOverride.title;
+  var finalH1 = bingOverride.h1;
+  var finalMeta = bingOverride.meta;
+} else if (slug && HIGH_INTENT_H2H_SLUGS.has(slug)) {
   const overrideTitle = `${productA.name} vs ${productB.name} [${currentYear}]: Specs, Speed & Best Price`;
   const overrideH1 = `${productA.name} vs ${productB.name}: Which ${tenantNoun} SSD Wins in ${currentYear}?`;
   const overrideMeta = speedWinner
