@@ -70,6 +70,22 @@ async function run() {
     ], start28, end);
     console.log('28d CORE:', JSON.stringify(core[0]?.metricValues?.map(v => v.value) || []));
 
+    // affiliate_click events (28d) — revenue-funnel signal; modeled events not
+    // guaranteed under Consent Mode v2, so 0 here may under-report (see AGENTS.md)
+    const events = await runReport(adata, propertyId,
+      [{ name: 'eventName' }, { name: 'pagePath' }],
+      [{ name: 'eventCount' }],
+      start28, end, {
+        dimensionFilter: { filter: { fieldName: 'eventName', inListFilter: { values: ['affiliate_click'] } } },
+        orderBys: [{ metric: { metricName: 'eventCount' }, desc: true }], limit: '20',
+      });
+    console.log('\nAFFILIATE_CLICK EVENTS (28d):');
+    if (!events.length) console.log('  0 events');
+    events.forEach(r => {
+      const [ev, path, cnt] = r.dimensionValues.concat(r.metricValues).map(v => v.value);
+      console.log(`  ${cnt.padStart(3)} | ${path}`);
+    });
+
     // Channel breakdown (28d)
     const channels = await runReport(adata, propertyId,
       [{ name: 'sessionDefaultChannelGroup' }],

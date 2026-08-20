@@ -16,6 +16,41 @@
 >
 > (Legacy handoffs preserved below: 2026-08-07 GA4 outbound-click attribution block demoted to `RESULT (2026-08-07)`, 2026-08-09 AdSense infra at `RESULT (2026-08-09)`, 2026-08-05 T7 `/compare` overhaul at `RESULT (2026-08-05)`, 2026-08-03 catalog-expansion at `RESULT (2026-08-03)`.)
 
+> ## 🚨 START HERE — Bing-CTR v1 (owner-approved 2026-08-19, NO code changes until the Phase 1 gate)
+> **Full network audit performed 2026-08-19 (GSC + GA4 + BWMT + D1). Owner approved the "Bing-CTR v1" plan end-to-end. It is date-gated — do NOT pre-deploy. Current date: 2026-08-19 (2026-08-20 UTC).**
+>
+> **Audit verdict**: revenue funnel = impressions (~4,750/mo, growing ~3.5×) → clicks (~7/mo) → Amazon clicks (**0 `affiliate_click` events, 28d, both properties**) → $0. Tags real (`ssdnetwork07-20`, US/GB/DE/CA/*). AdSense OFF (slot IDs empty; owner-blocked by Google "Getting ready" review). 80% of prices zero-priced (price-sync worker undeployed, needs PAAPI keys — owner). #1 agent-executable lever: **Bing CTR** — 186i/14d on portablessds at pos 4–7, 0.54% CTR, queries exact-matchable, and the network's only 2 Bing clicks ever happened at avg pos 1 with exact-phrase titles.
+>
+> **Baselines (2026-08-19, authoritative):** GSC 90d: ext 7c/1,990i/0.35%; port 12c/2,553i/0.47%. GSC 7d: ext 6c/834i, port 2c/624i. Bing 14d: ext 1c/28i, port 1c/186i (top queries: `portable ssds comparison` 31i pos4 0c, `portable ssds buying guide` 15i pos7 0c, `crucial x9 pro` 5i pos5 0c; top H2H pages: `crucial-x9-pro-vs-samsung-t7-shield-portable` 10i, `samsung-t9-portable-vs-sandisk-extreme-pro-portable` 8i, `samsung-t7-shield-portable-vs-sandisk-extreme-pro-portable` 6i). GA4 28d: ext 22s/2u/41pv, port 5s/2u/8pv, `affiliate_click` = 0 both. D1: 160 active products (82/78), 20 hubs, 176 prices (35 priced).
+>
+> **Gates closed this session (2026-08-19):**
+> 1. **`b61fa74` + `f710700` Day +3** — BWMT re-pull done: Bing CTR flat at baseline (ext 3.57%, port 0.54%) = **expected at Day +3** (Bing re-crawl lag 1–4d). Live DOM verification PASSED on all 6 titles (port `/compare` "Portable SSDs Compared (2026) — Specs, Speed, Price & Buying Guide"; port products `crucial-x9-pro`, `samsung-t7-portable`, `sabrent-rocket-nano-v2`; ext `samsung-t7-shield-4tb`; ext `/compare` generic). NOTE: `sabrent-rocket-nano-v2` ships as **"Sabrent Rocket Nano V2 1TB USB4 SSD Specs, Price & Review (2026)"** (USB4, not "Portable" — the f710700 RESULT block's title string was a doc typo; shipped code is correct for the product).
+> 2. **GA4 item (a) from the 2026-08-10 header (Consent Mode v2 window 2026-08-17 → 2026-08-24)** — final re-run pulled 2026-08-19: `affiliate_click` still **0 events on both properties** (28d). Verdict: the consent-gap fix lifts sessions/channel attribution (Organic Search now visible) but Google's modeled-event support does NOT produce custom `affiliate_click` events — expected per RESULT (2026-08-14); cookieless server-side measurement remains the future fix. `scripts/ga4_pull_traffic.js` now natively reports AFFILIATE_CLICK EVENTS (28d) — added this session.
+>
+> **THE APPROVED PLAN (execute exactly, in order):**
+>
+> **Phase 1 — Day +7 measurement gate (2026-08-23).** Run: `node scripts/bing_pull_traffic.js` + `node scripts/gsc_pull_revenue.js` + `node scripts/ga4_pull_traffic.js` (keep BWMT 14d window identical to baseline for comparability). Decision tree:
+> - **PASS** (any): port `/compare` Bing CTR ≥3%, OR `portable ssds comparison` or `portable ssds buying guide` CTR ≥3%, OR any f710700 product page ≥1 Bing click → **Phase 2 Branch A**.
+> - **FAIL** (all three still 0c): → **Phase 2 Branch B**.
+> - **AMBIGUOUS** (Bing impressions still flat at old levels = no re-crawl evidence): wait to 2026-08-26 (Day +10), single BWMT re-pull, THEN branch. No deploy on ambiguous data.
+>
+> **Phase 2 — Implement (2026-08-23/24, ONLY after Phase 1 verdict).** Both branches ship the same new slug-map in `src/pages/compare/[slug].astro` (mirror the `HIGH_INTENT_BING_SLUGS` pattern at `src/pages/products/[slug].astro:106-134`, tenant-scoped, surgical — ONLY these 3 portablessds slugs, title ≤60 chars, H1 mirrors title, meta embeds exact query phrase):
+> | Slug | Title |
+> |---|---|
+> | `crucial-x9-pro-vs-samsung-t7-shield-portable` | `Crucial X9 Pro vs Samsung T7 Shield: Speed & Price` |
+> | `samsung-t9-portable-vs-sandisk-extreme-pro-portable` | `Samsung T9 vs SanDisk Extreme Pro: Which Is Faster?` |
+> | `samsung-t7-shield-portable-vs-sandisk-extreme-pro-portable` | `Samsung T7 Shield vs SanDisk Extreme Pro: Speed & Price` |
+> - **Branch A** (Bing pattern working): deploy the slug-map on top of the current recipe. **Branch B** (Bing flat): FIRST revert the net-negative 2026-08-06 H2H title recipe (per RESULT (2026-08-14) recommendation) via targeted edit (NOT blanket `git revert` — file has accumulated other changes), THEN deploy the same slug-map.
+> - Deploy sequence (mandatory): commit → PAT-injection push (`git -c credential.helper= push $url main` per AGENTS.md Git Push Authentication) → `git fetch origin` → IndexNow sitemap submit BOTH tenants (Post-Deploy Checklist) → live DOM title verification of the 3 URLs.
+>
+> **Phase 3 — Day +14 close-out (2026-08-30).** Full 3-script pull; verdicts vs §1 of the plan (port Bing CTR ≥3%, ≥1 `affiliate_click` event, zero rank regression on any ≤pos-10 page); write `RESULT (2026-08-30)` blocks to AGENTS.md closing `b61fa74` + `f710700` gates. **Total failure** (all: Bing CTR ≤0.54% AND `portable ssds comparison` 0c AND `crucial x9 pro` 0c AND no Google gain): revert ALL title changes (`git revert b61fa74 --no-edit` + `git revert f710700 --no-edit` + revert new slug-map), push, document, pivot to next lever (cookieless server-side `affiliate_click` measurement via Worker → GA4 MP, or per-URL IndexNow of converting H2H URLs).
+>
+> **Overlapping gates (measure in the same pull sessions, do not skip):** `6fdf14c` (home Most Popular CTAs) Day +7 GA4/GSC = **2026-08-25** (targets: ext `/` 2pv→≥4pv, port `/` 3pv→≥5pv, ≥1 home-attributed `affiliate_click`); `6fdf14c` Day +14 BWMT = **2026-09-01**. The 2026-08-23 and 2026-08-30 pulls double as those measurements.
+>
+> **Compliance guardrails (verify with `git diff` before every push):** ONLY `<title>`/`<meta name="description">`/`<h1>` touched; ZERO changes to `href=`/`rel=`/`target=`/`linkCode=`/`tag=`/`data-affiliate`; Amazon disclosure untouched; no price text/alerting; no AdSense changes (slot IDs stay empty); no new URL surface (no sitemap regen).
+>
+> **Owner-only (tracked separately, still blocked):** AdSense slot IDs (Google "Getting ready" review; 10-min step once cleared — largest potential dollar unlock, monetizes impressions without clicks); PAAPI keys + `npx wrangler deploy worker/price-sync.ts --name ssd-price-sync` (80% zero prices).
+
 ### RESULT (2026-08-09): Google AdSense display-ad infrastructure (deployed 2026-08-09)
 
 Adds consent-gated, geo-gated Google AdSense display ads alongside the existing Amazon Associates revenue stream. **Verified policy-compliant against both programs** (see the new `## AdSense (Display Ads)` section below): AdSense + Associates are allowed on the same site (neither TOS prohibits it), and AdSense is NOT "paid advertising linking to Amazon", so the April 2026 Associates paid/boosted-ad disqualification does not apply.
