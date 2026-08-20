@@ -174,6 +174,44 @@ const websiteJsonLd = {
         })();
       </script>
     )}
+    <script is:inline>
+      // Server-side click-attribution beacon (deployed 2026-08-20). Passive
+      // capture-phase listener, same selector as the GA4 affiliate_click
+      // listener above. POSTs the click to /api/affiliate-click via
+      // sendBeacon so it survives navigation, recording the row in D1
+      // (affiliate_clicks) regardless of cookie consent — closing the GA4
+      // Consent Mode v2 attribution gap. First-party analytics only: never
+      // preventDefault, never modifies href/rel/target/linkCode/tag, no PII
+      // (no IP, no cookies), and the Special Link URL itself is never sent.
+      (function () {
+        if (document.__affBeacon) return;
+        document.__affBeacon = true;
+        document.addEventListener('click', function (e) {
+          var t = e.target;
+          if (!t || !t.closest) return;
+          var a = t.closest('a[data-affiliate="1"]');
+          if (!a) return;
+          var payload = JSON.stringify({
+            retailer: a.dataset.retailer || '',
+            cta_label: a.dataset.cta || '',
+            product_slug: a.dataset.productSlug || '',
+            page_path: location.pathname
+          });
+          try {
+            if (navigator.sendBeacon) {
+              navigator.sendBeacon('/api/affiliate-click', payload);
+            } else {
+              fetch('/api/affiliate-click', {
+                method: 'POST',
+                body: payload,
+                keepalive: true,
+                headers: { 'Content-Type': 'application/json' }
+              }).catch(function () {});
+            }
+          } catch (err) {}
+        }, true);
+      })();
+    </script>
     {showAdSenseSnippet && (
       <script
         async

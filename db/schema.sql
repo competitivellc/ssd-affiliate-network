@@ -137,6 +137,20 @@ CREATE TABLE IF NOT EXISTS link_audit_log (
   failure_reason TEXT
 );
 
+-- Server-side affiliate-click attribution beacon (independent of cookie
+-- consent). One row per affiliate Special Link click, captured via a passive
+-- sendBeacon POST from the client listener in BaseLayout.astro. No PII (no
+-- IP, no UA, no cookies) — first-party analytics only, Amazon-compliant.
+CREATE TABLE IF NOT EXISTS affiliate_clicks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  site_id TEXT NOT NULL REFERENCES sites(id),
+  page_path TEXT NOT NULL,
+  product_slug TEXT,
+  retailer TEXT,
+  cta_label TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_products_site_category ON products(site_id, category_id);
 CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
 CREATE INDEX IF NOT EXISTS idx_products_model_family ON products(model_family);
@@ -148,3 +162,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_affiliate_lookup ON affiliate_configs(site
 CREATE INDEX IF NOT EXISTS idx_hubs_site_active ON hubs(site_id, is_active);
 CREATE INDEX IF NOT EXISTS idx_audit_checked ON link_audit_log(checked_at);
 CREATE INDEX IF NOT EXISTS idx_audit_pass ON link_audit_log(passed, checked_at);
+CREATE INDEX IF NOT EXISTS idx_affiliate_clicks_site_created ON affiliate_clicks(site_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_affiliate_clicks_slug ON affiliate_clicks(product_slug);
+CREATE INDEX IF NOT EXISTS idx_affiliate_clicks_page ON affiliate_clicks(page_path);
