@@ -11,7 +11,7 @@
 // Requires wrangler auth (OAuth token, as used for all D1 commands).
 // Run: node scripts/affiliate_clicks_report.js
 
-const { execSync } = require("child_process");
+import { execSync } from "node:child_process";
 
 const DB_NAME = "ssd-affiliate-db";
 
@@ -59,10 +59,14 @@ const QUERIES = [
 ];
 
 function runQuery(sql) {
-  const cmd = `npx wrangler d1 execute ${DB_NAME} --remote --command="${sql.replace(/"/g, '\\"')}" --json`;
+  const flat = sql.replace(/\s+/g, " ").trim();
   let raw;
   try {
-    raw = execSync(cmd, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    raw = execSync(`npx wrangler d1 execute ${DB_NAME} --remote --command="${flat.replace(/"/g, '\\"')}" --json`, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      shell: "cmd.exe",
+    });
   } catch (err) {
     const msg = String(err && err.stderr ? err.stderr : err);
     if (/no such table: affiliate_clicks/i.test(msg)) {
