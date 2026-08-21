@@ -448,6 +448,25 @@ export function generateValueEditorial(
   };
 }
 
+// Surgical hub CTR overrides (2026-08-21): GSC 90d shows 2 hub intents
+// ranking with high impressions but 0% CTR — the SERP snippet doesn't
+// match the exact query phrase the user typed. Override ONLY these
+// tenant+slug pairs; every other hub keeps its generic recipe.
+// Titles ≤58 chars so Google (~60) and Bing (~65) don't truncate.
+// No href/rel/tag change; Amazon Pol §2(b) unaffected.
+export const HUB_TITLE_OVERRIDES: Record<string, { title: string; h1: string; meta: string }> = {
+  "externalssds-best-ssd-for-xbox": {
+    title: "Best External SSD for Xbox (2026) — Speed & Price",
+    h1: "Best External SSD for Xbox — Speed & Price (2026)",
+    meta: "Best external SSD for Xbox (2026): 18 models compared — 1,050-3,000 MB/s, 1-4TB, console-tested speeds & current Amazon price. Xbox Series X|S & One ranked.",
+  },
+  "portablessds-cheapest-1tb-portable-ssd": {
+    title: "1TB Portable SSD Price (2026) — Cheapest Ranked",
+    h1: "1TB Portable SSD Price — Cheapest Ranked (2026)",
+    meta: "1TB portable SSD price (2026): 17 models ranked cheapest-first — specs, 1,050-3,000 MB/s, endurance & current Amazon price side-by-side.",
+  },
+};
+
 export function getHubEditorial(
   hubType: string,
   products: Product[],

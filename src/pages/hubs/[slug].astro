@@ -12,7 +12,7 @@ import {
   getHubsByType,
 } from "@lib/db";
 import type { Hub, Product, FilterCriteria, Price } from "@lib/db";
-import { getHubEditorial } from "@lib/hubs";
+import { getHubEditorial, HUB_TITLE_OVERRIDES } from "@lib/hubs";
 import type { HubEditorial } from "@lib/hubs";
 
 export async function getStaticPaths() {
@@ -74,8 +74,10 @@ const hubTypeLabels: Record<string, string> = {
 };
 
 const accentStyle = { backgroundColor: tenant.primaryColorDark };
-const title = hub.h1 || hub.name;
-const metaDesc = hub.meta_description || hub.description || "";
+const hubOverride = HUB_TITLE_OVERRIDES[`${tenant.id}-${hub.slug}`];
+const title = hubOverride?.title || hub.h1 || hub.name;
+const metaDesc = hubOverride?.meta || hub.meta_description || hub.description || "";
+const h1Override = hubOverride?.h1 || null;
 
 const hubUrl = `https://${hostname}/hubs/${hub.slug}`;
 const hubJsonLd = {
@@ -122,7 +124,7 @@ const hubJsonLd = {
       <p class="text-sm font-medium text-surface-700 uppercase tracking-wider">
         {hubTypeLabels[hub.hub_type]}
       </p>
-      <h1 class="text-2xl sm:text-3xl font-bold text-surface-900 mt-1">{hub.h1 || hub.name}</h1>
+      <h1 class="text-2xl sm:text-3xl font-bold text-surface-900 mt-1">{h1Override || hub.h1 || hub.name}</h1>
       {hub.description && (
         <p class="text-surface-700 mt-2 max-w-3xl">{hub.description}</p>
       )}

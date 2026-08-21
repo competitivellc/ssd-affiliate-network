@@ -57,16 +57,19 @@ if (categorySlug && !category) {
 const cleanCat = categoryName ? stripSsdSuffix(categoryName) : null;
 
 const tenantNoun = tenant.id === "portablessds" ? "Portable" : "External";
+// 2026-08-21: tighten portablessds title to avoid Bing truncation (was 67 chars,
+// Bing truncates ~65) and front-load the buying-guide query that drives
+// 45i pos4 + 25i pos7 on Bing with 0 clicks. Hub title fixes live in hubs.ts.
 const compareTitle = cleanCat
   ? `${cleanCat} ${tenantNoun} SSDs Compared (${new Date().getFullYear()}) — Specs, Speed & Price Side-by-Side`
   : tenant.id === "portablessds"
-    ? `Portable SSDs Compared (${new Date().getFullYear()}) — Specs, Speed, Price & Buying Guide`
+    ? `Portable SSDs Compared (${new Date().getFullYear()}) — Buying Guide & Prices`
     : `${tenantNoun} SSDs Compared (${new Date().getFullYear()}) — Specs, Speed & Price Side-by-Side`;
 
 const metaDesc = cleanCat
   ? `Side-by-side ${cleanCat.toLowerCase()} ${tenantNoun.toLowerCase()} SSD comparison: read/write speeds, capacity, USB interface, real-world benchmarks, and current best price for every model.`
   : tenant.id === "portablessds"
-    ? `Side-by-side ${tenantNoun.toLowerCase()} SSD comparison (${new Date().getFullYear()}): full specs, read/write speeds, USB interface, real-world benchmarks, and current best price — the buying guide for portable SSDs.`
+    ? `Portable SSDs buying guide (${new Date().getFullYear()}): 78 drives compared side-by-side — specs, 1,050-3,000 MB/s, capacity, interface & current Amazon price.`
     : `Side-by-side ${tenantNoun.toLowerCase()} SSD comparison (${new Date().getFullYear()}): full specs, read/write speeds, USB interface, real-world benchmarks, and current best price.`;
 
 const accentStyle = { backgroundColor: tenant.primaryColorDark };
