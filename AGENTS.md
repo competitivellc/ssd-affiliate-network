@@ -31,8 +31,8 @@
 >
 > (Legacy handoffs preserved below: 2026-08-07 GA4 outbound-click attribution block demoted to `RESULT (2026-08-07)`, 2026-08-09 AdSense infra at `RESULT (2026-08-09)`, 2026-08-05 T7 `/compare` overhaul at `RESULT (2026-08-05)`, 2026-08-03 catalog-expansion at `RESULT (2026-08-03)`.)
 
-> ## 🚨 START HERE — Bing-CTR v1 (owner-approved 2026-08-19, NO code changes until the Phase 1 gate)
-> **Full network audit performed 2026-08-19 (GSC + GA4 + BWMT + D1). Owner approved the "Bing-CTR v1" plan end-to-end. It is date-gated — do NOT pre-deploy. Current date: 2026-08-19 (2026-08-20 UTC).**
+> ## 🚨 START HERE — Bing-CTR v1 (owner-approved 2026-08-19; date-gate WAIVED 2026-08-20 — Phase 2 slug-map deployed early per the 2026-08-20 audit, see RESULT (2026-08-20) below)
+> **Full network audit performed 2026-08-19 (GSC + GA4 + BWMT + D1). Owner approved the "Bing-CTR v1" plan end-to-end. It was date-gated (do NOT pre-deploy) UNTIL 2026-08-20, when the owner approved an early Phase 2 slug-map deploy on the strength of new Google-side evidence (100% of last-7d clicks land on H2H URLs — see RESULT (2026-08-20)). Current date: 2026-08-20.**
 >
 > **Audit verdict**: revenue funnel = impressions (~4,750/mo, growing ~3.5×) → clicks (~7/mo) → Amazon clicks (**0 `affiliate_click` events, 28d, both properties**) → $0. Tags real (`ssdnetwork07-20`, US/GB/DE/CA/*). AdSense OFF (slot IDs empty; owner-blocked by Google "Getting ready" review). 80% of prices zero-priced (price-sync worker undeployed, needs PAAPI keys — owner). #1 agent-executable lever: **Bing CTR** — 186i/14d on portablessds at pos 4–7, 0.54% CTR, queries exact-matchable, and the network's only 2 Bing clicks ever happened at avg pos 1 with exact-phrase titles.
 >
@@ -47,15 +47,15 @@
 > **Phase 1 — Day +7 measurement gate (2026-08-23).** Run: `node scripts/bing_pull_traffic.js` + `node scripts/gsc_pull_revenue.js` + `node scripts/ga4_pull_traffic.js` (keep BWMT 14d window identical to baseline for comparability). Decision tree:
 > - **PASS** (any): port `/compare` Bing CTR ≥3%, OR `portable ssds comparison` or `portable ssds buying guide` CTR ≥3%, OR any f710700 product page ≥1 Bing click → **Phase 2 Branch A**.
 > - **FAIL** (all three still 0c): → **Phase 2 Branch B**.
-> - **AMBIGUOUS** (Bing impressions still flat at old levels = no re-crawl evidence): wait to 2026-08-26 (Day +10), single BWMT re-pull, THEN branch. No deploy on ambiguous data.
+> - **AMBIGUOUS** (Bing impressions still flat at old levels = no re-crawl evidence): wait to 2026-08-26 (Day +10), single BWMT re-pull, THEN verdict. The slug-map is ALREADY DEPLOYED (2026-08-20, owner-approved early deploy) — the wait now only affects the Branch A/B verdict and any follow-on work, NOT the slug-map itself.
 >
-> **Phase 2 — Implement (2026-08-23/24, ONLY after Phase 1 verdict).** Both branches ship the same new slug-map in `src/pages/compare/[slug].astro` (mirror the `HIGH_INTENT_BING_SLUGS` pattern at `src/pages/products/[slug].astro:106-134`, tenant-scoped, surgical — ONLY these 3 portablessds slugs, title ≤60 chars, H1 mirrors title, meta embeds exact query phrase):
+> **Phase 2 — Implement: DEPLOYED EARLY 2026-08-20 (owner-approved pre-gate deploy; commit `fb2ae40`).** Both branches ship the same new slug-map in `src/pages/compare/[slug].astro` (mirror the `HIGH_INTENT_BING_SLUGS` pattern at `src/pages/products/[slug].astro:106-134`, tenant-scoped, surgical — ONLY these 3 portablessds slugs, title ≤60 chars, H1 mirrors title, meta embeds exact query phrase):
 > | Slug | Title |
 > |---|---|
 > | `crucial-x9-pro-vs-samsung-t7-shield-portable` | `Crucial X9 Pro vs Samsung T7 Shield: Speed & Price` |
 > | `samsung-t9-portable-vs-sandisk-extreme-pro-portable` | `Samsung T9 vs SanDisk Extreme Pro: Which Is Faster?` |
 > | `samsung-t7-shield-portable-vs-sandisk-extreme-pro-portable` | `Samsung T7 Shield vs SanDisk Extreme Pro: Speed & Price` |
-> - **Branch A** (Bing pattern working): deploy the slug-map on top of the current recipe. **Branch B** (Bing flat): FIRST revert the net-negative 2026-08-06 H2H title recipe (per RESULT (2026-08-14) recommendation) via targeted edit (NOT blanket `git revert` — file has accumulated other changes), THEN deploy the same slug-map.
+> - **Branch A** (Bing pattern working): deploy the slug-map on top of the current recipe. **Branch B** (Bing flat): deploy the same slug-map directly — the 2026-08-06 H2H recipe is NOT reverted (superseded by RESULT (2026-08-20): 100% of the last-7d Google clicks land on H2H URLs at pos 2-27, CTR 7.7-100%; the revert would destroy the only URLs currently generating clicks).
 > - Deploy sequence (mandatory): commit → PAT-injection push (`git -c credential.helper= push $url main` per AGENTS.md Git Push Authentication) → `git fetch origin` → IndexNow sitemap submit BOTH tenants (Post-Deploy Checklist) → live DOM title verification of the 3 URLs.
 >
 > **Phase 3 — Day +14 close-out (2026-08-30).** Full 3-script pull; verdicts vs §1 of the plan (port Bing CTR ≥3%, ≥1 `affiliate_click` event, zero rank regression on any ≤pos-10 page); write `RESULT (2026-08-30)` blocks to AGENTS.md closing `b61fa74` + `f710700` gates. **Total failure** (all: Bing CTR ≤0.54% AND `portable ssds comparison` 0c AND `crucial x9 pro` 0c AND no Google gain): revert ALL title changes (`git revert b61fa74 --no-edit` + `git revert f710700 --no-edit` + revert new slug-map), push, document, pivot to next lever (cookieless server-side `affiliate_click` measurement via Worker → GA4 MP, or per-URL IndexNow of converting H2H URLs).
@@ -65,6 +65,35 @@
 > **Compliance guardrails (verify with `git diff` before every push):** ONLY `<title>`/`<meta name="description">`/`<h1>` touched; ZERO changes to `href=`/`rel=`/`target=`/`linkCode=`/`tag=`/`data-affiliate`; Amazon disclosure untouched; no price text/alerting; no AdSense changes (slot IDs stay empty); no new URL surface (no sitemap regen).
 >
 > **Owner-only (tracked separately, still blocked):** AdSense slot IDs (Google "Getting ready" review; 10-min step once cleared — largest potential dollar unlock, monetizes impressions without clicks); PAAPI keys + `npx wrangler deploy worker/price-sync.ts --name ssd-price-sync` (80% zero prices).
+
+### RESULT (2026-08-20): full-network audit + early Phase 2 slug-map deploy (commit `fb2ae40`, owner-approved)
+
+**Audit evidence (all pulled live 2026-08-20 — GSC, GA4, BWMT, page-level click attribution):**
+
+| Source | externalssds.com | portablessds.com |
+|---|---|---|
+| GSC 90d | 7c / 2,183i / CTR 0.32% / pos 34.4 | 12c / 2,566i / CTR 0.47% / pos 35.4 |
+| GSC 7d | **6c / 1,027i** / CTR 0.58% | 2c / 637i / CTR 0.31% |
+| GA4 28d | 22s / 2u / 41pv | 5s / 2u / 8pv |
+| GA4 `affiliate_click` (28d) | 0 | 0 |
+| BWMT 14d | 1c / 28i / 3.57% | 1c / 186i / 0.54% |
+
+**Click attribution — the key finding: ALL 8 clicks in the last 7 days landed on H2H `/compare/[slug]` URLs (page-level GSC pull, 2026-08-13 → 2026-08-20).** externalssds winners: `crucial-x10-pro-vs-crucial-x10-pro-2tb` (1c/13i pos16.8 CTR 7.7%), `crucial-x8-1tb-vs-samsung-t7-500gb` (1c/3i pos11 CTR 33%), `lacie-rugged-ssd-pro-1tb-vs-samsung-t9` (1c/2i pos4.5 CTR 50%), `transcend-esd310c-2tb-vs-samsung-t9-2tb` (1c/1i **pos 2.0** CTR 100%), `/products/kingston-xs2000-4tb` (1c/9i pos27 CTR 11%), `/products/patriot-evlvr-1tb` (1c/1i pos3 CTR 100%). portablessds winners: `lacie-rugged-ssd-portable-1tb-vs-wd-my-passport-ssd-portable-1tb` (1c/1i pos2 CTR 100%), `sandisk-extreme-portable-vs-wd-my-passport-ssd-portable-1tb` (1c/4i pos18.3 CTR 25%). The best query family on the network: `samsung t9 vs sandisk extreme pro` pos **5.3** / CTR 8.3% and `sandisk extreme pro vs samsung t9` pos **8.2** / CTR 16.7% (portablessds). A long-tail "X vs Y" family is now being crawled (7d: `crucial x8/x9` pos 4.7, `x10 vs x10 pro` pos 8-19, `ssk vs lexar` pos 4, `sandisk 2tb extreme pro vs samsung t7` 9i).
+
+**Overturned verdict: the 2026-08-14 "H2H title recipe net-negative" conclusion is DEAD.** The two URLs it declared "faded from top-20" (`crucial-x8-1tb-vs-samsung-t7-500gb`, `lacie-rugged-ssd-pro-1tb-vs-samsung-t9`) are now converting at pos 4-14 with CTR 33-50%. Google's re-judgement window for title changes ran 2-4 weeks, not the 8 days the 2026-08-14 RESULT measured. **Consequence: the Branch B "revert the 2026-08-06 H2H recipe" step was REMOVED from the plan this session — it would destroy the only URLs currently generating clicks.**
+
+**Decisions (owner-approved 2026-08-20, goal = max legal revenue velocity):**
+1. **Phase 2 slug-map deployed EARLY** (`fb2ae40`, this session) — 3 portablessds H2H URLs retitled (`Crucial X9 Pro vs Samsung T7 Shield: Speed & Price`; `Samsung T9 vs SanDisk Extreme Pro: Which Is Faster?`; `Samsung T7 Shield vs SanDisk Extreme Pro: Speed & Price`). Rationale: the 3 URLs already hold 151i/28d on Google + 24i/14d on Bing at 0-1.9% CTR; the retitles are exact-phrase matches for the converting query family; the date-gate existed to avoid acting on ambiguous data, but the Google-side evidence is unambiguous. Bing re-crawl runway before Phase 3 (2026-08-30) = ~10 days instead of ~4.
+2. **NO title extension beyond the 3 approved slugs** — the pos 4-19 zero-click candidates have 1-5i/7d (statistical noise); retitling would trigger re-judgement churn for zero measurable upside. Extension is **data-gated to the 2026-08-30 close-out**: only URLs with ≥10i/28d at pos ≤20 and 0c get retitled.
+3. Compliance: `git diff` = title/meta/H1 + docs only; zero `href`/`rel`/`target`/`linkCode`/`tag`/`data-affiliate` changes; disclosure untouched; no new URL surface → **IndexNow NOT required** for the code change (sitemap submit still runs per Post-Deploy Checklist).
+
+**Slug-map measurement gates (fold into existing pull sessions):**
+- **2026-08-23 (Day +3, doubles as b61fa74/f710700 Phase 1 gate):** BWMT page-level stats for the 3 URLs (baseline: 10i/8i/6i per 14d, 0c) + GSC page report for the same URLs (baseline: 88i/53i/10i per 28d). Target: ≥1 click on any of the 3 on either engine.
+- **2026-08-30 (Day +10, doubles as Phase 3 close-out):** full 3-script pull + beacon report; per-URL CTR deltas; data-gated extension decision (≥10i/28d at pos ≤20, 0c); write closing `RESULT (2026-08-30)` blocks.
+
+**Operational findings (not revenue-blocking but fixable):**
+1. **`node scripts/affiliate_clicks_report.js` is currently BROKEN** — `npx wrangler` OAuth token lacks D1 permission (Cloudflare API error 7403: "account not valid or not authorized"). The beacon's `affiliate_clicks` table (deployed 2026-08-20, 0 rows) cannot be read until the owner re-auths (`npx wrangler login` with full scopes) or sets a D1-scoped `CLOUDFLARE_API_TOKEN`. ~2 min owner step; needed for the 2026-08-23 gate's beacon cross-check.
+2. Bing flat at Day +4 post `b61fa74`/`f710700` (14d totals byte-identical to baseline) → Phase 1 gate on 2026-08-23 expected to land **AMBIGUOUS**; per plan, single BWMT re-pull on 2026-08-26 (Day +10) for the verdict. The slug-map is already live regardless.
 
 ### RESULT (2026-08-09): Google AdSense display-ad infrastructure (deployed 2026-08-09)
 
