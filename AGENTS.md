@@ -1,5 +1,11 @@
 ﻿# SSD Affiliate Network - Project Context
 
+> ## 🚨 START HERE — Measure gates for 1d9e076 + 3eadcd7 (2026-08-21 deploys) — NEXT AI MUST RUN
+> **Any AI opening this repo must run:** `node scripts/gsc_pull_revenue.js` + `node scripts/bing_pull_traffic.js` (+ `node scripts/ga4_pull_traffic.js` + `node scripts/affiliate_clicks_report.js` for cross-check).
+> - **Day+3 2026-08-24:** Bing `portable ssds comparison`+`buying guide` CTR `0%→≥3%` (baseline `45i pos4` + `25i pos7` `0c` on portablessds — `src/pages/compare.astro:62` tightened to `Buying Guide & Prices`). Also check `1d9e076` canonical `88+53→140i` consolidation on `samsung-t9-portable-vs-sandisk-extreme-pro-portable`.
+> - **Day+7 2026-08-28:** hub `best external ssd for xbox 18i pos20.2→≥1c` (ext `src/lib/hubs.ts:14` override) + hub `1 tb portable ssd price 17i pos27.9→≥1c` (port). Write `RESULT (YYYY-MM-DD)` block to `AGENTS.md` closing the gate.
+> - **Day+14 2026-08-30 close-out with `1d9e076`:** full 4-script pull; if all fail → rollback `git revert 3eadcd7 --no-edit` + PAT push per `AGENTS.md:Git Push Authentication` and document. The `3eadcd7` override titles are `≤58` chars, no `href/rel/tag/linkCode` change.
+>
 > ## 🚨 START HERE — latest: cookieless affiliate-click attribution beacon (deployed 2026-08-20, commits `e7f6984` + `fa62d77`, live on prod)
 > **What shipped**: a server-side click-attribution beacon that records EVERY affiliate Special Link click into D1's new `affiliate_clicks` table — **regardless of cookie consent** — closing the GA4 Consent Mode v2 attribution gap (previously `affiliate_click` = 0 events no matter what, per RESULT (2026-08-14) + 2026-08-19 audit).
 > - **Client**: passive capture-phase `document.addEventListener('click', ...)` on `a[data-affiliate="1"]` in `src/layouts/BaseLayout.astro` (new standalone `<script is:inline>` block, NOT inside the `gaMeasurementId` guard — GA4/Consent Mode v2 machinery untouched, byte-identical). Sends `{retailer, cta_label, product_slug, page_path}` via `navigator.sendBeacon('/api/affiliate-click')` (fetch+keepalive fallback). Never preventDefault, never modifies href/rel/target/linkCode/tag. Amazon-compliant first-party analytics; no PII (no IP/UA/cookies); the Special Link URL (Program Content) is never sent.
