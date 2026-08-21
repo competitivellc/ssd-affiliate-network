@@ -58,25 +58,33 @@ const mostPopularPricesByProduct: Record<number, Price[]> = Object.fromEntries(m
 // so the home-page links match the URLs Google has already discovered
 // in the sitemap.
 const H2H_CANDIDATES: Record<string, Array<[string, string]>> = {
+  // 2026-08-21 data-driven refresh: GSC 90d shows 20 clicks are 100% H2H
+  // and the home page is 0c/25i. The previous curated list missed 6/8
+  // current converters. New list is ordered by GSC impression leverage
+  // (converters first, then high-impression near-miss pairs). Every slug
+  // below was verified active in D1 for its tenant. The reverse-order
+  // 301 in compare/[slug].astro (2026-08-21) guarantees the canonical
+  // alphabetical href is what gets indexed, so the split 88i+53i pair
+  // (samsung-t9 vs sandisk) now consolidates to one URL.
   portablessds: [
-    ["samsung-t9-portable", "sandisk-extreme-pro-portable"], // the converting one — top placement
-    ["crucial-x9-pro", "samsung-t7-portable"],
-    ["crucial-x9-pro", "samsung-t7-shield-portable"],
-    ["crucial-x9-pro", "sandisk-extreme-pro-portable"],
-    ["crucial-x9-pro", "samsung-t9-portable"],
-    ["samsung-t7-portable", "samsung-t9-portable"],          // curated: t7 vs t9 buyer intent
-    ["sandisk-extreme-pro-portable", "samsung-t7-shield-portable"], // curated: rugged vs rugged
-    ["samsung-t7-portable", "sandisk-extreme-pro-portable"],  // curated: flagship vs flagship
+    ["samsung-t9-portable", "sandisk-extreme-pro-portable"], // 1c/88i+1c/53i=141i combined — #1 leverage — must stay position 1
+    ["crucial-x6-portable-1tb", "crucial-x9-pro"],           // 1c/22i pos9.5
+    ["sandisk-extreme-portable", "wd-my-passport-ssd-portable-1tb"], // 1c/10i pos13.5
+    ["kingston-xs2000-portable-1tb", "lexar-sl100-pro-portable-2tb"], // 1c/6i pos9.0
+    ["lacie-rugged-ssd-portable-1tb", "wd-my-passport-ssd-portable-1tb"], // 1c/5i pos12.4
+    ["seagate-one-touch-portable-1tb", "wd-my-passport-ssd-portable-1tb"], // 1c/5i pos12.2
+    ["crucial-x9-pro", "samsung-t7-shield-portable"],         // slug-map target, 10i BWMT
+    ["crucial-x9-pro", "samsung-t7-portable"],                // 6i pre-deploy, still candidate
   ],
   externalssds: [
-    ["samsung-t7-shield-4tb", "sandisk-extreme-pro-4tb"],     // 4TB rugged vs 4TB rugged
-    ["samsung-t9", "samsung-t7-shield"],                      // premium vs rugged sibling
-    ["samsung-t9", "sandisk-extreme-pro-portable-2tb"],       // Gen 2x2 vs Gen 2
+    ["corsair-ex400u-usb4", "crucial-x10-pro-2tb"],           // new 1c/3i pos6.7 CTR33% — top
+    ["crucial-x10-pro", "crucial-x10-pro-2tb"],               // 1c/22i pos15.6
+    ["crucial-x8-1tb", "samsung-t7-500gb"],                   // 1c/6i pos14.2 CTR16%
+    ["lacie-rugged-ssd-pro-1tb", "samsung-t9"],               // 1c/2i pos4.5 CTR50%
+    ["transcend-esd310c-2tb", "samsung-t9-2tb"],               // 1c/1i pos2.0 CTR100%
+    ["samsung-t9", "samsung-t7-shield"],                      // curated sibling, preserves link equity
+    ["samsung-t7-shield-4tb", "sandisk-extreme-pro-4tb"],     // 4TB rugged vs rugged
     ["samsung-t7-shield-4tb", "samsung-t9-4tb"],              // 4TB buyer intent
-    ["crucial-x9-pro-2tb", "samsung-t7-2tb"],                 // 2TB value buyer intent
-    ["samsung-t7-shield", "samsung-t9"],                     // base vs base
-    ["samsung-t7-2tb", "samsung-t7-shield-2tb"],              // T7 vs T7 Shield sibling
-    ["samsung-t7-shield", "sandisk-extreme-pro-portable-1tb"],
   ],
 };
 

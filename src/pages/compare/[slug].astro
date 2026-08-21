@@ -17,6 +17,17 @@ if (parts.length !== 2) {
 
 const [slugA, slugB] = parts;
 
+// Canonical H2H consolidation (2026-08-21): Google was ranking both
+// A-vs-B and B-vs-A as separate 200s (e.g. portablessds
+// samsung-t9-portable-vs-sandisk-extreme-pro 88i pos17.3 +
+// sandisk-extreme-pro-vs-samsung-t9 53i pos8.8 = 141i split).
+// The sitemap (sitemap.xml.ts:177) emits only the alphabetically-first
+// order; the reverse must 301 to the canonical to consolidate signal.
+if (slugA > slugB) {
+  const [first, second] = slugA < slugB ? [slugA, slugB] : [slugB, slugA];
+  return Astro.redirect(`/compare/${first}-vs-${second}`, 301);
+}
+
 const allProducts = await getAllProducts(db, tenant.id);
 const productA = allProducts.find((p) => p.slug === slugA);
 const productB = allProducts.find((p) => p.slug === slugB);
