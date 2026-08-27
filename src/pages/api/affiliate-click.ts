@@ -21,10 +21,20 @@ const MAX_PRODUCT_SLUG = 120;
 const MAX_RETAILER = 32;
 const MAX_CTA = 64;
 
+const BOT_RE = /bot|crawl|spider|slurp|mediapartners|adsbot|googlebot|bingbot|yandex|baidu|semrush|ahrefs|mj12bot|dotbot|seokicks|petalbot/i;
+
 export const POST: APIRoute = async ({ locals, request }) => {
   const { DB, tenant } = locals;
   if (!DB || !tenant) {
     return new Response("Internal server error", { status: 500 });
+  }
+
+  // Bot filter: drop crawler probers (Googlebot/Bingbot/MJ12/etc) that fetch
+  // pages without executing JS but may still POST if they replay the beacon.
+  // Human clicks still POST; bots never execute the capture-phase listener.
+  const ua = request.headers.get("user-agent") || "";
+  if (BOT_RE.test(ua)) {
+    return new Response(null, { status: 204, headers: { "Cache-Control": "no-store" } });
   }
 
   const contentLength = Number(request.headers.get("content-length") || "0");

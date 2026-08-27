@@ -460,6 +460,11 @@ export const HUB_TITLE_OVERRIDES: Record<string, { title: string; h1: string; me
     h1: "Best External SSD for Xbox — Speed & Price (2026)",
     meta: "Best external SSD for Xbox (2026): 18 models compared — 1,050-3,000 MB/s, 1-4TB, console-tested speeds & current Amazon price. Xbox Series X|S & One ranked.",
   },
+  "externalssds-best-ssd-for-mac": {
+    title: "Best External SSD for MacBook (2026) — Speed & Price",
+    h1: "Best External SSD for MacBook — Speed & Price (2026)",
+    meta: "Best external SSD for MacBook (2026): 18 models compared — APFS, Thunderbolt/USB4 speeds & current Amazon price. Mac-tested & ranked.",
+  },
   "portablessds-cheapest-1tb-portable-ssd": {
     title: "1TB Portable SSD Price (2026) — Cheapest Ranked",
     h1: "1TB Portable SSD Price — Cheapest Ranked (2026)",

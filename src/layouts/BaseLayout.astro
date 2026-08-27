@@ -186,6 +186,11 @@ const websiteJsonLd = {
       (function () {
         if (document.__affBeacon) return;
         document.__affBeacon = true;
+        // Client-side bot guard mirrors the server BOT_RE — crawlers that
+        // somehow execute JS still don't produce human outbound clicks.
+        var BOT_RE = /bot|crawl|spider|slurp|mediapartners|adsbot|googlebot|bingbot|yandex|baidu|semrush|ahrefs|mj12bot|dotbot|seokicks|petalbot/i;
+        var isBot = BOT_RE.test(navigator.userAgent || '');
+        if (isBot) return;
         document.addEventListener('click', function (e) {
           var t = e.target;
           if (!t || !t.closest) return;
