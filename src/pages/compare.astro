@@ -63,13 +63,13 @@ const tenantNoun = tenant.id === "portablessds" ? "Portable" : "External";
 const compareTitle = cleanCat
   ? `${cleanCat} ${tenantNoun} SSDs Compared (${new Date().getFullYear()}) — Specs, Speed & Price Side-by-Side`
   : tenant.id === "portablessds"
-    ? `Portable SSDs Compared (${new Date().getFullYear()}) — Buying Guide & Prices`
+    ? `Portable SSDs Comparison (${new Date().getFullYear()}) — 78 Drives, Buying Guide & Prices`
     : `${tenantNoun} SSDs Compared (${new Date().getFullYear()}) — Specs, Speed & Price Side-by-Side`;
 
 const metaDesc = cleanCat
   ? `Side-by-side ${cleanCat.toLowerCase()} ${tenantNoun.toLowerCase()} SSD comparison: read/write speeds, capacity, USB interface, real-world benchmarks, and current best price for every model.`
   : tenant.id === "portablessds"
-    ? `Portable SSDs buying guide (${new Date().getFullYear()}): 78 drives compared side-by-side — specs, 1,050-3,000 MB/s, capacity, interface & current Amazon price.`
+    ? `Portable SSDs comparison & buying guide (${new Date().getFullYear()}): 78 drives compared side-by-side — specs, 1,050-3,000 MB/s, capacity, interface & current Amazon price.`
     : `Side-by-side ${tenantNoun.toLowerCase()} SSD comparison (${new Date().getFullYear()}): full specs, read/write speeds, USB interface, real-world benchmarks, and current best price.`;
 
 const accentStyle = { backgroundColor: tenant.primaryColorDark };
@@ -485,7 +485,7 @@ function barColor(index: number): string {
         {cleanCat
           ? `${cleanCat} SSDs Compared`
           : tenant.id === "portablessds"
-            ? "Portable SSDs Compared: Specs, Speed, Price & Buying Guide"
+            ? "Portable SSDs Comparison: 78 Drives, Specs, Speed, Price & Buying Guide"
             : `${tenantNoun} SSDs Compared`}
       </h1>
       {categoryName && (
