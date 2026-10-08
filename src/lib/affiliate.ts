@@ -11,6 +11,11 @@
 //      VERBATIM — those URLs already carry the correct Special Link format
 //      per Amazon Pol §6(a) line 363 ("You will not add to, delete from, or
 //      otherwise alter any Program Content in any way").
+//   4. Non-US marketplaces localize the host to the visitor's storefront
+//      (https://<local-host>/dp/<ASIN>?tag=<local-tag>) once a distinct
+//      territory-valid tag is provisioned in affiliate_configs. Until then
+//      the localReady gate keeps the legacy verbatim fallback byte-identical
+//      (never tags a foreign host with the US tag).
 //
 // Satisfies Amazon Associates Program Policies (April 14, 2026):
 //   - Pol §2(a)/(b): Special Link uses the assigned Associates ID
@@ -110,8 +115,25 @@ export async function buildAffiliateUrl(
   const tagInfo = await getAffiliateTag(ctx.db, ctx.siteId, ctx.retailer, ctx.country, marketplace);
 
   switch (ctx.retailer) {
-    case "Amazon":
-      return rewriteAmazon(parsed, tagInfo, ctx.urlSource, ctx.useCartExtend, marketplace);
+    case "Amazon": {
+      // Phase 1 (2026-10-07 plan): non-US visitors must reach their local
+      // storefront with a territory-valid tag. Until the owner provisions
+      // real DE/GB/CA tags, all marketplace rows carry the same US tag, so
+      // localization stays inert (byte-identical fallback). Once a
+      // marketplace row holds a distinct tag, localized /dp/ASIN links go
+      // live automatically with no further code change.
+      if (marketplace === "US") {
+        return rewriteAmazon(parsed, tagInfo, ctx.urlSource, ctx.useCartExtend, marketplace, false);
+      }
+      let usTag: { tag: string } | null = null;
+      try {
+        usTag = await getAffiliateTag(ctx.db, ctx.siteId, ctx.retailer, "US", "US");
+      } catch {
+        usTag = null;
+      }
+      const localReady = !!(tagInfo?.tag && usTag?.tag && tagInfo.tag !== usTag.tag);
+      return rewriteAmazon(parsed, tagInfo, ctx.urlSource, ctx.useCartExtend, marketplace, localReady);
+    }
     case "B&H Photo":
       return rewriteBHPhoto(parsed, tagInfo);
     case "Newegg":
@@ -121,51 +143,92 @@ export async function buildAffiliateUrl(
   }
 }
 
+function extractAsin(parsed: URL): string | null {
+  const m = parsed.pathname.match(/\/(?:dp|gp\/product|gp\/aw\/d)\/([A-Z0-9]{10})(?:[/?]|$)/);
+  return m ? m[1] : null;
+}
+
 function rewriteAmazon(
   parsed: URL,
   tagInfo: { tag: string; linkCode: string | null; linkId: string | null } | null,
   urlSource: UrlSource | undefined,
   useCartExtend: boolean | undefined,
-  marketplace: string
+  marketplace: string,
+  // True only when the marketplace row holds a distinct territory-valid tag
+  // (differs from the US global tag). False until the owner provisions
+  // DE/GB/CA tags — preserves today's verbatim fallback byte-for-byte.
+  localReady: boolean
 ): string | null {
-  const expectedHost = AMAZON_HOSTS[marketplace] || AMAZON_HOSTS.US;
-
-  // Pol §2(e) + §5(v): NEVER cross-rewrite a URL pointed at a different Amazon
-  // storefront than the visitor's marketplace. If the stored URL is on
-  // amazon.de but the visitor is from US, a click would land them on a
-  // marketplace they didn't intend. Pass through verbatim and let the
-  // visitor decide.
-  if (parsed.hostname !== expectedHost) {
-    return parsed.toString();
-  }
-
   // Pol §6(a) line 363: PA-API-sourced Amazon URLs are Amazon-blessed Special
-  // Links (the URL Amazon returned via PA-API already carries the correct
-  // tag + linkCode + linkId in canonical form). Return unaltered.
+  // Links. Always pass through verbatim, on any host — never re-tag, never
+  // localize, never alter.
   if (urlSource === "paapi") {
     return parsed.toString();
   }
 
-  // Pol §2(a): Special Link MUST use the assigned Associates ID. No tag = no
-  // rewrite; refuse to emit a bare Amazon URL that wouldn't credit the
-  // Associate. Caller should render nothing in this case.
-  if (!tagInfo?.tag) {
-    return null;
+  const expectedHost = AMAZON_HOSTS[marketplace] || AMAZON_HOSTS.US;
+  const isUS = marketplace === "US" || expectedHost === AMAZON_HOSTS.US;
+
+  // US path — unchanged legacy behavior.
+  if (isUS) {
+    // Pol §2(e) + §5(v): NEVER cross-rewrite a URL pointed at a different Amazon
+    // storefront than the visitor's marketplace. If the stored URL is on
+    // amazon.de but the visitor is from US, a click would land them on a
+    // marketplace they didn't intend. Pass through verbatim and let the
+    // visitor decide.
+    if (parsed.hostname !== expectedHost) {
+      return parsed.toString();
+    }
+
+    // Pol §2(a): Special Link MUST use the assigned Associates ID. No tag = no
+    // rewrite; refuse to emit a bare Amazon URL that wouldn't credit the
+    // Associate. Caller should render nothing in this case.
+    if (!tagInfo?.tag) {
+      return null;
+    }
+
+    parsed.searchParams.set("tag", tagInfo.tag);
+
+    // Pol §1(c)(i) line 128: linkCode=ll1 enables the 89-day Add-to-Cart
+    // grace window, instead of the 24h direct-session window. Opt-in only
+    // for high-intent CTAs (per Plan B3).
+    const wantLinkCode = useCartExtend && (tagInfo.linkCode || "ll1");
+    if (wantLinkCode) {
+      parsed.searchParams.set("linkCode", wantLinkCode);
+      if (tagInfo.linkId) {
+        parsed.searchParams.set("linkId", tagInfo.linkId);
+      }
+    }
+
+    return parsed.toString();
   }
 
-  parsed.searchParams.set("tag", tagInfo.tag);
-
-  // Pol §1(c)(i) line 128: linkCode=ll1 enables the 89-day Add-to-Cart
-  // grace window, instead of the 24h direct-session window. Opt-in only
-  // for high-intent CTAs (per Plan B3).
-  const wantLinkCode = useCartExtend && (tagInfo.linkCode || "ll1");
-  if (wantLinkCode) {
-    parsed.searchParams.set("linkCode", wantLinkCode);
-    if (tagInfo.linkId) {
-      parsed.searchParams.set("linkId", tagInfo.linkId);
+  // Non-US path — localize only when a distinct territory tag is provisioned.
+  // Constructs the canonical Special Link form for the visitor's storefront
+  // (https://<local-host>/dp/<ASIN>?tag=<local-tag>) from the stored US URL's
+  // ASIN. ASINs are catalog identifiers, not Program Content, so rebuilding
+  // the host path around the same ASIN with the correct tag is tag injection
+  // (Pol §2(a)/(b)), not content alteration (Pol §6(a) covers PA-API URLs,
+  // which already returned verbatim above).
+  if (localReady && tagInfo?.tag) {
+    const asin = extractAsin(parsed);
+    if (asin) {
+      const loc = new URL(`https://${expectedHost}/dp/${asin}`);
+      loc.searchParams.set("tag", tagInfo.tag);
+      const wantLinkCode = useCartExtend && (tagInfo.linkCode || "ll1");
+      if (wantLinkCode) {
+        loc.searchParams.set("linkCode", wantLinkCode);
+        if (tagInfo.linkId) {
+          loc.searchParams.set("linkId", tagInfo.linkId);
+        }
+      }
+      return loc.toString();
     }
   }
 
+  // Fallback — today's behavior byte-for-byte: verbatim stored URL, no tag
+  // injected on a foreign host, no mis-attribution. International visitors
+  // keep landing on amazon.com until real territory tags land.
   return parsed.toString();
 }
 
