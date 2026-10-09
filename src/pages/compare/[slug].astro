@@ -3,6 +3,7 @@ import BaseLayout from "@layouts/BaseLayout.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
 import GeoAffiliateLink from "@components/GeoAffiliateLink.astro";
 import { getAllProducts, getProductPricesFresh } from "@lib/db";
+import { isH2hIndexed } from "@lib/h2hQuarantine";
 import { getLowestPrice } from "@lib/pricing";
 import type { Product, Price } from "@lib/db";
 
@@ -233,12 +234,37 @@ if (bingOverride) {
   var finalH1 = compareSlugH1;
   var finalMeta = compareSlugMeta;
 }
+
+// --- Phase 3 H2H quarantine (2026-10-09 plan, AdSense "Low value content"
+// root cause: 6,166/6,411 URLs are programmatic H2H pairs). Keepers (per
+// src/lib/h2hQuarantine.ts) stay "index, follow"; everything else goes
+// "noindex, follow" — equity still flows via follow + untouched internal
+// links, no 404s, no redirects, no affiliate-surface change.
+const isKeeper = isH2hIndexed(tenant.id, slug);
+
+// Data-driven speed verdict for keepers (original per URL by construction:
+// values differ on every pair). Rendered ONLY on keepers so quarantined
+// pages gain no new indexable surface. Numbers restate the spec table
+// (Amazon Pol §2(b) "no misleading claims"); SVG is hand-built original,
+// no scraped product photos (borrowed images are their own AdSense
+// rejection reason).
+const maxBarSpeed = Math.max(productA.read_speed_mbps, productB.read_speed_mbps, productA.write_speed_mbps, productB.write_speed_mbps, 1);
+const barWidth = (mbps: number): number => Math.max(8, Math.round((mbps / maxBarSpeed) * 360));
+const readFaster = productA.read_speed_mbps >= productB.read_speed_mbps ? productA : productB;
+const readSlower = readFaster.id === productA.id ? productB : productA;
+const readGapPct = readSlower.read_speed_mbps > 0
+  ? Math.round(((readFaster.read_speed_mbps - readSlower.read_speed_mbps) / readSlower.read_speed_mbps) * 100)
+  : 0;
+const verdictText = readGapPct > 0
+  ? `The ${readFaster.name} reads ${readGapPct}% faster than the ${readSlower.name} (${readFaster.read_speed_mbps.toLocaleString()} vs ${readSlower.read_speed_mbps.toLocaleString()} MB/s) over ${readFaster.interface}. For sustained writes the gap is ${productA.write_speed_mbps.toLocaleString()} vs ${productB.write_speed_mbps.toLocaleString()} MB/s — check the table above against your workload before buying.`
+  : `Both drives read at ${productA.read_speed_mbps.toLocaleString()} MB/s — buy on writes (${productA.write_speed_mbps.toLocaleString()} vs ${productB.write_speed_mbps.toLocaleString()} MB/s), capacity, endurance, and current price instead of headline speed.`;
 ---
 
 <BaseLayout
   title={finalTitle}
   description={finalMeta}
   jsonLd={faqJsonLd}
+  robots={isKeeper ? "index, follow" : "noindex, follow"}
 >
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Compare", href: "/compare" }, { label: `${productA.name} vs ${productB.name}` }]} />
@@ -348,6 +374,32 @@ if (bingOverride) {
         </div>
       </div>
     </section>
+
+    {isKeeper && (
+      <section class="mb-8">
+        <h2 class="text-xl font-semibold text-surface-900 mb-4">Speed Verdict</h2>
+        <div class="rounded-xl border border-surface-300 p-5">
+          <svg viewBox="0 0 640 210" role="img" class="w-full h-auto" aria-label={`Read and write speed comparison: ${productA.name} versus ${productB.name}`}>
+            <title>{`${productA.name} vs ${productB.name}: ${fmtSpeed(productA.read_speed_mbps)} / ${fmtSpeed(productA.write_speed_mbps)} reads/writes against ${fmtSpeed(productB.read_speed_mbps)} / ${fmtSpeed(productB.write_speed_mbps)}`}</title>
+            <text x="0" y="18" font-size="13" font-weight="600" fill="#1f2937">Read speed</text>
+            <text x="0" y="52" font-size="12" fill="#374151">{productA.name.length > 26 ? `${productA.name.slice(0, 25)}…` : productA.name}</text>
+            <rect x="170" y="38" width={barWidth(productA.read_speed_mbps)} height="18" rx="4" fill={productA.read_speed_mbps >= productB.read_speed_mbps ? "#047857" : "#94a3b8"} />
+            <text x={178 + barWidth(productA.read_speed_mbps)} y="52" font-size="12" fill="#111827">{fmtSpeed(productA.read_speed_mbps)}</text>
+            <text x="0" y="86" font-size="12" fill="#374151">{productB.name.length > 26 ? `${productB.name.slice(0, 25)}…` : productB.name}</text>
+            <rect x="170" y="72" width={barWidth(productB.read_speed_mbps)} height="18" rx="4" fill={productB.read_speed_mbps > productA.read_speed_mbps ? "#047857" : "#94a3b8"} />
+            <text x={178 + barWidth(productB.read_speed_mbps)} y="86" font-size="12" fill="#111827">{fmtSpeed(productB.read_speed_mbps)}</text>
+            <text x="0" y="122" font-size="13" font-weight="600" fill="#1f2937">Write speed</text>
+            <text x="0" y="156" font-size="12" fill="#374151">{productA.name.length > 26 ? `${productA.name.slice(0, 25)}…` : productA.name}</text>
+            <rect x="170" y="142" width={barWidth(productA.write_speed_mbps)} height="18" rx="4" fill={productA.write_speed_mbps >= productB.write_speed_mbps ? "#047857" : "#94a3b8"} />
+            <text x={178 + barWidth(productA.write_speed_mbps)} y="156" font-size="12" fill="#111827">{fmtSpeed(productA.write_speed_mbps)}</text>
+            <text x="0" y="190" font-size="12" fill="#374151">{productB.name.length > 26 ? `${productB.name.slice(0, 25)}…` : productB.name}</text>
+            <rect x="170" y="176" width={barWidth(productB.write_speed_mbps)} height="18" rx="4" fill={productB.write_speed_mbps > productA.write_speed_mbps ? "#047857" : "#94a3b8"} />
+            <text x={178 + barWidth(productB.write_speed_mbps)} y="190" font-size="12" fill="#111827">{fmtSpeed(productB.write_speed_mbps)}</text>
+          </svg>
+          <p class="mt-3 text-sm text-surface-700 leading-relaxed">{verdictText}</p>
+        </div>
+      </section>
+    )}
 
     <section class="mb-8">
       <h2 class="text-xl font-semibold text-surface-900 mb-4">Frequently Asked Questions</h2>

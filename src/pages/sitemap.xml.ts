@@ -4,6 +4,7 @@ import {
   getHubsBySite,
   getCategoriesBySite,
 } from "@lib/db";
+import { isH2hIndexed } from "@lib/h2hQuarantine";
 
 // Cache TTL shortened from 24h to 5m so per-route lastmod changes
 // (e.g. after a deploy) propagate to Googlebot within minutes, not a day.
@@ -158,13 +159,13 @@ async function buildSitemapXml(
     );
   }
 
-  // /compare/[slug] head-to-head combo pages. GSC shows these are
-  // already getting discovered via internal links (12i on
-  // samsung-t7-shield-portable-vs-samsung-t9-portable, etc.) but were
-  // absent from the sitemap — so Google couldn't be told "this URL
-  // matters, please recrawl". Emit all unique unordered product pairs
-  // using the `-vs-` separator that compare/[slug].astro parses.
-  // Skip pairs where either side is a redirected slug.
+  // /compare/[slug] head-to-head combo pages — QUARANTINED (Phase 3,
+  // 2026-10-09 plan, AdSense "Low value content" root cause). Emit ONLY the
+  // evidence-backed keepers in src/lib/h2hQuarantine.ts (converters + approved
+  // override slugs, canonical alphabetically-first form). Everything else
+  // stays crawlable via internal links with noindex+follow on the page, so
+  // equity consolidates instead of 404ing. Skip pairs where either side is a
+  // redirected slug.
   const pairSlugs = liveProducts.map((p) => p.slug);
   for (let i = 0; i < pairSlugs.length; i++) {
     for (let j = i + 1; j < pairSlugs.length; j++) {
@@ -175,10 +176,12 @@ async function buildSitemapXml(
       // sides the same way), but a stable URL form helps dedupe and
       // avoids emitting both A-vs-B and B-vs-A.
       const [first, second] = a < b ? [a, b] : [b, a];
+      const h2hSlug = `${first}-vs-${second}`;
+      if (!isH2hIndexed(tenant.id, h2hSlug)) continue;
       pushEntry(
         entries,
         seen,
-        `${baseUrl}/compare/${first}-vs-${second}`,
+        `${baseUrl}/compare/${h2hSlug}`,
         TODAY,
         "weekly",
         "0.5",

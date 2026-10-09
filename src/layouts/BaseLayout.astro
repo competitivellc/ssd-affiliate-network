@@ -10,10 +10,16 @@ export interface Props {
   description?: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
   canonical?: string;
+  /**
+   * Optional robots directive (Phase 3 H2H quarantine). Rendered ONLY when
+   * provided — all existing callers without this prop are byte-identical.
+   * H2H keepers pass "index, follow", quarantined pairs "noindex, follow".
+   */
+  robots?: string;
 }
 
 const { tenant, hostname } = Astro.locals;
-const { jsonLd, canonical: canonicalOverride } = Astro.props;
+const { jsonLd, canonical: canonicalOverride, robots } = Astro.props;
 const canonicalPath = (Astro.url.pathname.replace(/\/+$/, "") || "/");
 const canonicalUrl = canonicalOverride || `https://${hostname}${canonicalPath}`;
 const title = Astro.props.title
@@ -69,6 +75,7 @@ const websiteJsonLd = {
     <link rel="icon" type="image/svg+xml" href={tenant.id === "portablessds" ? "/favicon-portable.svg" : "/favicon-external.svg"} />
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalUrl} />
+    {robots && <meta name="robots" content={robots} />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />

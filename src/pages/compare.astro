@@ -60,10 +60,13 @@ const tenantNoun = tenant.id === "portablessds" ? "Portable" : "External";
 // 2026-08-21: tighten portablessds title to avoid Bing truncation (was 67 chars,
 // Bing truncates ~65) and front-load the buying-guide query that drives
 // 45i pos4 + 25i pos7 on Bing with 0 clicks. Hub title fixes live in hubs.ts.
+// 2026-10-09 (Phase 3): 66c → 47c. Keeps both exact-phrase Bing queries
+// ("comparison", "buying guide"); drops the "78 Drives & Prices" tail that
+// truncated in SERP. Meta/H1 untouched.
 const compareTitle = cleanCat
   ? `${cleanCat} ${tenantNoun} SSDs Compared (${new Date().getFullYear()}) — Specs, Speed & Price Side-by-Side`
   : tenant.id === "portablessds"
-    ? `Portable SSDs Comparison (${new Date().getFullYear()}) — 78 Drives, Buying Guide & Prices`
+    ? `Portable SSDs Comparison (${new Date().getFullYear()}) — Buying Guide`
     : `${tenantNoun} SSDs Compared (${new Date().getFullYear()}) — Specs, Speed & Price Side-by-Side`;
 
 const metaDesc = cleanCat
