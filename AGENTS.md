@@ -1197,3 +1197,43 @@ Top Bing keyword driving these impressions: `crucial x9 pro` (5i/14d, pos 5, 0c)
 
 **Owner action required**: none. This deploy is fully autonomous; no AdSense, no API keys, no D1 writes. AdSense activation remains blocked on Google's "Getting ready" review status (out of scope).
 
+
+### RESULT (2026-10-17): Bing CTR recovery pre-deploy baseline (commit pending)
+
+**Deploy:** Bing CTR recovery â€” portablessds /compare title/meta/H1 exact-match rewrite + externalssds crucial-x9-pro-2tb title override. Files: src/pages/compare.astro, src/pages/products/[slug].astro. Awaiting approval before push.
+
+**Pre-deploy baselines (captured 2026-10-17):**
+
+| Source | externalssds.com | portablessds.com | Combined |
+|--------|-----------|-------------|----------|
+| GSC 90d clicks / impr / CTR / pos | 10 / 2,962 / 0.34% / 35.6 | 11 / 2,574 / 0.43% / 36.0 | 21 / 5,536 / 0.38% / 35.8 |
+| GSC 7d clicks | 0 | 0 | 0 (flatlined 4+ weeks) |
+| BWMT 14d clicks / impr / CTR | 24 / 655 / 3.66% | 33 / 1,304 / 2.53% | 57 / 1,959 / 2.9% |
+| GA4 28d sessions / pageviews | 6 / 12 | 12 / 14 | 18 / 26 |
+| D1 affiliate_clicks beacon 30d | â€” | â€” | 25 |
+| Amazon dashboard 30d baseline | â€” | â€” | 108 clicks / 8 items / $878.23 / $24.23 earn |
+| D1 prices priced / zero-priced | â€” | â€” | 35 / 176 (20% priced) |
+| AdSense | OFF | OFF | OFF (no slot IDs) |
+
+**Target queries (BWMT 14d):**
+- portablessds /compare: `portable ssds comparison` ~31-47i pos 4-7, 0% CTR; `portable ssds buying guide` ~15-25i pos 7, 0% CTR
+- externalssds products: `crucial x9 pro 2tb` 4i pos 5, 0% CTR; `samsung t7 shield 2tb` 5i pos 5, 0% CTR
+
+**Current live titles (pre-change):**
+- portablessds /compare title: `Portable SSDs Comparison (2026) â€” Buying Guide`
+- portablessds /compare H1: `Portable SSDs Comparison: 78 Drives, Specs, Speed, Price & Buying Guide`
+- externalssds crucial-x9-pro-2tb: generic recipe (no override yet)
+
+**Measurement plan (post-deploy):**
+1. Day +3 (~2026-10-20): `node scripts/bing_pull_traffic.js` â€” confirm Bing re-crawled /compare via IndexNow; new title visible in BWMT
+2. Day +7 (~2026-10-24): `node scripts/bing_pull_traffic.js` + `node scripts/gsc_pull_revenue.js` â€” BWMT CTR on /compare lifts from 0% â†’ â‰¥2% on target queries; no Google rank regression >5 positions
+3. Day +14 (~2026-10-31): all scripts + Amazon dashboard cross-check â€” write closing RESULT block
+
+**Success criteria (any):**
+- BWMT portablessds /compare CTR â‰¥3% on `portable ssds comparison` / `portable ssds buying guide` within 14d
+- â‰¥1 incremental Bing click/14d on target URLs
+- No Google rank regression >5 positions on any tracked URL
+
+**Failure criteria (all):** Day +14 BWMT CTR still 0% on target queries AND no incremental clicks AND no Google regression â†’ revert both commits, document, pivot to owner-blocked levers (AdSense slot IDs, PAAPI keys).
+
+**Risk boundaries (unchanged):** No href/rel/target/linkCode/tag/data-affiliate changes; no Amazon disclosure change; no new URL surface; no price changes; no Google-facing experiments.
