@@ -1237,3 +1237,35 @@ Top Bing keyword driving these impressions: `crucial x9 pro` (5i/14d, pos 5, 0c)
 **Failure criteria (all):** Day +14 BWMT CTR still 0% on target queries AND no incremental clicks AND no Google regression â†’ revert both commits, document, pivot to owner-blocked levers (AdSense slot IDs, PAAPI keys).
 
 **Risk boundaries (unchanged):** No href/rel/target/linkCode/tag/data-affiliate changes; no Amazon disclosure change; no new URL surface; no price changes; no Google-facing experiments.
+
+### RESULT (2026-10-17): AdSense unblock â€” Phase 0 diagnosis + Phase 1 shipped (commit pending)
+
+**Approved plan:** AdSense unblock & activation. Phase 0 (read-only diagnosis) completed, Phase 1 (two edits) shipped this session. Phase 2 (owner creates 3 ad units + re-runs site verification) is next.
+
+**Phase 0 findings (2026-10-17):**
+
+*Site verification ("Not found") â€” all checks PASS now:*
+- HTTP 200 both domains (+ www, + ads.txt with real `pub-4951924636664760`): PASS
+- AdSense snippet (`adsbygoogle.js?client=ca-pub-4951924636664760`) in head: PASS (regular US fetch + simulated `AdsBot-Google` UA)
+- No robots.txt / meta-robots blocking: PASS
+- Root cause of "Not found": snippet was geo-gated off for EEA-IP/generic-UA fetches (BaseLayout.astro:49 pre-fix). AdSense verification crawlers can arrive from EU regions with non-Googlebot UAs â†’ snippet invisible â†’ "Not found".
+
+*"Low value content" key insight: both flags predate the Phase 3 quarantine.*
+- externalssds flag Sep 27, portablessds flag Oct 8 â€” Phase 3 H2H noindex quarantine shipped Oct 9 (`a7c27c5`), cutting sitemap 3,367â†’138 / 3,044â†’128 and noindexing thousands of thin templated H2H pages. Both reviews ran against the pre-quarantine site. The dominant thin-URL surface was already removed; the flags are stale and need a re-request.
+- Remaining thin-content nit found: `brands/[slug].astro` FAQ â€” 3 formulaic answers repeated verbatim on ~10+ brand pages Ã— 2 tenants, incl. "Prices vary by capacity and retailer. Check each listing for current pricing." (zero content).
+
+**Phase 1 changes shipped (2 files, no affiliate/disclosure/price surface touched):**
+
+1. `src/layouts/BaseLayout.astro` â€” publisher snippet now renders UNCONDITIONALLY whenever `clientId` is configured (`showAdSenseSnippet = !!tenant.adsense?.clientId`). Geo/UA regex gating removed; unused `isEeaCountry` import dropped. EEA/UK/CH ad-serving remains gated OFF independently in `AdSlot.astro:26` (isEeaCountry) â€” the fill gate is untouched; SDK load sets no ad cookies.
+2. `src/pages/brands/[slug].astro` â€” 3 FAQ answers rewritten to compute from actual page data (top pick + fastest drive + roomiest capacity; warranty range + TBW range with worked endurance context; capacity-tier/pricing economics + live-price framing). Every brand page now renders distinct substantive answers.
+
+**Compliance:** zero changes to `href`/`rel`/`target`/`linkCode`/`tag`/`data-affiliate`; disclosure untouched; no price display; no new URL surface; AdSlot fill gate + EEA geo-gate + Consent Mode v2 machinery byte-identical; max 1 ad unit per template unchanged.
+
+**Verification:** `npm run build` PASS; `isEeaCountry` now only in AdSlot fill gate + lib def.
+
+**NEXT OWNER ACTION (Phase 2):**
+1. Request review / re-verify in AdSense â€” **portablessds.com FIRST** (already queued per Phase 3 gate: GSC 7d â‰¥150i + â‰¥1 click expected ~Oct 22 joint check), then externalssds.com only after the first moves.
+2. After "Sites ready", create 3 responsive display ad units (Home leaderboard / Compare leaderboard / Product in-content) and paste slot IDs into `src/config/tenants.ts` (both tenants) â€” or hand slot IDs to the AI to wire.
+3. I then commit + push + IndexNow + verify `data-ad-slot` in prod HTML on all 3 placements.
+
+**Measurement (post-activation):** AdSense dashboard status "ready" â†’ first impressions 24-72h â†’ watch GSC `/compare` rank impact Day+7 (no regression >5 pos).

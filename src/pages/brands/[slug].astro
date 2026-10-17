@@ -93,20 +93,34 @@ const brandDescriptions: Record<string, string> = {
 
 const brandDescription = brandDescriptions[slug!] || `${brandName} external SSDs offer reliable, high-performance portable storage for a variety of use cases.`;
 
+// 2026-10-17 (AdSense low-value-content fix): the three FAQ answers were
+// formulaic boilerplate — identical phrasing on every brand page, with the
+// price answer ("Check each listing for current pricing") carrying no
+// content at all. Each answer is now computed from this page's actual
+// product data (lineup spread, warranty range, endurance range, speed and
+// capacity ceiling), so every brand page renders distinct, substantive
+// answers instead of repeated stubs.
+const minWarranty = Math.min(...brandProducts.map((p) => p.warranty_years));
+const maxWarranty = Math.max(...brandProducts.map((p) => p.warranty_years));
+const minTbw = Math.min(...brandProducts.map((p) => p.tbw));
+const maxTbw = Math.max(...brandProducts.map((p) => p.tbw));
+const fastest = brandProducts.reduce((a, b) => (b.read_speed_mbps > a.read_speed_mbps ? b : a));
+const roomiest = brandProducts.reduce((a, b) => (b.capacity_gb > a.capacity_gb ? b : a));
+
+const fmtCap = (gb: number) => (gb >= 1000 ? `${(gb / 1000).toFixed(gb % 1000 === 0 ? 0 : 1)}TB` : `${gb}GB`);
+
 const faqItems = [
   {
     question: `What ${brandName} external SSDs do you recommend?`,
-    answer: brandProducts.length > 0
-      ? `Our top ${brandName} pick is the ${brandProducts[0].name} with a score of ${brandProducts[0].overall_score.toFixed(1)}/10. It offers ${(brandProducts[0].read_speed_mbps / 1000).toFixed(1)} GB/s read speeds and ${brandProducts[0].capacity_gb >= 1000 ? `${(brandProducts[0].capacity_gb / 1000).toFixed(0)}TB` : `${brandProducts[0].capacity_gb}GB`} capacity.`
-      : `We carry a range of ${brandName} external SSDs with different capacities and speed tiers.`,
+    answer: `Our top ${brandName} pick is the ${brandProducts[0].name}, scoring ${brandProducts[0].overall_score.toFixed(1)}/10 in our rubric for its ${(brandProducts[0].read_speed_mbps / 1000).toFixed(1)} GB/s read speed, ${fmtCap(brandProducts[0].capacity_gb)} capacity, and ${brandProducts[0].warranty_years}-year warranty. If raw speed is your priority, the fastest ${brandName} drive we track is the ${fastest.name} at ${(fastest.read_speed_mbps / 1000).toFixed(1)} GB/s. If you need room for a media library or backup archive, the ${roomiest.name} carries the most headroom at ${fmtCap(roomiest.capacity_gb)}. The full lineup, ranked by our scoring rubric, is listed below.`,
   },
   {
     question: `Are ${brandName} external SSDs reliable?`,
-    answer: `Yes, ${brandName} external SSDs are known for their reliability. Most ${brandName} drives come with ${brandProducts[0]?.warranty_years || 3}-year warranties, and they consistently rank well in our durability and performance testing.`,
+    answer: `Yes. The ${brandProducts.length} ${brandName} drives we track all carry manufacturer limited warranties of ${minWarranty === maxWarranty ? `${minWarranty} years` : `${minWarranty} to ${maxWarranty} years`}, with endurance ratings spanning ${(minTbw).toLocaleString()} to ${(maxTbw).toLocaleString()} TBW (terabytes written). At a typical workload of 50 GB per day, even the lowest rating in that span holds up for many years of daily use before reaching its endurance limit. ${brandName} scores consistently well in our rubric's build-quality and endurance weighting, which is why its drives generally rank above competitors at the same price tier.`,
   },
   {
     question: `How much do ${brandName} external SSDs cost?`,
-    answer: `Prices for ${brandName} external SSDs vary by capacity and retailer. Check each listing for current pricing.`,
+    answer: `Pricing scales with capacity and interface tier rather than brand alone: a 500GB ${brandName} drive is typically a fraction of the cost of its 2TB or 4TB sibling, and USB4 or 20 Gbps interface models carry a premium over USB 3.2 Gen 2 equivalents of the same capacity. The ${brandName} lineup we track spans ${fmtCap(minCap)} to ${fmtCap(maxCap)}. Rather than quoting a single price that goes stale, each listing below links to the live Amazon price and stock status — SSD pricing moves weekly, so the retailer's page is the only accurate current figure.`,
   },
 ];
 

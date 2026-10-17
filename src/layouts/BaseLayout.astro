@@ -3,7 +3,6 @@ import "../styles/globals.css";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import CookieConsent from "@components/CookieConsent.astro";
-import { isEeaCountry } from "@lib/adsense";
 
 export interface Props {
   title?: string;
@@ -35,18 +34,19 @@ const logoUrl = `${siteUrl}${favicon}`;
 // a clientId configured — this is the exact tag AdSense's crawler looks for
 // during "code snippet" site verification, so it must be present in the HTML
 // even before any ad-unit slot IDs are configured. Consent gating happens at
-// the fill level (AdSlot.astro only pushes a fill request after cookie
-// consent is accepted); loading the SDK alone sets no ad cookies.
+// the fill level (AdSlot.astro renders zero units until a slot ID exists, and
+// its SDK governs ad cookies via Consent Mode v2); loading the SDK itself
+// sets no ad cookies, so the geo concern applies to ad SERVING, not to
+// SDK loading.
 //
-// EEA/UK/CH visitors are geo-gated OFF (Google requires a certified CMP
-// there — see adsense.ts), EXCEPT Google's own crawler user-agents
-// (Googlebot / AdsBot-Google / Mediapartners-Google): the verification
-// fetch must see the snippet regardless of which region Google's crawler
-// originates from. Crawlers never run the consent-gated fill flow, so this
-// bypass cannot serve ads to EEA users.
-const ua = Astro.request.headers.get("user-agent") || "";
-const isGoogleCrawler = /googlebot|adsbot-google|mediapartners-google/i.test(ua);
-const showAdSenseSnippet = !!(tenant.adsense?.clientId && (!isEeaCountry(Astro.locals.countryCode || "") || isGoogleCrawler));
+// 2026-10-17 (AdSense unblock): the snippet previously dropped this tag when
+// the fetch arrived from an EEA/UK/CH IP with a generic UA, which caused
+// AdSense site-verification "Not found" failures — Google's verification
+// crawlers can reach the site from EU regions with non-Googlebot UAs. The
+// tag is now unconditional whenever clientId is configured. EEA/UK/CH
+// ad-serving remains gated OFF independently in AdSlot.astro (isEeaCountry)
+// until a certified CMP is integrated — see src/lib/adsense.ts.
+const showAdSenseSnippet = !!tenant.adsense?.clientId;
 
 const organizationJsonLd = {
   "@context": "https://schema.org",
