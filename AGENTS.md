@@ -1269,3 +1269,39 @@ Top Bing keyword driving these impressions: `crucial x9 pro` (5i/14d, pos 5, 0c)
 3. I then commit + push + IndexNow + verify `data-ad-slot` in prod HTML on all 3 placements.
 
 **Measurement (post-activation):** AdSense dashboard status "ready" â†’ first impressions 24-72h â†’ watch GSC `/compare` rank impact Day+7 (no regression >5 pos).
+
+### RESULT (2026-10-20): full-network read-only audit + owner Amazon Oct-19 export + AdSense re-review confirmed (no code changes)
+
+**Session scope:** owner-mandated complete business audit, zero implementation. Pulled: GSC, GA4, BWMT (14d), Cloudflare RUM (28d, GraphQL `rumPageloadEventsAdaptiveGroups` via `SSD_CLOUDFLARE_WEB_ANALYTICS_API_TOKEN`), D1 beacon attempt (**STILL broken — 7403 "account not valid or not authorized"**; beacon unreadable since Aug, owner must `npx wrangler login` with full scopes or set a D1-scoped `CLOUDFLARE_API_TOKEN`), owner-provided Amazon Associates CSVs (Oct 19 single-day), live-prod verification of the two 2026-10-17 deploys.
+
+**Repo state — supersedes both 2026-10-17 blocks' "commit pending" notes:** `64bae76` (Bing CTR recovery) + `bd95216` (AdSense Phase 1) were committed AND pushed; both verified LIVE on prod 2026-10-20: port `/compare` title/H1 = `Portable SSDs Comparison & Buying Guide (2026)` exact-match form; ext `/products/crucial-x9-pro-2tb` override title live; AdSense publisher snippet present in ext prod HTML. Working tree clean at session start.
+
+**Fresh pull numbers (2026-10-20):**
+
+| Source | externalssds.com | portablessds.com |
+|---|---|---|
+| GSC 90d | 10c / 2,929i / 0.34% / pos 35.6 | 11c / 2,518i / 0.44% / pos 36.1 |
+| GSC 7d | 0c / 46i / pos 69.5 | 0c / 12i / pos 58.5 |
+| BWMT 14d | 24c / 655i / 3.66% | 33c / 1,304i / 2.53% |
+| GA4 28d sessions | 5 (AI Assistant 4, Direct 1) | 12 (Organic Search 4, Direct 7, AI Assistant 1) |
+| RUM 28d visits | 290 (~10.4/d) | 260 (~9.3/d) |
+
+**RUM detail (28d):** combined ~19.6 visits/day = record high (was ~14/d). US-dominant (ext 130, port 60); long-tail odd countries at ~10 each (ext: SG=50, LT/BR/PT/DZ/IN/GR/LV/KE/ES/UZ/MX; port: PK=30, ES=20, BR=20, RU/SK/IL/VN/EG/KE/VE/IN/ID/GB/PT). **Exactly 1 GB visit, 0 DE, 0 CA across both tenants** — the Phase 1 international localization lever is live but starved of localizable traffic. Top ext content URL = `/compare/crucial-x9-pro-2tb-vs-samsung-t7-shield-2tb` (30v/28d) — matches the #1 D1 beacon converter (6 clicks/30d, stale Oct 8). GA4 shows new "AI Assistant" channel (5 sessions network-wide). GA4 `affiliate_click` still 0 both (known consent-mode gap — D1 beacon is the real source, still unreadable). GA4 sessions undercount RUM ~30x — use RUM for volume, GA4 for channel/country/engagement mix only.
+
+**Amazon Associates (owner CSV export, Oct 19 single day, US program):** **140 clicks / 0 items ordered / $0 earnings.** Tracking-ID split: `ssdnetwork07-20` = 138, "Other" ID = 2. Category buckets: None 114c, Other 16c, Computers Tablets & Components 10c. Linked-Product buckets: ASIN None 114c, ASIN Other 26c. vs. Sep 07–Oct 06 baseline (108 clicks/30d = ~3.6/d): a 40x single-day click spike coinciding exactly with the RUM ext spike Oct 19 (70 visits vs ~10 normal). 0/140 conversion + ASIN "None" bucketing = bot/AI-agent link-following traffic, NOT a revenue event. **Zero international tag clicks (all on US tag) — expected given ~0 GB/DE/CA traffic; note UK/DE/CA programs are separate Associates accounts and can only be checked in their own dashboards, never this US export.** Do NOT optimize for click volume — earnings per RUM visit is the metric; Amazon filters third-party bot clicks internally and there is no policy exposure since we don't generate it. Monitor: if 100+/day clicks with 0 orders persists multiple days, classify as persistent junk traffic and exclude from KPIs.
+
+**STILL MISSING (owner):** Oct 7–20 RANGE export (daily clicks/items/revenue/earnings) — whether the $24.23/30d revenue pace HELD after the baseline window closed Oct 6 is unknown; Oct 19 alone shows $0.
+
+**Gate status updates:**
+- **Phase 3 quarantine (`a7c27c5`) Day+10 re-pull:** GSC 7d port = 12i (target >=80i) = FLAT → still AMBIGUOUS. No rollback trigger (Bing did NOT regress — port 33c/1,304i holds). Final verdict at Oct 22–23 joint pull per gate terms. Treat Google as dead for planning purposes; Bing (and, emerging, AI assistants) carry growth.
+- **Phase 1 international (`816a468`) Day+12:** zero international clicks confirmed on US dashboard (all `ssdnetwork07-20`); RUM confirms ~0 GB/DE/CA visitors. Day+14 (~Oct 22) step requires owner to check UK/DE/CA Associates dashboards (tag validity + first clicks) per the gate — do NOT touch code until then; Nov 5 close-out per gate.
+- **Bing CTR recovery (`64bae76`) + AdSense Phase 1 (`bd95216`) Day+3:** BWMT 14d totals byte-identical to Oct 17 baseline = Bing has NOT re-crawled the retitled pages yet → AMBIGUOUS, expected (1-4d lag). Early positive: ext keyword `crucial x9 pro 2tb` now 1c across 7i in two BWMT rows (3i row at CTR 33.33%) vs 4i/0c baseline — consistent with the retitle shipping but not attributable with confidence pre-re-crawl. **Next AI action: BWMT re-pull Oct 24–25 (Day+7).** If target-query CTR lifts → data-gated retitle extension candidates: `samsung t7 portable ssd comparison` (port 33i/14d 0c), `wd my passport ssd` (ext 24i/14d 0c), port `crucial x9 pro 2tb` (9i/14d 0c). If still flat by Oct 31 (Day+14) → revert both per 2026-10-17 failure criteria.
+- **AdSense:** owner RE-REQUESTED review on portablessds.com (confirmed by owner 2026-10-20, placed ~a few days after `bd95216` shipped). Now waiting on Google's re-review. If approved → owner creates 3 responsive ad units → slot IDs into `src/config/tenants.ts` (both tenants) → AI wires/verifies per RESULT (2026-10-17) Phase 2.
+
+**Owner queue (in priority order):**
+1. Amazon Oct 7–20 range export (daily category + tracking-ID + earnings) — closes the revenue-pace blind spot.
+2. UK/DE/CA Associates dashboards — tag validity (`ssdnetwork07-21`/`ssdnetwork002-21`/`ssdnetwork008-20`) + any first clicks (Phase 1 Day+14 gate, due ~Oct 22).
+3. Wrangler D1 re-auth (7403) — restores per-URL lead attribution (`scripts/affiliate_clicks_report.js`), broken since Aug.
+4. PAAPI/Creators API review status (8 sales vs 10-sale bar — fixes 80% zero prices).
+
+**AI discipline:** NO code changes until the Oct 24–25 BWMT re-pull resolves the in-flight retitle measurement (stacking changes would confound it). Oct 22–23: joint Phase 1/Phase 3 gate pull (BWMT + GSC + RUM + Amazon when owner provides range export).
