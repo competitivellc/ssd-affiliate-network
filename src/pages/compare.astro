@@ -47,6 +47,24 @@ const t7Best = t7Prices.length > 0 ? getLowestPrice(t7Prices as any) : null;
 const t7HeroVariantSlug = t7Anchor?.slug || null;
 const t7HeroVariantHref = t7HeroVariantSlug ? `/products/${t7HeroVariantSlug}` : null;
 
+// Evidence-ranked keeper comparisons for the "Most-Compared Head-to-Heads"
+// module (2026-11-07). ext /compare (50 RUM visits/28d; best Bing page
+// 6c/253i) and port /compare (228i/1c Bing) previously linked ZERO keeper
+// comparisons. Every href is a verified KEEP_INDEXED_H2H slug.
+const COMPARE_MODULE_LINKS: Record<string, Array<{ href: string; label: string }>> = {
+  externalssds: [
+    { href: "/compare/sandisk-extreme-portable-1tb-vs-seagate-one-touch-ssd-1tb", label: "SanDisk Extreme Portable 1TB vs Seagate One Touch SSD 1TB" }, // beacon 3c/30d; GSC 2c/11i CTR 18.2%
+    { href: "/compare/crucial-x9-pro-2tb-vs-samsung-t7-shield-2tb", label: "Crucial X9 Pro 2TB vs Samsung T7 Shield 2TB" }, // beacon 2c/30d; GSC 1c/25i
+    { href: "/compare/corsair-ex400u-usb4-vs-crucial-x10-pro-2tb", label: "Corsair EX400U USB4 vs Crucial X10 Pro 2TB" }, // GSC 1c/3i pos6.7 CTR 33%
+  ],
+  portablessds: [
+    { href: "/compare/samsung-t9-portable-vs-sandisk-extreme-pro-portable", label: "Samsung T9 vs SanDisk Extreme Pro Portable" }, // GSC 1c/22i
+    { href: "/compare/seagate-one-touch-portable-1tb-vs-wd-my-passport-ssd-portable-1tb", label: "Seagate One Touch vs WD My Passport SSD Portable 1TB" }, // GSC 1c/6i CTR 16.7%
+    { href: "/compare/sandisk-extreme-portable-vs-wd-my-passport-ssd-portable-1tb", label: "SanDisk Extreme Portable vs WD My Passport SSD 1TB" }, // GSC 1c/10i CTR 10%
+  ],
+};
+const compareModuleLinks = COMPARE_MODULE_LINKS[tenant.id] ?? [];
+
 const category = categorySlug ? categories.find((c) => c.slug === categorySlug) || null : null;
 const categoryName = category?.name || null;
 
@@ -748,6 +766,25 @@ function barColor(index: number): string {
                       </div>
                     );
                   })}
+                </div>
+              </section>
+            )}
+
+            {compareModuleLinks.length > 0 && (
+              <section class="mb-10">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-1 h-6 rounded-full" style={accentStyle}></div>
+                  <h2 class="text-2xl font-bold text-surface-900">Most-Compared Head-to-Heads</h2>
+                </div>
+                <div class="rounded-xl border border-surface-300 bg-surface-50/50 p-5">
+                  <ul class="space-y-2 text-sm">
+                    {compareModuleLinks.map((link) => (
+                      <li class="flex items-start gap-2">
+                        <span class="text-surface-400 mt-0.5">&rarr;</span>
+                        <a href={link.href} class="text-blue-800 hover:text-blue-900 font-medium">{link.label} comparison</a>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </section>
             )}

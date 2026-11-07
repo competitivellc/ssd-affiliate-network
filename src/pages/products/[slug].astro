@@ -135,8 +135,44 @@ const HIGH_INTENT_BING_SLUGS: Record<
       h1: "Crucial X9 Pro 2TB External SSD — Specs, Speed, Price & Review (2026)",
       meta: "Crucial X9 Pro 2TB external SSD review (2026): 1,050 MB/s reads over USB 3.2 Gen 2, full specifications, durability ratings, and the current Amazon price — compare against other external SSDs side by side.",
     },
+    "wd-my-passport-ssd": {
+      title: "WD My Passport SSD 1TB External SSD Specs, Price & Review (2026)",
+      h1: "WD My Passport SSD 1TB External SSD — Specs, Speed, Price & Review (2026)",
+      meta: "WD My Passport SSD 1TB external SSD review (2026): slim, pocket-sized drive with 1,050 MB/s reads over USB 3.2 Gen 2, 256-bit AES hardware encryption, 3-year warranty, full specifications, and the current Amazon price.",
+    },
   },
 };
+
+// Proven-converter comparison links — PARTICIPANT RULE: a product page links
+// only a keeper comparison that includes its own product. Fixes the
+// topCompetitor monoculture (every page previously linked only
+// `{slug}-vs-samsung-t9-2tb`, a noindex pair) by routing product-page equity
+// to the H2H keepers that actually earn clicks. Every href is a verified
+// KEEP_INDEXED_H2H slug (src/lib/h2hQuarantine.ts).
+const PROVEN_COMPARISON_LINKS: Record<
+  string,
+  Record<string, { href: string; label: string }>
+> = {
+  externalssds: {
+    "sandisk-extreme-portable-1tb": { href: "/compare/sandisk-extreme-portable-1tb-vs-seagate-one-touch-ssd-1tb", label: "SanDisk Extreme Portable 1TB vs Seagate One Touch SSD 1TB" },
+    "seagate-one-touch-ssd-1tb":     { href: "/compare/sandisk-extreme-portable-1tb-vs-seagate-one-touch-ssd-1tb", label: "Seagate One Touch SSD 1TB vs SanDisk Extreme Portable 1TB" },
+    "crucial-x9-pro-2tb":           { href: "/compare/crucial-x9-pro-2tb-vs-samsung-t7-shield-2tb", label: "Crucial X9 Pro 2TB vs Samsung T7 Shield 2TB" },
+    "samsung-t7-shield-2tb":        { href: "/compare/crucial-x9-pro-2tb-vs-samsung-t7-shield-2tb", label: "Samsung T7 Shield 2TB vs Crucial X9 Pro 2TB" },
+  },
+  portablessds: {
+    "samsung-t9-portable":            { href: "/compare/samsung-t9-portable-vs-sandisk-extreme-pro-portable", label: "Samsung T9 vs SanDisk Extreme Pro Portable" },
+    "sandisk-extreme-pro-portable":   { href: "/compare/samsung-t9-portable-vs-sandisk-extreme-pro-portable", label: "SanDisk Extreme Pro vs Samsung T9 Portable" },
+    "crucial-x9-pro":                 { href: "/compare/crucial-x6-portable-1tb-vs-crucial-x9-pro", label: "Crucial X6 1TB vs Crucial X9 Pro" },
+    "crucial-x6-portable-1tb":        { href: "/compare/crucial-x6-portable-1tb-vs-crucial-x9-pro", label: "Crucial X6 1TB vs Crucial X9 Pro" },
+    "seagate-one-touch-portable-1tb": { href: "/compare/seagate-one-touch-portable-1tb-vs-wd-my-passport-ssd-portable-1tb", label: "Seagate One Touch vs WD My Passport SSD Portable 1TB" },
+    "wd-my-passport-ssd-portable-1tb":{ href: "/compare/sandisk-extreme-portable-vs-wd-my-passport-ssd-portable-1tb", label: "SanDisk Extreme Portable vs WD My Passport SSD 1TB" },
+    "crucial-x9-pro-portable-2tb":    { href: "/compare/crucial-x9-pro-portable-2tb-vs-samsung-t7-shield-portable-2tb", label: "Crucial X9 Pro 2TB vs Samsung T7 Shield 2TB" },
+    "samsung-t7-shield-portable-2tb": { href: "/compare/crucial-x9-pro-portable-2tb-vs-samsung-t7-shield-portable-2tb", label: "Samsung T7 Shield 2TB vs Crucial X9 Pro 2TB" },
+  },
+};
+
+const provenComparisonLink =
+  PROVEN_COMPARISON_LINKS[tenant.id]?.[slug!] ?? null;
 
 const bingOverride = HIGH_INTENT_BING_SLUGS[tenant.id]?.[slug!];
 
@@ -645,6 +681,11 @@ const calloutText: Record<string, string> = {
               <p>
                 For a detailed head-to-head comparison, see our full <a href={`/compare/${product.slug}-vs-${topCompetitor.slug}`} class="text-blue-800 hover:text-blue-900 font-medium">{product.name} vs {topCompetitor.name} comparison</a>.
               </p>
+              {provenComparisonLink && (
+                <p>
+                  Buyers also compare: <a href={provenComparisonLink.href} class="text-blue-800 hover:text-blue-900 font-medium">{provenComparisonLink.label} comparison</a>.
+                </p>
+              )}
             </div>
           </section>
         )}
