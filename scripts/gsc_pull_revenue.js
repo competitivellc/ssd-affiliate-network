@@ -20,75 +20,116 @@ import { fileURLToPath } from 'node:url';
 //            "RESULT (2026-08-05)" baseline, and write a new RESULT block in
 //            AGENTS.md dated >= 2026-08-11. Target: /compare moves pos 7.5
 //            → top 5 on the buyer query; CTR ~1.5% → 4-6%.
-const RE_RUN = {
-  // Window derived from deploy date + AGENTS.md 7-14 day GSC re-run cadence.
-  windowStartISO: '2026-08-11T00:00:00Z',
-  windowEndISO: '2026-08-19T00:00:00Z',
-  // A RESULT header dated >= this day counts as the re-run having been recorded.
-  resultMustBeDatedOnOrAfter: '2026-08-11',
-  AGENTS_PATH: fileURLToPath(new URL('../AGENTS.md', import.meta.url)),
-  FORCE_FLAG: '--force',
-};
+const FORCE_FLAG = '--force';
+const AGENTS_PATH = fileURLToPath(new URL('../AGENTS.md', import.meta.url));
+
+// Mandatory re-run gates. Each entry = a deployed change whose effect must be
+// measured and proven in AGENTS.md. `resultMustBeDatedOnOrAfter` is the earliest
+// RESULT (YYYY-MM-DD) date that closes the gate. While a window is open this
+// script prints a loud mandatory banner; once the window closes with the gate
+// still unrecorded, the script BLOCKS (exit code 2) until the RESULT is written.
+// ADD NEW GATES HERE — never delete history.
+const RE_RUNS = [
+  {
+    label: '9329992 (2026-08-04) — /compare T7-buyer-query overhaul',
+    windowStartISO: '2026-08-11T00:00:00Z',
+    windowEndISO: '2026-08-19T00:00:00Z',
+    resultMustBeDatedOnOrAfter: '2026-08-11',
+    instructions: [
+      'Compare /compare position on `samsung t7 shield 4tb portable ssd amazon.com',
+      'price` against the "RESULT (2026-08-05)" baseline (pos 7.5). Target: top 5,',
+      'CTR ~1.5% -> 4-6%. Then write `### RESULT (YYYY-MM-DD)` in AGENTS.md.',
+    ],
+  },
+  {
+    label: '054f5eb (2026-11-07) — cheap-wins funnel deploy (plans/cheap-wins-2026-11-07.md)',
+    windowStartISO: '2026-11-10T00:00:00Z',
+    windowEndISO: '2026-11-22T00:00:00Z',
+    resultMustBeDatedOnOrAfter: '2026-11-21',
+    instructions: [
+      'Day+3 (Nov 10): node scripts/bing_pull_traffic.js + node scripts/affiliate_clicks_report.js',
+      '  - BWMT page /products/wd-my-passport-ssd CTR (baseline 22i/0c -> >=1c)',
+      '  - D1 beacon keeper clicks (ext converters baseline: 3 and 2 per 30d)',
+      'Day+7 (Nov 14): also this script + node scripts/ga4_pull_traffic.js + RUM GraphQL',
+      '  - GSC keeper impressions (ext #1 baseline 2c/11i pos 11.1; no regression >5)',
+      'Day+14 (Nov 21): full verdict, then write `### RESULT (2026-11-21)` in AGENTS.md.',
+      'Success (any): >=1 Bing click on the wd-my-passport page; OR >=1 incremental',
+      'keeper beacon click; OR keeper GSC impression growth without rank regression.',
+      'Failure (all flat): git revert 054f5eb --no-edit + PAT push + IndexNow both.',
+    ],
+  },
+];
 
 function checkReRunGate() {
   const args = process.argv.slice(2);
-  const forced = args.includes(RE_RUN.FORCE_FLAG);
+  const forced = args.includes(FORCE_FLAG);
   const now = new Date().toISOString();
   // ISO compare is safe while all dates share the YYYY-MM-DD format.
   const today = now.slice(0, 10);
 
-  // Read AGENTS.md and look for any `### RESULT (YYYY-MM-DD)` header dated on/after the target.
+  // Read AGENTS.md and look for any `### RESULT (YYYY-MM-DD)` header.
   let agentsMd = '';
-  try { agentsMd = readFileSync(RE_RUN.AGENTS_PATH, 'utf8'); } catch (e) { /* best-effort */ }
+  try { agentsMd = readFileSync(AGENTS_PATH, 'utf8'); } catch (e) { /* best-effort */ }
   const resultHeaders = [...agentsMd.matchAll(/^### RESULT \((\d{4}-\d{2}-\d{2})\)/gm)].map(m => m[1]);
-  const reRunRecorded = resultHeaders.some(d => d >= RE_RUN.resultMustBeDatedOnOrAfter);
+
+  const pendingGates = [];
+  const activeGates = [];
+  const recordedLabels = [];
+  let overdueGate = null;
+  for (const gate of RE_RUNS) {
+    const isRecorded = resultHeaders.some(d => d >= gate.resultMustBeDatedOnOrAfter);
+    if (isRecorded) { recordedLabels.push(gate.label); continue; }
+    if (now < gate.windowStartISO) pendingGates.push(gate);
+    else if (now < gate.windowEndISO) activeGates.push(gate);
+    else if (!overdueGate) overdueGate = gate;
+  }
 
   const bar = '='.repeat(72);
   const frame = (lines) => `\n${bar}\n${lines.map(l => `  ${l}`).join('\n')}\n${bar}\n`;
 
-  if (reRunRecorded) {
+  if (recordedLabels.length > 0) {
     console.log(frame([
       'GSC RE-RUN STATUS: recorded',
+      ...recordedLabels.map(l => `  Closed gate: ${l}`),
       `Latest RESULT in AGENTS.md: ${resultHeaders[resultHeaders.length - 1]}`,
       'If you are making NEW SEO changes, capture a fresh baseline per AGENTS.md.',
     ]));
-    return;
   }
 
-  if (now >= RE_RUN.windowEndISO) {
+  for (const gate of pendingGates) {
+    console.log(frame([
+      'GSC RE-RUN PENDING',
+      `Deploy ${gate.label}`,
+      `opens a mandatory re-run window ${gate.windowStartISO.slice(0, 10)} -> ${gate.windowEndISO.slice(0, 10)} (before then, ranking needs time to settle).`,
+      `Today: ${today}.`,
+      ...gate.instructions,
+    ]));
+  }
+
+  for (const gate of activeGates) {
+    console.log(frame([
+      '!!! GSC RE-RUN MANDATORY - ACTIVE WINDOW - RUN THE MEASUREMENT NOW !!!',
+      `Gate: ${gate.label}`,
+      `Window ${gate.windowStartISO.slice(0, 10)} -> ${gate.windowEndISO.slice(0, 10)} - closes BLOCKED (exit 2) if no RESULT is recorded.`,
+      `Today: ${today}.`,
+      ...gate.instructions,
+      'Run `node scripts/gsc_pull_revenue.js --force` only WHILE drafting that RESULT block.',
+    ]));
+  }
+
+  if (overdueGate) {
     console.error(frame([
-      '!!! GSC RE-RUN OVERDUE — MANDATORY ACTION BEFORE ANY FURTHER SEO WORK !!!',
-      'The re-run window (2026-08-11 → 2026-08-18) has CLOSED with no result',
+      '!!! GSC RE-RUN OVERDUE - MANDATORY ACTION BEFORE ANY FURTHER SEO WORK !!!',
+      `Gate: ${overdueGate.label}`,
+      `Window ${overdueGate.windowStartISO.slice(0, 10)} -> ${overdueGate.windowEndISO.slice(0, 10)} has CLOSED with no result`,
       'recorded in AGENTS.md.',
       '',
       'DO THIS NOW:',
-      '  1. Run `node scripts/gsc_pull_revenue.js --force` to pull the data.',
-      '  2. Compare /compare position on `samsung t7 shield 4tb portable ssd',
-      '     amazon.com price` against the "RESULT (2026-08-05)" baseline (pos 7.5).',
-      '  3. Write a new `### RESULT (YYYY-MM-DD)` block in AGENTS.md dated >=',
-      `     ${RE_RUN.resultMustBeDatedOnOrAfter}, then commit & push.`,
-      'This trigger persists until AGENTS.md records a RESULT. Do not proceed',
+      ...overdueGate.instructions.map(l => `  ${l}`),
+      'This trigger persists until AGENTS.md records the RESULT. Do not proceed',
       'on SEO tasks while it is armed.',
     ]));
     if (!forced) process.exit(2);
-  } else if (now >= RE_RUN.windowStartISO) {
-    console.log(frame([
-      'GSC RE-RUN MANDATORY — ACTIVE WINDOW (2026-08-11 → 2026-08-18)',
-      'Per AGENTS.md you MUST now re-run the measurement and write a RESULT.',
-      `Today: ${today}.`,
-      'Complete the re-run, record the RESULT block in AGENTS.md, commit & push',
-      'before doing further SEO work on this repo.',
-    ]));
-  } else {
-    console.log(frame([
-      'GSC RE-RUN PENDING',
-      `Deploy 9329992 (2026-08-04) opened a mandatory re-run window`,
-      `2026-08-11 → 2026-08-18 (before then, ranking needs time to settle).`,
-      `Today: ${today}.`,
-      'The re-run = run this script and write the RESULT block into AGENTS.md.',
-      'This script will remind you every run and BLOCK once the window closes',
-      'if no result is recorded.',
-    ]));
   }
 }
 

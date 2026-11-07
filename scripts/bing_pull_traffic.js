@@ -11,6 +11,18 @@
 // back half of the window has 0 Bing impressions. 14d gives a non-empty
 // snapshot for both tenants as of 2026-08-15.
 
+// MEASUREMENT GATE NOTICE (2026-11-07): the cheap-wins deploy `054f5eb` has
+// OPEN measurement gates. Day+3 Nov 10 (this script + beacon), Day+7 Nov 14
+// (+ GSC/GA4/RUM), Day+14 Nov 21 (closing RESULT required in AGENTS.md or
+// gsc_pull_revenue.js blocks with exit 2). Targets + baselines: AGENTS.md
+// START HERE block and `RESULT (2026-11-07)`.
+console.log('='.repeat(72));
+console.log('  MEASUREMENT GATES OPEN (cheap-wins 054f5eb) — see AGENTS.md RESULT (2026-11-07)');
+console.log('  Day+3 ~Nov 10: BWMT /products/wd-my-passport-ssd CTR (baseline 22i/0c) + beacon keeper clicks');
+console.log('  Day+7 ~Nov 14: + GSC keeper impressions (ext #1 baseline 2c/11i pos 11.1) + GA4 + RUM');
+console.log('  Day+14 ~Nov 21: closing RESULT (2026-11-21) required — GSC script blocks (exit 2) without it');
+console.log('='.repeat(72));
+
 const DOMAINS = ["externalssds.com", "portablessds.com"];
 const BWMT_BASE = "https://ssl.bing.com/webmaster/api.svc/json";
 const WINDOW_DAYS = 14;

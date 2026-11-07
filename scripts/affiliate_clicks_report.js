@@ -11,6 +11,17 @@
 // Requires wrangler auth (OAuth token, as used for all D1 commands).
 // Run: node scripts/affiliate_clicks_report.js
 
+// MEASUREMENT GATE NOTICE (2026-11-07): the cheap-wins deploy `054f5eb` has
+// OPEN measurement gates. Day+3 Nov 10 (BWMT + this beacon report), Day+7 Nov 14
+// (+ GSC/GA4/RUM), Day+14 Nov 21 (closing RESULT required in AGENTS.md or
+// gsc_pull_revenue.js blocks with exit 2). Targets + baselines: AGENTS.md
+// START HERE block and `RESULT (2026-11-07)`.
+console.log('='.repeat(72));
+console.log('  MEASUREMENT GATES OPEN (cheap-wins 054f5eb) — see AGENTS.md RESULT (2026-11-07)');
+console.log('  Key beacon targets: keeper clicks (ext converters baseline 3 and 2 per 30d -> >=+1)');
+console.log('  Full gate schedule: AGENTS.md START HERE block. Exclude scanner rows (/i23646*, /rl-*, payloads).');
+console.log('='.repeat(72));
+
 import { execSync } from "node:child_process";
 
 const DB_NAME = "ssd-affiliate-db";
