@@ -7,6 +7,7 @@ import AdSlot from "@components/AdSlot.astro";
 import { getProductBySlug, getProductPricesFresh, getProductsByBrand, getCapacityVariants, getRelatedProducts, getHubsForProduct } from "@lib/db";
 import type { Hub } from "@lib/db";
 import { classifyDrive } from "@lib/editorial";
+import { getProductKeeper } from "@lib/keeperContent";
 
 const { DB, tenant, hostname, marketplace } = Astro.locals;
 const { slug } = Astro.params;
@@ -261,6 +262,10 @@ const isUSB4 = product.interface === "USB4" || product.interface?.includes("Thun
 const isGen2x2 = product.interface?.includes("Gen 2x2");
 const isHighCapacity = product.capacity_gb >= 2000;
 
+// Keeper Deep Dive content (Batch 1, 2026-11-15) — additive, unique per slug.
+const keeper = getProductKeeper(tenant.id, product.slug);
+const keeperFaqs = keeper?.faqs ?? [];
+
 const transfer50gb = xferTime(product.write_speed_mbps, 50);
 const transfer100gb = xferTime(product.write_speed_mbps, 100);
 const transfer200gb = xferTime(product.write_speed_mbps, 200);
@@ -317,13 +322,14 @@ const faqEntries = [
 const faqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: faqEntries.map((item) => ({
+  mainEntity: allFaqs.map((item) => ({
     "@type": "Question",
     name: item.q,
     acceptedAnswer: { "@type": "Answer", text: item.a },
   })),
 };
 
+const allFaqs = keeperFaqs.length > 0 ? [...faqEntries, ...keeperFaqs] : faqEntries;
 const calloutBg: Record<string, string> = {
   "elite-pro-creator": "bg-purple-50 border-purple-200",
   "console-gaming": "bg-indigo-50 border-indigo-200",
@@ -615,6 +621,43 @@ const calloutText: Record<string, string> = {
             </div>
           </div>
         </section>
+
+        {keeper && (
+          <section class="mb-8 space-y-5">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-1 h-6 rounded-full" style={{ backgroundColor: tenant.primaryColorDark }}></div>
+              <h2 class="text-xl font-semibold text-surface-900">The Short Version</h2>
+            </div>
+            <div class="text-surface-800 leading-relaxed [&_p]:mb-3">
+              <p>{keeper.shortVersion}</p>
+              <div>
+                <h3 class="text-base font-semibold text-surface-800 mb-1.5">After the Dynamic SLC Cache Fills</h3>
+                <p>{keeper.sustainedPastCache}</p>
+              </div>
+              <div>
+                <h3 class="text-base font-semibold text-surface-800 mb-1.5">Consoles, Macs, and Real Host Ports</h3>
+                <p>{keeper.consoleFit}</p>
+              </div>
+              <div>
+                <h3 class="text-base font-semibold text-surface-800 mb-1.5">Who Should Skip the {product.name}</h3>
+                <ul class="list-disc pl-5 space-y-1.5">
+                  {keeper.skipCases.map((skip) => <li>{skip}</li>)}
+                </ul>
+              </div>
+              <div>
+                <h3 class="text-base font-semibold text-surface-800 mb-1.5">Questions Real Searchers Asked</h3>
+                <div class="space-y-3">
+                  {keeperFaqs.map((faq) => (
+                    <div>
+                      <h4 class="text-sm font-semibold text-surface-900">{faq.q}</h4>
+                      <p class="text-sm text-surface-700">{faq.a}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         <AdSlot placement="product" />
 
