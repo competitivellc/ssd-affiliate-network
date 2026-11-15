@@ -319,6 +319,7 @@ const faqEntries = [
   },
 ];
 
+const allFaqs = keeperFaqs.length > 0 ? [...faqEntries, ...keeperFaqs] : faqEntries;
 const faqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -329,7 +330,6 @@ const faqJsonLd = {
   })),
 };
 
-const allFaqs = keeperFaqs.length > 0 ? [...faqEntries, ...keeperFaqs] : faqEntries;
 const calloutBg: Record<string, string> = {
   "elite-pro-creator": "bg-purple-50 border-purple-200",
   "console-gaming": "bg-indigo-50 border-indigo-200",
