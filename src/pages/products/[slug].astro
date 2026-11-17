@@ -79,6 +79,9 @@ const productUrl = `https://${hostname}/products/${product.slug}`;
 const siteUrl = `https://${hostname}`;
 
 const capacityLabel = product.capacity_gb >= 1000 ? `${(product.capacity_gb / 1000).toFixed(product.capacity_gb % 1000 === 0 ? 0 : 1)}TB` : `${product.capacity_gb}GB`;
+// D1 `name` frequently ends with its own capacity token (e.g. "Samsung T9 Portable 4TB") —
+// strip one trailing TB/GB token so titles/H1/meta/JSON-LD don't read "4TB 4TB".
+const displayName = product.name.replace(/\s+\d+(\.\d+)?\s*(?:TB|GB)\s*$/i, "").trim();
 const currentYear = new Date().getFullYear();
 const bandwidthLabel = product.read_speed_mbps >= 1000 ? `${(product.read_speed_mbps / 1000).toFixed(1)} GB/s` : `${product.read_speed_mbps} MB/s`;
 
@@ -179,11 +182,11 @@ const bingOverride = HIGH_INTENT_BING_SLUGS[tenant.id]?.[slug!];
 
 const productPageTitle = bingOverride
   ? bingOverride.title
-  : `${product.name} ${capacityLabel} ${tenantNoun} SSD Review (${currentYear}) — ${product.read_speed_mbps.toLocaleString()} MB/s Reads`;
+  : `${displayName} ${capacityLabel} ${tenantNoun} SSD Review (${currentYear}) — ${product.read_speed_mbps.toLocaleString()} MB/s Reads`;
 const productPageDesc = bingOverride
   ? bingOverride.meta
-  : `${product.name} ${capacityLabel} ${tenantNoun.toLowerCase()} SSD review (${currentYear}): ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes, ${product.interface || "USB"} interface, real-world benchmarks, full specs, and where to buy.`;
-const defaultH1 = `${product.name} ${capacityLabel} ${tenantNoun} SSD`;
+  : `${displayName} ${capacityLabel} ${tenantNoun.toLowerCase()} SSD review (${currentYear}): ${product.read_speed_mbps.toLocaleString()} MB/s reads, ${product.write_speed_mbps.toLocaleString()} MB/s writes, ${product.interface || "USB"} interface, real-world benchmarks, full specs, and where to buy.`;
+const defaultH1 = `${displayName} ${capacityLabel} ${tenantNoun} SSD`;
 
 const pros: string[] = product.pros ? JSON.parse(product.pros) : [];
 const cons: string[] = product.cons ? JSON.parse(product.cons) : [];
@@ -192,7 +195,7 @@ const productJsonLd: Record<string, unknown> = {
   "@context": "https://schema.org/",
   "@type": "Product",
   "@id": productUrl,
-  name: `${product.name} ${capacityLabel} Portable SSD`,
+  name: `${displayName} ${capacityLabel} Portable SSD`,
   description: product.description,
   mpn: product.model || product.slug,
   ...(product.gtin13 ? { gtin13: product.gtin13 } : {}),
@@ -277,14 +280,14 @@ const archetype = classifyDrive(product);
 const faqEntries = [
   {
     q: `What are the read and write speeds of the ${product.name}?`,
-    a: `The ${product.name} ${capacityLabel} delivers sequential read speeds of ${product.read_speed_mbps.toLocaleString()} MB/s and write speeds of ${product.write_speed_mbps.toLocaleString()} MB/s over its ${product.interface} interface.`,
+    a: `The ${displayName} ${capacityLabel} delivers sequential read speeds of ${product.read_speed_mbps.toLocaleString()} MB/s and write speeds of ${product.write_speed_mbps.toLocaleString()} MB/s over its ${product.interface} interface.`,
   },
   {
     q: `What interface does the ${product.name} use?`,
     a: `The ${product.name} uses a ${product.interface} interface with a theoretical maximum bandwidth of ${bandwidthLabel}.`,
   },
   {
-    q: `How much storage does the ${product.name} ${capacityLabel} hold?`,
+    q: `How much storage does the ${displayName} ${capacityLabel} hold?`,
     a: `The ${product.name} provides ${capacityLabel} of usable storage, enough for approximately ${Math.floor(product.capacity_gb / 50)} hours of 4K video or ${Math.floor(product.capacity_gb / 4)} large game installs.`,
   },
   {
