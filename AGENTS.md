@@ -1364,6 +1364,10 @@ Top Bing keyword driving these impressions: `crucial x9 pro` (5i/14d, pos 5, 0c)
 
 **Lessons (mandatory for future batches):** (a) every deploy gets a live-page sweep on BOTH tenants, not just changed pages — same-deploy blast radius can exceed expectations; (b) adding one const can brick an entire route class — build success ≠ runtime success (Astro SSR TDZ does not surface at build); (c) deployment "Active" does not mean all edge PoPs serve new code — re-check after propagation before declaring done; (d) verify control pages (unmapped slugs) to prove changes are surgical.
 
+### ADDENDUM (2026-11-18): CTA unify + solid-primary pass (plan `plans/cta-solid-unify-2026-11-18.md`, owner-approved 2026-11-18)
+
+**Shipped:** all affiliate buy-button labels unified network-wide to **`Check Price on {retailer} →`** (12 call sites — `AffiliateButton`, ComparisonTable, best/, compare.astro ×4, compare/[slug], hubs table text link (+` →`), products ×2, per-retailer page) and the 3 ghost primaries made solid (`products/[slug]` Where-to-Buy :445, H2H :335, best-page :175) with the `bg-blue-800` recipe used network-wide. hubs spec-table cell remains a text link; `Amazon (used)` and secondary "Other retailers" rows untouched; zero href/rel/tag/linkCode changes (diff grep clean). IndexNow both tenants. Day+7/+14 gates: beacon `cta_label` histogram + BWMT CTR on `/products/crucial-x9-pro-2tb` & ext `/compare`; GA4 `affiliate_click` remains the known-0 consent-gated baseline. Plan file committed (`d1031df`).
+
 ### RESULT (2026-11-07): cheap-wins funnel deploy (commit `054f5eb`, owner-approved) — measurement gates OPEN (Day+3 Nov 10 / +7 Nov 14 / +14 Nov 21)
 
 **Scope (plan: `plans/cheap-wins-2026-11-07.md`, owner-approved 2026-11-07):** one small deploy, 3 files, 79 insertions / 0 deletions — the first code change since the 2026-10-26 audit. While AdSense (portablessds "Getting ready", owner-checked 2026-11-06) waits in Google's review queue and Google stays dead (GSC 7d: ext 0c/7i, port 0c/3i), this tightens the funnel for the trickle of real traffic. Deliberately NOT a Google-recovery attempt (keeper-deepening program remains unapproved).

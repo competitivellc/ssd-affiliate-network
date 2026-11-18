@@ -172,10 +172,10 @@ const editorial = getEditorialContent(slug!, displayProducts);
                             <GeoAffiliateLink
                               url={bestPrice.affiliate_url || ""}
                               retailer={bestPrice.retailer}
-                              label={`See Price on ${bestPrice.retailer} →`}
+                              label={`Check Price on ${bestPrice.retailer} →`}
                               urlSource={bestPrice.url_source}
                               useCartExtend
-                              className="text-sm font-semibold"
+                              className="justify-center py-2.5 px-5 text-sm font-semibold rounded-lg bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
                             />
                             <PriceStamp fetchedAt={bestPrice.fetched_at} className="text-xs" />
                           </>

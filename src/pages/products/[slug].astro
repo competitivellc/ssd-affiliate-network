@@ -442,11 +442,11 @@ const calloutText: Record<string, string> = {
             <GeoAffiliateLink
               url={primaryLink.affiliate_url || ""}
               retailer={primaryLink.retailer}
-              label={`Check on ${primaryLink.retailer} →`}
+              label={`Check Price on ${primaryLink.retailer} →`}
               urlSource={primaryLink.url_source}
               useCartExtend
               productSlug={product.slug}
-              className="mb-4 text-sm"
+              className="mb-4 w-full justify-center py-3 text-sm font-semibold rounded-lg bg-blue-800 text-white border-blue-800 hover:bg-blue-900 [&_svg]:text-white"
             />
           )}
           {(amazonUsed || otherRetailers.length > 0) && (
@@ -855,7 +855,7 @@ const calloutText: Record<string, string> = {
             <GeoAffiliateLink
               url={primaryLink.affiliate_url || ""}
               retailer={primaryLink.retailer}
-              label={`Check on ${primaryLink.retailer} →`}
+              label={`Check Price on ${primaryLink.retailer} →`}
               urlSource={primaryLink.url_source}
               useCartExtend
               productSlug={product.slug}

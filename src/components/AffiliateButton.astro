@@ -1,8 +1,8 @@
 ---
 // AffiliateButton — renders the buy-now link for a product, with three modes:
 //
-//   1. freshPrice present  → "See Price on <retailer> →" + PriceStamp (live)
-//   2. fallbackPrice only  → "See Price on <retailer> →" + "Pricing temporarily
+//   1. freshPrice present  → "Check Price on <retailer> →" + PriceStamp (live)
+//   2. fallbackPrice only  → "Check Price on <retailer> →" + "Pricing temporarily
 //                             unavailable" note (no price text shown, but the
 //                             affiliate link is rendered with the visitor's
 //                             marketplace-correct tag — Pol §2(b) restricts
@@ -59,7 +59,7 @@ const buttonClass =
     <GeoAffiliateLink
       url={linkPrice.affiliate_url || ""}
       retailer={linkPrice.retailer}
-      label={`See Price on ${linkPrice.retailer} →`}
+      label={`Check Price on ${linkPrice.retailer} →`}
       urlSource={linkPrice.url_source}
       useCartExtend={variant === "primary"}
       productSlug={productSlug}
